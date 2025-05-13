@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Candle Display</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f5f5f5;
+            font-family: Arial, sans-serif;
+        }
+        
+        .candle-container {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 200px;
+        }
+        
+        .candle-flame {
+            position: absolute;
+            top: 155px;
+            width: 30px;
+            height: auto;
+            z-index: 2;
+        }
+        
+        .candle-glass {
+            position: relative;
+            width: 100%;
+            height: auto;
+            z-index: 1;
+        }
+        
+        .candle-middle {
+            position: absolute;
+            top: 40%;
+            width: 15px;
+            height: 120px;
+            z-index: 3;
+        }
+        
+        .candle-bottom {
+            position: relative;
+            width: 100px;
+            height: auto;
+            margin-top: -10px;
+            z-index: 4;
+        }
+        
+        .text-container {
+            text-align: center;
+            margin-top: 10px;
+        }
+        
+        .name {
+            color: #3366cc;
+            font-size: 24px;
+            font-weight: bold;
+            margin: 0;
+        }
+        
+        .location {
+            color: #666;
+            font-size: 16px;
+            margin: 5px 0 0 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="candle-container">
+        <img src="https://kreupasanam.com/UserStyle/assets/images/candle-flame.gif" class="candle-flame" alt="Candle Flame">
+        <img src="https://kreupasanam.com/UserStyle/assets/images/candle_glass.png" class="candle-glass" alt="Candle Glass">
+        <img src="https://kreupasanam.com/UserStyle/assets/images/candleMidle.jpg" class="candle-middle" alt="Candle Middle">
+        <img src="https://kreupasanam.com/UserStyle/assets/images/candleMidle.jpg" class="candle-middle" alt="Candle Middle">
+        <img src="https://kreupasanam.com/UserStyle/assets/images/candleMidle.jpg" class="candle-middle" alt="Candle Middle">
+        <img src="https://kreupasanam.com/UserStyle/assets/images/candleBottom.png" class="candle-bottom" alt="Candle Bottom">
+        
+        <div class="text-container">
+            <p class="name">SAJIN</p>
+            <p class="location">Chandigarh</p>
+        </div>
+    </div>
+</body>
+</html>
