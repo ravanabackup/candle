@@ -1,0 +1,347 @@
+// ==UserScript==
+// @name         Kreupasanam Candle Name Search
+// @namespace    http://tampermonkey.net/
+// @version      1.1
+// @description  Search for specific names in Kreupasanam candle prayer pages
+// @author       You
+// @match        https://kreupasanam.com/en/lightCandlePrayer*
+// @grant        GM_addStyle
+// ==/UserScript==
+
+(function() {
+    'use strict';
+
+    // Add custom CSS for the search interface
+    GM_addStyle(`
+        #nameSearchContainer {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background-color: white;
+            border: 2px solid #3975bd;
+            border-radius: 5px;
+            padding: 10px;
+            z-index: 9999;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        #nameSearchContainer input {
+            margin: 5px 0;
+            padding: 5px;
+            width: 200px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+        }
+        
+        #nameSearchContainer button {
+            background-color: #3975bd;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            padding: 5px 10px;
+            cursor: pointer;
+            margin-top: 5px;
+            margin-right: 5px;
+        }
+        
+        #nameSearchContainer button:hover {
+            background-color: #2c5d99;
+        }
+        
+        #searchResults {
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        
+        .highlight {
+            background-color: yellow;
+            color: black;
+            padding: 2px;
+            border-radius: 3px;
+        }
+        
+        #continueSearch {
+            background-color: #28a745;
+            display: none;
+        }
+        
+        #continueSearch:hover {
+            background-color: #218838;
+        }
+        
+        #pageTitle {
+            font-weight: bold;
+            color: #3975bd;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+    `);
+
+    // Create and append the search interface
+    function createSearchInterface() {
+        const container = document.createElement('div');
+        container.id = 'nameSearchContainer';
+        
+        container.innerHTML = `
+            <h3 style="margin-top: 0; color: #3975bd;">Candle Name Search</h3>
+            <div id="pageTitle">Page ${getCurrentPageNumber()}</div>
+            <label for="nameToSearch">Name to search:</label>
+            <input type="text" id="nameToSearch" placeholder="Enter name...">
+            <label for="startPage">Start from page:</label>
+            <input type="number" id="startPage" min="1" value="${getCurrentPageNumber()}" placeholder="Page number...">
+            <div>
+                <button id="startSearch">Search</button>
+                <button id="stopSearch" style="background-color: #dc3545; display: none;">Stop Search</button>
+                <button id="continueSearch" style="display: none;">Continue Search</button>
+            </div>
+            <div id="searchResults"></div>
+        `;
+        
+        document.body.appendChild(container);
+        
+        // Add event listeners
+        document.getElementById('startSearch').addEventListener('click', startSearch);
+        document.getElementById('stopSearch').addEventListener('click', stopSearch);
+        document.getElementById('continueSearch').addEventListener('click', continueSearch);
+    }
+
+    // Variables to control search process
+    let isSearching = false;
+    let searchTimeout = null;
+    let currentSearchName = '';
+    let maxPageNumber = 0;
+
+    // Get the current page number from URL
+    function getCurrentPageNumber() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const page = urlParams.get('page');
+        return page ? parseInt(page) : 1;
+    }
+    
+    // Get maximum page number
+    function getMaxPageNumber() {
+        const pagination = document.querySelector('.pagination');
+        if (!pagination) return 249; // Default to a high number if pagination not found
+        
+        let maxPage = 1;
+        const pageLinks = pagination.querySelectorAll('a.page-link');
+        
+        pageLinks.forEach(link => {
+            const pageNum = parseInt(link.textContent);
+            if (!isNaN(pageNum) && pageNum > maxPage) {
+                maxPage = pageNum;
+            }
+        });
+        
+        return maxPage;
+    }
+
+    // Start the search process
+    function startSearch() {
+        const nameInput = document.getElementById('nameToSearch');
+        const startPageInput = document.getElementById('startPage');
+        const resultsDiv = document.getElementById('searchResults');
+        
+        currentSearchName = nameInput.value.trim();
+        
+        if (!currentSearchName) {
+            resultsDiv.textContent = 'Please enter a name to search.';
+            resultsDiv.style.color = 'red';
+            return;
+        }
+        
+        const startPage = parseInt(startPageInput.value) || 1;
+        maxPageNumber = getMaxPageNumber();
+        
+        if (startPage < 1 || startPage > maxPageNumber) {
+            resultsDiv.textContent = `Please enter a valid page number (1-${maxPageNumber}).`;
+            resultsDiv.style.color = 'red';
+            return;
+        }
+        
+        isSearching = true;
+        document.getElementById('startSearch').style.display = 'none';
+        document.getElementById('stopSearch').style.display = 'inline-block';
+        
+        resultsDiv.textContent = `Searching for "${currentSearchName}" starting from page ${startPage}...`;
+        resultsDiv.style.color = 'blue';
+        
+        // If we're not already on the start page, navigate there first
+        if (getCurrentPageNumber() !== startPage) {
+            navigateToPage(startPage, currentSearchName);
+            return;
+        }
+        
+        // Otherwise, start searching on the current page
+        searchCurrentPage();
+    }
+
+    // Stop the search process
+    function stopSearch() {
+        isSearching = false;
+        if (searchTimeout) {
+            clearTimeout(searchTimeout);
+            searchTimeout = null;
+        }
+        
+        document.getElementById('startSearch').style.display = 'inline-block';
+        document.getElementById('stopSearch').style.display = 'none';
+        
+        document.getElementById('searchResults').textContent = 'Search stopped.';
+        document.getElementById('searchResults').style.color = 'orange';
+        
+        // Remove the search parameters from the URL
+        removeSearchParamsFromURL();
+    }
+    
+    // Navigate to a specific page while preserving search parameters
+    function navigateToPage(pageNumber, searchName) {
+        // Create URL with search parameters
+        const url = new URL(window.location.origin + window.location.pathname);
+        url.searchParams.set('page', pageNumber);
+        url.searchParams.set('searchName', encodeURIComponent(searchName));
+        url.searchParams.set('isSearching', 'true');
+        
+        // Navigate to the URL
+        window.location.href = url.toString();
+    }
+    
+    // Remove search parameters from URL
+    function removeSearchParamsFromURL() {
+        const url = new URL(window.location.href);
+        url.searchParams.delete('searchName');
+        url.searchParams.delete('isSearching');
+        
+        // Update URL without reloading the page
+        window.history.replaceState({}, document.title, url.toString());
+    }
+    
+    // Continue search from current position
+    function continueSearch() {
+        const currentPage = getCurrentPageNumber();
+        const nameInput = document.getElementById('nameToSearch');
+        currentSearchName = nameInput.value.trim();
+        
+        isSearching = true;
+        document.getElementById('startSearch').style.display = 'none';
+        document.getElementById('stopSearch').style.display = 'inline-block';
+        document.getElementById('continueSearch').style.display = 'none';
+        
+        const resultsDiv = document.getElementById('searchResults');
+        resultsDiv.textContent = `Continuing search for "${currentSearchName}" from page ${currentPage}...`;
+        resultsDiv.style.color = 'blue';
+        
+        // Continue to next page
+        searchTimeout = setTimeout(() => {
+            navigateToPage(currentPage + 1, currentSearchName);
+        }, 1000);
+    }
+
+    // Search the current page for the name
+    function searchCurrentPage() {
+        if (!isSearching) return;
+        
+        const resultsDiv = document.getElementById('searchResults');
+        const currentPage = getCurrentPageNumber();
+        
+        resultsDiv.textContent = `Searching page ${currentPage}...`;
+        
+        const candleNames = document.querySelectorAll('.candleName span.medium');
+        let found = false;
+        let exactMatch = false;
+        
+        candleNames.forEach(nameElement => {
+            const name = nameElement.textContent.trim();
+            
+            // Check for exact match (case insensitive)
+            if (name.toUpperCase() === currentSearchName.toUpperCase()) {
+                found = true;
+                exactMatch = true;
+                
+                // Highlight the found name
+                nameElement.innerHTML = `<span class="highlight">${nameElement.textContent}</span>`;
+                
+                // Scroll to the element
+                nameElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                
+                resultsDiv.textContent = `Found exact match "${currentSearchName}" on page ${currentPage}!`;
+                resultsDiv.style.color = 'green';
+                
+                // Stop searching
+                isSearching = false;
+                document.getElementById('startSearch').style.display = 'inline-block';
+                document.getElementById('stopSearch').style.display = 'none';
+                document.getElementById('continueSearch').style.display = 'none';
+                
+                // Remove search parameters from URL
+                removeSearchParamsFromURL();
+            }
+        });
+        
+        // If no exact match was found, check if the search should continue
+        if (!exactMatch) {
+            if (currentPage < maxPageNumber) {
+                // Go to next page after a short delay
+                resultsDiv.textContent = `Exact match not found on page ${currentPage}. Going to page ${currentPage + 1}...`;
+                searchTimeout = setTimeout(() => {
+                    navigateToPage(currentPage + 1, currentSearchName);
+                }, 1000);
+            } else {
+                // We've reached the last page and didn't find the name
+                resultsDiv.textContent = `Name "${currentSearchName}" not found on any page.`;
+                resultsDiv.style.color = 'red';
+                isSearching = false;
+                document.getElementById('startSearch').style.display = 'inline-block';
+                document.getElementById('stopSearch').style.display = 'none';
+                document.getElementById('continueSearch').style.display = 'none';
+                
+                // Remove search parameters from URL
+                removeSearchParamsFromURL();
+            }
+        }
+        
+        // Show the continue search button if we found any similar names
+        // This will be useful if the user wants to keep searching even after finding a potentially matching name
+        if (found && !exactMatch) {
+            document.getElementById('continueSearch').style.display = 'inline-block';
+        } else {
+            document.getElementById('continueSearch').style.display = 'none';
+        }
+    }
+
+    // When the page is fully loaded
+    window.addEventListener('load', function() {
+        createSearchInterface();
+        
+        // Update document title to include page number
+        updatePageTitle();
+        
+        // Check if we're continuing a search from a previous page
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('searchName') && urlParams.get('isSearching') === 'true') {
+            const searchName = decodeURIComponent(urlParams.get('searchName'));
+            document.getElementById('nameToSearch').value = searchName;
+            currentSearchName = searchName;
+            isSearching = true;
+            document.getElementById('startSearch').style.display = 'none';
+            document.getElementById('stopSearch').style.display = 'inline-block';
+            
+            // Get the maximum page number
+            maxPageNumber = getMaxPageNumber();
+            
+            // Execute the search on the current page
+            searchCurrentPage();
+        }
+    });
+    
+    // Update page title and page number display
+    function updatePageTitle() {
+        const currentPage = getCurrentPageNumber();
+        document.title = `Kreupasanam - Page ${currentPage}`;
+        
+        const pageTitleElement = document.getElementById('pageTitle');
+        if (pageTitleElement) {
+            pageTitleElement.textContent = `Page ${currentPage}`;
+        }
+    }
+})();
