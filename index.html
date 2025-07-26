@@ -174,6 +174,98 @@
             border: 2px solid #e17055;
         }
 
+        .prayer-media-section {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .media-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .media-header h2 {
+            color: #4a5568;
+            font-size: 2rem;
+            margin-bottom: 15px;
+        }
+
+        .media-toggle {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        .toggle-btn {
+            background: #e2e8f0;
+            color: #4a5568;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .toggle-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .media-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-top: 20px;
+        }
+
+        .media-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .media-card h3 {
+            color: #4a5568;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .media-card.morning {
+            border-top: 4px solid #f6ad55;
+        }
+
+        .media-card.evening {
+            border-top: 4px solid #9f7aea;
+        }
+
+        .media-player {
+            width: 100%;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        .audio-player {
+            width: 100%;
+            height: 54px;
+        }
+
+        .media-description {
+            color: #666;
+            font-style: italic;
+            margin-top: 10px;
+        }
+
         .prayer-section {
             background: rgba(255, 255, 255, 0.95);
             padding: 30px;
@@ -216,6 +308,16 @@
             
             .tracking-cards {
                 grid-template-columns: 1fr;
+            }
+
+            .media-container {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .media-toggle {
+                flex-direction: column;
+                align-items: center;
             }
         }
     </style>
@@ -280,6 +382,52 @@
             </div>
         </div>
 
+        <div class="prayer-media-section">
+            <div class="media-header">
+                <h2>🎵 Prayer Media 🎵</h2>
+                <div class="media-toggle">
+                    <button class="toggle-btn active" id="videoBtn" onclick="toggleMediaType('video')">
+                        📹 Video
+                    </button>
+                    <button class="toggle-btn" id="audioBtn" onclick="toggleMediaType('audio')">
+                        🎧 Audio Only
+                    </button>
+                </div>
+            </div>
+
+            <div class="media-container">
+                <div class="media-card morning">
+                    <h3><span class="icon">🌅</span>Morning Prayer</h3>
+                    <video class="media-player" id="morningVideo" controls preload="metadata">
+                        <source src="https://github.com/ravanabackup/candle/releases/download/1.0/morning.mp4" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                    <audio class="media-player audio-player" id="morningAudio" controls preload="metadata" style="display: none;">
+                        <source src="https://github.com/ravanabackup/candle/releases/download/1.0/morning.mp4" type="video/mp4">
+                        Your browser does not support the audio tag.
+                    </audio>
+                    <div class="media-description">
+                        Start your day with this beautiful morning prayer to Mary
+                    </div>
+                </div>
+
+                <div class="media-card evening">
+                    <h3><span class="icon">🌙</span>Evening Prayer</h3>
+                    <video class="media-player" id="eveningVideo" controls preload="metadata">
+                        <source src="https://github.com/ravanabackup/candle/releases/download/1.0/evening.mp4" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                    <audio class="media-player audio-player" id="eveningAudio" controls preload="metadata" style="display: none;">
+                        <source src="https://github.com/ravanabackup/candle/releases/download/1.0/evening.mp4" type="video/mp4">
+                        Your browser does not support the audio tag.
+                    </audio>
+                    <div class="media-description">
+                        End your day in peace with this evening prayer to Our Lady
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="prayer-section">
             <h2>Daily Prayer Intention</h2>
             <div class="prayer-text">
@@ -303,6 +451,8 @@
             readingDays: [],
             startDate: '2025-07-27'
         };
+
+        let currentMediaType = 'video';
 
         function getCurrentDay() {
             const today = new Date();
@@ -332,6 +482,41 @@
         function getTodayString() {
             const today = new Date();
             return today.toISOString().split('T')[0];
+        }
+
+        function toggleMediaType(type) {
+            currentMediaType = type;
+            
+            // Update button states
+            const videoBtn = document.getElementById('videoBtn');
+            const audioBtn = document.getElementById('audioBtn');
+            
+            videoBtn.classList.remove('active');
+            audioBtn.classList.remove('active');
+            
+            if (type === 'video') {
+                videoBtn.classList.add('active');
+                // Show videos, hide audio
+                document.getElementById('morningVideo').style.display = 'block';
+                document.getElementById('eveningVideo').style.display = 'block';
+                document.getElementById('morningAudio').style.display = 'none';
+                document.getElementById('eveningAudio').style.display = 'none';
+                
+                // Pause audio if playing
+                document.getElementById('morningAudio').pause();
+                document.getElementById('eveningAudio').pause();
+            } else {
+                audioBtn.classList.add('active');
+                // Show audio, hide videos
+                document.getElementById('morningVideo').style.display = 'none';
+                document.getElementById('eveningVideo').style.display = 'none';
+                document.getElementById('morningAudio').style.display = 'block';
+                document.getElementById('eveningAudio').style.display = 'block';
+                
+                // Pause videos if playing
+                document.getElementById('morningVideo').pause();
+                document.getElementById('eveningVideo').pause();
+            }
         }
 
         function updateDisplay() {
