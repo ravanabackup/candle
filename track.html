@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Online Marian Covenant Prayer - 90 Days</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Georgia', serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .header h1 {
+            color: #4a5568;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.2rem;
+            font-style: italic;
+        }
+
+        .progress-section {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .progress-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .days-counter {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .date-info {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .tracking-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card h3 {
+            color: #4a5568;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .icon {
+            font-size: 1.5rem;
+        }
+
+        .daily-tracker {
+            margin-top: 20px;
+        }
+
+        .today-task {
+            background: #f7fafc;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+        }
+
+        .task-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .btn:hover {
+            background: #5a67d8;
+        }
+
+        .btn.completed {
+            background: #48bb78;
+        }
+
+        .btn.completed:hover {
+            background: #38a169;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            background: #f7fafc;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .wednesday-highlight {
+            background: linear-gradient(135deg, #ffeaa7, #fab1a0);
+            border: 2px solid #e17055;
+        }
+
+        .prayer-section {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+
+        .prayer-text {
+            font-style: italic;
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: #4a5568;
+            margin-bottom: 20px;
+        }
+
+        .reset-btn {
+            background: #e53e3e;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        .reset-btn:hover {
+            background: #c53030;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .days-counter {
+                font-size: 2rem;
+            }
+            
+            .tracking-cards {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌹 Online Marian Covenant Prayer 🌹</h1>
+            <p>"Hail Mary, full of grace, the Lord is with thee"</p>
+        </div>
+
+        <div class="progress-section">
+            <div class="progress-header">
+                <div class="days-counter" id="dayCounter">Day 1</div>
+                <div class="date-info">
+                    <div>Started: July 27, 2025</div>
+                    <div>Current Date: <span id="currentDate"></span></div>
+                    <div>Completion: <span id="completionDate">October 25, 2025</span></div>
+                </div>
+            </div>
+
+            <div class="tracking-cards">
+                <div class="card" id="fastingCard">
+                    <h3><span class="icon">🍽️</span>Wednesday Fasting</h3>
+                    <div class="today-task" id="fastingTask">
+                        <div class="task-item">
+                            <span id="fastingText">Today is not Wednesday - No fasting required</span>
+                            <button class="btn" id="fastingBtn" onclick="toggleFasting()" style="display: none;">Mark Complete</button>
+                        </div>
+                    </div>
+                    <div class="stats">
+                        <div class="stat-card">
+                            <div class="stat-number" id="fastingCompleted">0</div>
+                            <div class="stat-label">Wednesdays Completed</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="fastingTotal">13</div>
+                            <div class="stat-label">Total Wednesdays</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3><span class="icon">📖</span>Daily Scripture Reading</h3>
+                    <div class="today-task">
+                        <div class="task-item">
+                            <span>Read God's Word (30+ minutes)</span>
+                            <button class="btn" id="readingBtn" onclick="toggleReading()">Mark Complete</button>
+                        </div>
+                    </div>
+                    <div class="stats">
+                        <div class="stat-card">
+                            <div class="stat-number" id="readingCompleted">0</div>
+                            <div class="stat-label">Days Completed</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">90</div>
+                            <div class="stat-label">Total Days</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="prayer-section">
+            <h2>Daily Prayer Intention</h2>
+            <div class="prayer-text">
+                "O Mary, Mother of God and our Mother, through this 90-day covenant, 
+                I consecrate myself to your Immaculate Heart. Guide me in fasting and 
+                in the study of your Son's Word. Help me grow closer to Jesus through 
+                your maternal intercession. Amen."
+            </div>
+            <button class="reset-btn" onclick="resetProgress()">Reset All Progress</button>
+        </div>
+    </div>
+
+    <script>
+        // Start date: July 27, 2025
+        const startDate = new Date('2025-07-27');
+        const endDate = new Date('2025-10-25'); // 90 days later
+        
+        // Load saved progress from memory
+        let progress = {
+            fastingDays: [],
+            readingDays: [],
+            startDate: '2025-07-27'
+        };
+
+        function getCurrentDay() {
+            const today = new Date();
+            const diffTime = today - startDate;
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
+            return Math.max(1, Math.min(diffDays, 90));
+        }
+
+        function isWednesday() {
+            const today = new Date();
+            return today.getDay() === 3; // Wednesday is day 3
+        }
+
+        function getTotalWednesdays() {
+            let count = 0;
+            let currentDate = new Date(startDate);
+            
+            while (currentDate <= endDate) {
+                if (currentDate.getDay() === 3) {
+                    count++;
+                }
+                currentDate.setDate(currentDate.getDate() + 1);
+            }
+            return count;
+        }
+
+        function getTodayString() {
+            const today = new Date();
+            return today.toISOString().split('T')[0];
+        }
+
+        function updateDisplay() {
+            const currentDay = getCurrentDay();
+            const today = new Date();
+            const todayString = getTodayString();
+            
+            // Update day counter
+            document.getElementById('dayCounter').textContent = `Day ${currentDay} of 90`;
+            
+            // Update current date
+            document.getElementById('currentDate').textContent = today.toLocaleDateString();
+            
+            // Update fasting section
+            const fastingCard = document.getElementById('fastingCard');
+            const fastingText = document.getElementById('fastingText');
+            const fastingBtn = document.getElementById('fastingBtn');
+            
+            if (isWednesday()) {
+                fastingCard.classList.add('wednesday-highlight');
+                fastingText.textContent = 'Today is Wednesday - Observe fasting';
+                fastingBtn.style.display = 'inline-block';
+                
+                if (progress.fastingDays.includes(todayString)) {
+                    fastingBtn.textContent = 'Completed ✓';
+                    fastingBtn.classList.add('completed');
+                } else {
+                    fastingBtn.textContent = 'Mark Complete';
+                    fastingBtn.classList.remove('completed');
+                }
+            } else {
+                fastingCard.classList.remove('wednesday-highlight');
+                fastingText.textContent = 'Today is not Wednesday - No fasting required';
+                fastingBtn.style.display = 'none';
+            }
+            
+            // Update reading button
+            const readingBtn = document.getElementById('readingBtn');
+            if (progress.readingDays.includes(todayString)) {
+                readingBtn.textContent = 'Completed ✓';
+                readingBtn.classList.add('completed');
+            } else {
+                readingBtn.textContent = 'Mark Complete';
+                readingBtn.classList.remove('completed');
+            }
+            
+            // Update statistics
+            document.getElementById('fastingCompleted').textContent = progress.fastingDays.length;
+            document.getElementById('fastingTotal').textContent = getTotalWednesdays();
+            document.getElementById('readingCompleted').textContent = progress.readingDays.length;
+        }
+
+        function toggleFasting() {
+            const todayString = getTodayString();
+            const index = progress.fastingDays.indexOf(todayString);
+            
+            if (index > -1) {
+                progress.fastingDays.splice(index, 1);
+            } else {
+                progress.fastingDays.push(todayString);
+            }
+            
+            updateDisplay();
+        }
+
+        function toggleReading() {
+            const todayString = getTodayString();
+            const index = progress.readingDays.indexOf(todayString);
+            
+            if (index > -1) {
+                progress.readingDays.splice(index, 1);
+            } else {
+                progress.readingDays.push(todayString);
+            }
+            
+            updateDisplay();
+        }
+
+        function resetProgress() {
+            if (confirm('Are you sure you want to reset all progress? This cannot be undone.')) {
+                progress = {
+                    fastingDays: [],
+                    readingDays: [],
+                    startDate: '2025-07-27'
+                };
+                updateDisplay();
+            }
+        }
+
+        // Initialize the page
+        updateDisplay();
+        
+        // Update every minute to catch day changes
+        setInterval(updateDisplay, 60000);
+    </script>
+</body>
+</html>
