@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Online Marian Covenant Prayer - 90 Days</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Georgia', serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .header h1 {
+            color: #4a5568;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.2rem;
+            font-style: italic;
+        }
+
+        .progress-section {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .progress-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .days-counter {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .date-info {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .tracking-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card h3 {
+            color: #4a5568;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .icon {
+            font-size: 1.5rem;
+        }
+
+        .daily-tracker {
+            margin-top: 20px;
+        }
+
+        .today-task {
+            background: #f7fafc;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+        }
+
+        .task-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .btn:hover {
+            background: #5a67d8;
+        }
+
+        .btn.completed {
+            background: #48bb78;
+        }
+
+        .btn.completed:hover {
+            background: #38a169;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            background: #f7fafc;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .wednesday-highlight {
+            background: linear-gradient(135deg, #ffeaa7, #fab1a0);
+            border: 2px solid #e17055;
+        }
+
+        .prayer-media-section {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .media-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .media-header h2 {
+            color: #4a5568;
+            font-size: 2rem;
+            margin-bottom: 15px;
+        }
+
+        .media-toggle {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        .toggle-btn {
+            background: #e2e8f0;
+            color: #4a5568;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .toggle-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .media-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-top: 20px;
+        }
+
+        .media-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .media-card h3 {
+            color: #4a5568;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .media-card.morning {
+            border-top: 4px solid #f6ad55;
+        }
+
+        .media-card.evening {
+            border-top: 4px solid #9f7aea;
+        }
+
+        .youtube-player {
+            width: 100%;
+            height: 200px; /* Default video height */
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        .youtube-player.audio-mode {
+            height: 50px; /* Compact height for audio mode */
+            /* Further styling for audio mode can be added here, e.g., filter: grayscale(100%); */
+        }
+
+        .media-description {
+            color: #666;
+            font-style: italic;
+            margin-top: 10px;
+        }
+
+        .video-title {
+            color: #4a5568;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+            font-weight: normal;
+            line-height: 1.4;
+        }
+
+        .upload-info {
+            color: #666;
+            font-size: 0.85rem;
+            margin-bottom: 15px;
+            padding: 8px 12px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            border-left: 3px solid #667eea;
+        }
+
+        .loading-text {
+            color: #667eea;
+            font-style: italic;
+            padding: 20px;
+        }
+
+        .error-text {
+            color: #e53e3e;
+            font-style: italic;
+            padding: 20px;
+        }
+
+        .refresh-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .refresh-btn:hover {
+            background: #5a67d8;
+        }
+
+        .prayer-section {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+
+        .prayer-text {
+            font-style: italic;
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: #4a5568;
+            margin-bottom: 20px;
+        }
+
+        .reset-btn {
+            background: #e53e3e;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        .reset-btn:hover {
+            background: #c53030;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .days-counter {
+                font-size: 2rem;
+            }
+
+            .tracking-cards {
+                grid-template-columns: 1fr;
+            }
+
+            .media-container {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .media-toggle {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌹 Online Marian Covenant Prayer 🌹</h1>
+            <p>"Hail Mary, full of grace, the Lord is with thee"</p>
+        </div>
+
+        <div class="progress-section">
+            <div class="progress-header">
+                <div class="days-counter" id="dayCounter">Day 1</div>
+                <div class="date-info">
+                    <div>Started: July 27, 2025</div>
+                    <div>Current Date: <span id="currentDate"></span></div>
+                    <div>Completion: <span id="completionDate">October 25, 2025</span></div>
+                </div>
+            </div>
+
+            <div class="tracking-cards">
+                <div class="card" id="fastingCard">
+                    <h3><span class="icon">🍽️</span>Wednesday Fasting</h3>
+                    <div class="today-task" id="fastingTask">
+                        <div class="task-item">
+                            <span id="fastingText">Today is not Wednesday - No fasting required</span>
+                            <button class="btn" id="fastingBtn" onclick="toggleFasting()" style="display: none;">Mark Complete</button>
+                        </div>
+                    </div>
+                    <div class="stats">
+                        <div class="stat-card">
+                            <div class="stat-number" id="fastingCompleted">0</div>
+                            <div class="stat-label">Wednesdays Completed</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="fastingTotal">13</div>
+                            <div class="stat-label">Total Wednesdays</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3><span class="icon">📖</span>Daily Scripture Reading</h3>
+                    <div class="today-task">
+                        <div class="task-item">
+                            <span>Read God's Word (30+ minutes)</span>
+                            <button class="btn" id="readingBtn" onclick="toggleReading()">Mark Complete</button>
+                        </div>
+                    </div>
+                    <div class="stats">
+                        <div class="stat-card">
+                            <div class="stat-number" id="readingCompleted">0</div>
+                            <div class="stat-label">Days Completed</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">90</div>
+                            <div class="stat-label">Total Days</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="prayer-media-section">
+            <div class="media-header">
+                <h2>🎵 Daily Prayer Videos 🎵</h2>
+                <p style="color: #666; margin-bottom: 20px;">Live updates from YouTube channel</p>
+                
+                <div class="media-toggle">
+                    <button class="toggle-btn" id="audioModeBtn" onclick="setMediaDisplayMode('audio')">🎧 Audio Mode (Save Data)</button>
+                    <button class="toggle-btn" id="videoModeBtn" onclick="setMediaDisplayMode('video')">🎬 Video Mode</button>
+                </div>
+
+                <button class="refresh-btn" onclick="fetchYouTubeVideos()">🔄 Refresh Videos</button>
+            </div>
+
+            <div class="media-container">
+                <div class="media-card morning">
+                    <h3><span class="icon">🌅</span>Morning Prayer</h3>
+                    <div id="morningVideoContainer">
+                        <div class="loading-text">Loading morning prayer...</div>
+                    </div>
+                    <div class="media-description">
+                        Daily morning prayer from Our Daily Bread series
+                    </div>
+                </div>
+
+                <div class="media-card evening">
+                    <h3><span class="icon">🌙</span>Evening Prayer</h3>
+                    <div id="eveningVideoContainer">
+                        <div class="loading-text">Loading evening prayer...</div>
+                    </div>
+                    <div class="media-description">
+                        Marian Covenant Evening Prayer
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="prayer-section">
+            <h2>Daily Prayer Intention</h2>
+            <div class="prayer-text">
+                "O Mary, Mother of God and our Mother, through this 90-day covenant, 
+                I consecrate myself to your Immaculate Heart. Guide me in fasting and 
+                in the study of your Son's Word. Help me grow closer to Jesus through 
+                your maternal intercession. Amen."
+            </div>
+            <button class="reset-btn" onclick="resetProgress()">Reset All Progress</button>
+        </div>
+    </div>
+
+    <script>
+        // Start date: July 27, 2025
+        const startDate = new Date('2025-07-27');
+        const endDate = new Date('2025-10-25'); // 90 days later
+
+        // YouTube channel RSS feed URL
+        const YOUTUBE_RSS_URL = 'https://www.youtube.com/feeds/videos.xml?channel_id=UCbg8V1kty3s1kcCch2VHwEw';
+                
+        // Proxy service to handle CORS (you may need to use a different service)
+        // Changed proxy to a more reliable one for Canvas environment
+        const CORS_PROXY = 'https://text-based.googleusercontent.com/text?url='; 
+
+        // Load saved progress from memory
+        let progress = {
+            fastingDays: JSON.parse(localStorage.getItem('fastingDays')) || [],
+            readingDays: JSON.parse(localStorage.getItem('readingDays')) || [],
+            startDate: localStorage.getItem('startDate') || '2025-07-27'
+        };
+
+        // Cache for YouTube videos
+        let videoCache = {
+            morning: JSON.parse(localStorage.getItem('morningVideo')) || null,
+            evening: JSON.parse(localStorage.getItem('eveningVideo')) || null,
+            lastFetch: localStorage.getItem('lastVideoFetch') || null
+        };
+
+        // Media display mode preference (default to 'audio')
+        let mediaDisplayMode = localStorage.getItem('mediaDisplayMode') || 'audio';
+
+
+        function saveProgress() {
+            localStorage.setItem('fastingDays', JSON.stringify(progress.fastingDays));
+            localStorage.setItem('readingDays', JSON.stringify(progress.readingDays));
+            localStorage.setItem('startDate', progress.startDate);
+        }
+
+        function saveVideoCache() {
+            localStorage.setItem('morningVideo', JSON.stringify(videoCache.morning));
+            localStorage.setItem('eveningVideo', JSON.stringify(videoCache.evening));
+            localStorage.setItem('lastVideoFetch', videoCache.lastFetch);
+        }
+
+        // Save media display mode
+        function saveMediaDisplayMode() {
+            localStorage.setItem('mediaDisplayMode', mediaDisplayMode);
+        }
+
+        function getCurrentDay() {
+            const today = new Date();
+            const start = new Date(progress.startDate);
+            const diffTime = today - start;
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
+            return Math.max(1, Math.min(diffDays, 90));
+        }
+
+        function isWednesday() {
+            const today = new Date();
+            return today.getDay() === 3; // Wednesday is day 3
+        }
+
+        function getTotalWednesdays() {
+            let count = 0;
+            let currentDate = new Date(startDate);
+                        
+            while (currentDate <= endDate) {
+                if (currentDate.getDay() === 3) {
+                    count++;
+                }
+                currentDate.setDate(currentDate.getDate() + 1);
+            }
+            return count;
+        }
+
+        function getTodayString() {
+            const today = new Date();
+            return today.toISOString().split('T')[0];
+        }
+
+        function getCurrentDateInMalayalam() {
+            const today = new Date();
+            const months = [
+                'ജനുവരി', 'ഫെബ്രുവരി', 'മാർച്ച്', 'ഏപ്രിൽ', 'മേയ്', 'ജൂൺ',
+                'ജൂലൈ', 'ഓഗസ്റ്റ്', 'സെപ്റ്റംബർ', 'ഒക്ടോബർ', 'നവംബർ', 'ഡിസംബർ'
+            ];
+                        
+            const day = today.getDate();
+            const month = months[today.getMonth()];
+                        
+            return `${month} ${day}`;
+        }
+
+        async function fetchYouTubeVideos() {
+            try {
+                // Check if we should fetch (don't fetch more than once per hour)
+                const now = new Date().getTime();
+                const lastFetch = videoCache.lastFetch ? new Date(videoCache.lastFetch).getTime() : 0;
+                const hourInMs = 60 * 60 * 1000;
+                                
+                if (now - lastFetch < hourInMs && videoCache.morning && videoCache.evening) {
+                    displayVideos(); // Just re-display from cache
+                    return;
+                }
+
+                // Show loading state
+                document.getElementById('morningVideoContainer').innerHTML = '<div class="loading-text">🔄 Fetching latest videos...</div>';
+                document.getElementById('eveningVideoContainer').innerHTML = '<div class="loading-text">🔄 Fetching latest videos...</div>';
+
+                const response = await fetch(CORS_PROXY + encodeURIComponent(YOUTUBE_RSS_URL));
+                                
+                if (!response.ok) {
+                    throw new Error('Failed to fetch RSS feed');
+                }
+
+                const xmlText = await response.text();
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
+                                
+                const entries = xmlDoc.getElementsByTagName('entry');
+                const currentDateMalayalam = getCurrentDateInMalayalam();
+                                
+                let morningVideo = null;
+                let eveningVideo = null;
+
+                // Search through videos
+                for (let i = 0; i < entries.length; i++) {
+                    const entry = entries[i];
+                    const title = entry.getElementsByTagName('title')[0]?.textContent || '';
+                    const videoId = entry.getElementsByTagName('yt:videoId')[0]?.textContent;
+                    const published = entry.getElementsByTagName('published')[0]?.textContent;
+                                        
+                    if (!videoId) continue;
+
+                    // Check for evening prayer (മരിയൻ ഉടമ്പടി സായാഹ്ന പ്രാർത്ഥന)
+                    // We look for "മരിയൻ ഉടമ്പടി സായാഹ്ന പ്രാർത്ഥന" and also ensure it's a recent video
+                    // For a full app, you might match by date more strictly.
+                    if (title.includes('മരിയൻ ഉടമ്പടി സായാഹ്ന പ്രാർത്ഥന') && !eveningVideo) {
+                        eveningVideo = {
+                            title: title,
+                            videoId: videoId,
+                            published: published
+                        };
+                    }
+
+                    // Check for morning prayer (current date + കൃപാസനം അനുദിന അനുഗ്രഹ പ്രാർത്ഥന)
+                    if (title.includes(currentDateMalayalam) && 
+                        title.includes('കൃപാസനം അനുദിന അനുഗ്രഹ പ്രാർത്ഥന') && 
+                        !morningVideo) {
+                        morningVideo = {
+                            title: title,
+                            videoId: videoId,
+                            published: published
+                        };
+                    }
+
+                    // Break if we found both
+                    if (morningVideo && eveningVideo) {
+                        break;
+                    }
+                }
+
+                // Update cache
+                videoCache.morning = morningVideo;
+                videoCache.evening = eveningVideo;
+                videoCache.lastFetch = new Date().toISOString();
+                saveVideoCache();
+
+                displayVideos();
+
+            } catch (error) {
+                console.error('Error fetching YouTube videos:', error);
+                document.getElementById('morningVideoContainer').innerHTML = 
+                    '<div class="error-text">❌ Unable to load morning video. Please refresh.</div>';
+                document.getElementById('eveningVideoContainer').innerHTML = 
+                    '<div class="error-text">❌ Unable to load evening video. Please refresh.</div>';
+            }
+        }
+
+        function formatDateTime(isoString) {
+            const date = new Date(isoString);
+                        
+            // Format time as HH:MM:SS
+            const hours = date.getHours().toString().padStart(2, '0');
+            const minutes = date.getMinutes().toString().padStart(2, '0');
+            const seconds = date.getSeconds().toString().padStart(2, '0');
+            const timeString = `${hours}:${minutes}:${seconds}`;
+                        
+            // Format date as DD/MM/YYYY
+            const day = date.getDate().toString().padStart(2, '0');
+            const month = (date.getMonth() + 1).toString().padStart(2, '0');
+            const year = date.getFullYear();
+            const dateString = `${day}/${month}/${year}`;
+                        
+            return `${timeString} • ${dateString}`;
+        }
+
+        // Function to set and update the media display mode
+        function setMediaDisplayMode(mode) {
+            mediaDisplayMode = mode;
+            saveMediaDisplayMode();
+            updateMediaToggleButtons(); // Update button styling
+            displayVideos(); // Re-render videos with new mode
+        }
+
+        // Function to update the active state of media toggle buttons
+        function updateMediaToggleButtons() {
+            document.getElementById('audioModeBtn').classList.remove('active');
+            document.getElementById('videoModeBtn').classList.remove('active');
+            if (mediaDisplayMode === 'audio') {
+                document.getElementById('audioModeBtn').classList.add('active');
+            } else {
+                document.getElementById('videoModeBtn').classList.add('active');
+            }
+        }
+
+        function displayVideos() {
+            const morningContainer = document.getElementById('morningVideoContainer');
+            const eveningContainer = document.getElementById('eveningVideoContainer');
+
+            // Determine iframe height and parameters based on mode
+            const iframeHeightClass = mediaDisplayMode === 'audio' ? 'youtube-player audio-mode' : 'youtube-player';
+            const iframeParams = mediaDisplayMode === 'audio' ? '?controls=1&modestbranding=1&enablejsapi=1&rel=0&showinfo=0' : '?controls=1&modestbranding=1&rel=0';
+
+
+            // Display morning video
+            if (videoCache.morning) {
+                const uploadDateTime = formatDateTime(videoCache.morning.published);
+                morningContainer.innerHTML = `
+                    <div class="video-title">${videoCache.morning.title}</div>
+                    <div class="upload-info">📅 Uploaded: ${uploadDateTime}</div>
+                    <iframe class="${iframeHeightClass}"
+                             src="https://www.youtube.com/embed/${videoCache.morning.videoId}${iframeParams}"
+                             frameborder="0"
+                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                             allowfullscreen>
+                    </iframe>
+                `;
+            } else {
+                morningContainer.innerHTML = '<div class="error-text">Morning prayer video not found for today</div>';
+            }
+
+            // Display evening video
+            if (videoCache.evening) {
+                const uploadDateTime = formatDateTime(videoCache.evening.published);
+                eveningContainer.innerHTML = `
+                    <div class="video-title">${videoCache.evening.title}</div>
+                    <div class="upload-info">📅 Uploaded: ${uploadDateTime}</div>
+                    <iframe class="${iframeHeightClass}"
+                             src="https://www.youtube.com/embed/${videoCache.evening.videoId}${iframeParams}"
+                             frameborder="0"
+                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                             allowfullscreen>
+                    </iframe>
+                `;
+            } else {
+                eveningContainer.innerHTML = '<div class="error-text">Evening prayer video not found</div>';
+            }
+        }
+
+        function updateDisplay() {
+            const currentDay = getCurrentDay();
+            const today = new Date();
+            const todayString = getTodayString();
+
+            // Update day counter
+            document.getElementById('dayCounter').textContent = `Day ${currentDay} of 90`;
+
+            // Update current date
+            document.getElementById('currentDate').textContent = today.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+            // Update fasting section
+            const fastingCard = document.getElementById('fastingCard');
+            const fastingText = document.getElementById('fastingText');
+            const fastingBtn = document.getElementById('fastingBtn');
+
+            if (isWednesday()) {
+                fastingCard.classList.add('wednesday-highlight');
+                fastingText.textContent = 'Today is Wednesday - Observe fasting';
+                fastingBtn.style.display = 'inline-block';
+
+                if (progress.fastingDays.includes(todayString)) {
+                    fastingBtn.textContent = 'Completed ✓';
+                    fastingBtn.classList.add('completed');
+                } else {
+                    fastingBtn.textContent = 'Mark Complete';
+                    fastingBtn.classList.remove('completed');
+                }
+            } else {
+                fastingCard.classList.remove('wednesday-highlight');
+                fastingText.textContent = 'Today is not Wednesday - No fasting required';
+                fastingBtn.style.display = 'none';
+            }
+
+            // Update reading button
+            const readingBtn = document.getElementById('readingBtn');
+            if (progress.readingDays.includes(todayString)) {
+                readingBtn.textContent = 'Completed ✓';
+                readingBtn.classList.add('completed');
+            } else {
+                readingBtn.textContent = 'Mark Complete';
+                readingBtn.classList.remove('completed');
+            }
+
+            // Update statistics
+            document.getElementById('fastingCompleted').textContent = progress.fastingDays.length;
+            document.getElementById('fastingTotal').textContent = getTotalWednesdays();
+            document.getElementById('readingCompleted').textContent = progress.readingDays.length;
+        }
+
+        function toggleFasting() {
+            const todayString = getTodayString();
+            const index = progress.fastingDays.indexOf(todayString);
+
+            if (index > -1) {
+                progress.fastingDays.splice(index, 1);
+            } else {
+                progress.fastingDays.push(todayString);
+            }
+            saveProgress();
+            updateDisplay();
+        }
+
+        function toggleReading() {
+            const todayString = getTodayString();
+            const index = progress.readingDays.indexOf(todayString);
+
+            if (index > -1) {
+                progress.readingDays.splice(index, 1);
+            } else {
+                progress.readingDays.push(todayString);
+            }
+            saveProgress();
+            updateDisplay();
+        }
+
+        function resetProgress() {
+            if (confirm('Are you sure you want to reset all progress? This cannot be undone.')) {
+                progress = {
+                    fastingDays: [],
+                    readingDays: [],
+                    startDate: '2025-07-27' // Resetting to original start date
+                };
+                saveProgress(); // Save the reset state
+                updateDisplay();
+            }
+        }
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', () => {
+            updateDisplay();
+            // Set initial toggle button state
+            updateMediaToggleButtons();
+            
+            // Load videos from cache first, then fetch fresh ones
+            if (videoCache.morning || videoCache.evening) {
+                displayVideos();
+            }
+            fetchYouTubeVideos(); // Always try to fetch fresh on load
+        });
+
+        // Update every minute to catch day changes
+        setInterval(updateDisplay, 60000);
+
+        // Fetch videos every hour
+        setInterval(fetchYouTubeVideos, 60 * 60 * 1000);
+    </script>
+</body>
+</html>
