@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>90-Day Bible Reading Journey</title>
+    <title>90-Day Bible Reading Journey (JSONBin Sync)</title>
     <style>
         :root {
             --background: #f8f6f3;
@@ -43,7 +43,7 @@
             color: var(--text);
             line-height: 1.6;
             transition: all 0.3s ease;
-            background-image: 
+            background-image:
                 radial-gradient(circle at 20% 80%, rgba(139, 69, 19, 0.1) 0%, transparent 50%),
                 radial-gradient(circle at 80% 20%, rgba(218, 165, 32, 0.1) 0%, transparent 50%);
         }
@@ -419,19 +419,19 @@
             .main-content {
                 grid-template-columns: 1fr;
             }
-            
+
             .header-title {
                 font-size: 2rem;
             }
-            
+
             .progress-overview {
                 gap: 15px;
             }
-            
+
             .days-grid {
                 grid-template-columns: 1fr;
             }
-            
+
             .theme-toggle {
                 position: fixed;
                 top: 20px;
@@ -447,7 +447,7 @@
             <button id="themeToggle" class="theme-toggle" aria-label="Toggle dark mode">☀️</button>
             <h1 class="header-title">90-Day Bible Reading Journey</h1>
             <p class="header-subtitle">Transform your spiritual life through daily Scripture</p>
-            
+
             <div class="progress-overview">
                 <div class="progress-stat">
                     <h3 id="completedDays">0</h3>
@@ -466,7 +466,7 @@
                     <p id="syncText">Local Only</p>
                 </div>
             </div>
-            
+
             <div class="progress-bar">
                 <div id="progressFill" class="progress-fill" style="width: 0%"></div>
             </div>
@@ -482,10 +482,9 @@
                         <button class="filter-btn" data-filter="remaining">Remaining</button>
                     </div>
                 </div>
-                
+
                 <div id="daysGrid" class="days-grid">
-                    <!-- Days will be populated by JavaScript -->
-                </div>
+                    </div>
             </div>
 
             <div class="audio-panel">
@@ -497,24 +496,24 @@
                         </button>
                     </div>
                 </div>
-                
+
                 <div id="currentReading" class="current-reading">
                     <h3>Select a reading</h3>
                     <p>Choose a day to listen to the Scripture</p>
                 </div>
-                
+
                 <div class="audio-controls">
                     <audio id="audioPlayer" class="audio-player" controls style="display: none;">
                         Your browser does not support the audio element.
                     </audio>
-                    
+
                     <div class="playback-controls">
                         <button id="playBtn" class="control-btn">▶️ Play</button>
                         <button id="pauseBtn" class="control-btn">⏸️ Pause</button>
                         <button id="stopBtn" class="control-btn">⏹️ Stop</button>
                     </div>
                 </div>
-                
+
                 <div id="verseDisplay" class="verse-display">
                     <p>Select a reading to view the scripture text here.</p>
                 </div>
@@ -622,13 +621,14 @@
         let currentDayIndex = parseInt(localStorage.getItem('currentDayIndex') || '0');
         let darkMode = JSON.parse(localStorage.getItem('darkMode') || 'false');
         let currentAudioReading = null;
-        
-        // Cloud sync configuration
+
+        // Cloud sync configuration (JSONBin.io specific)
         const CLOUD_SYNC = {
             enabled: false,
-            provider: 'none', // 'google', 'firebase', 'custom'
+            provider: 'jsonbin', // Fixed to jsonbin
             lastSync: null,
-            syncInProgress: false
+            syncInProgress: false,
+            jsonBinMasterKey: '$2a$10$jYz9hFKgsbjOx/Why3QqWu/jZnNSqJIeXVlb5wJzDveaw2o4Ihbia' // YOUR MASTER KEY HERE
         };
 
         // DOM elements
@@ -641,6 +641,7 @@
         const pauseBtn = document.getElementById('pauseBtn');
         const stopBtn = document.getElementById('stopBtn');
         const filterBtns = document.querySelectorAll('.filter-btn');
+        const syncButton = document.getElementById('syncButton'); // Get the sync button
 
         // Initialize the application
         function init() {
@@ -649,19 +650,210 @@
             updateStats();
             setupEventListeners();
             initCloudSync();
-            
-            // Load from cloud on startup
+
+            // Load from cloud on startup if enabled
             if (CLOUD_SYNC.enabled) {
                 loadFromCloud();
             }
         }
 
-        // Cloud Sync Functions
+        // --- Core UI and Logic Functions (mostly unchanged) ---
+
+        function setupTheme() {
+            if (darkMode) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                themeToggle.textContent = '🌙';
+            } else {
+                document.documentElement.removeAttribute('data-theme');
+                themeToggle.textContent = '☀️';
+            }
+        }
+
+        function toggleTheme() {
+            darkMode = !darkMode;
+            localStorage.setItem('darkMode', JSON.stringify(darkMode));
+            setupTheme();
+        }
+
+        function updateStats() {
+            const completedCount = completedDays.length;
+            const remainingCount = readingPlan.length - completedCount;
+
+            document.getElementById('completedDays').textContent = completedCount;
+            document.getElementById('currentDay').textContent = currentDayIndex + 1; // Display 1-based day
+            document.getElementById('remainingDays').textContent = remainingCount;
+
+            const progress = (completedCount / readingPlan.length) * 100;
+            document.getElementById('progressFill').style.width = `${progress}%`;
+        }
+
+        function renderDays(filter = 'all') {
+            daysGrid.innerHTML = ''; // Clear existing cards
+
+            readingPlan.forEach((dayData, index) => {
+                const day = dayData.day;
+                const isCompleted = completedDays.includes(day);
+                const isCurrent = (index === currentDayIndex);
+
+                if (filter === 'completed' && !isCompleted) return;
+                if (filter === 'remaining' && isCompleted) return;
+
+                const dayCard = document.createElement('div');
+                dayCard.classList.add('day-card');
+                if (isCompleted) {
+                    dayCard.classList.add('completed');
+                }
+                if (isCurrent && !isCompleted) { // Highlight current day only if not yet completed
+                    dayCard.classList.add('current');
+                }
+
+                dayCard.dataset.day = day; // Store day number for easy access
+
+                dayCard.innerHTML = `
+                    <div class="day-number">Day ${day}</div>
+                    <div class="day-scripture">${dayData.scripture}</div>
+                    <div class="day-theme">${dayData.theme}</div>
+                    <div class="day-actions">
+                        <button class="action-btn read-btn" data-day="${day}">Read</button>
+                        <button class="action-btn listen-btn" data-day="${day}">Listen</button>
+                    </div>
+                    ${isCompleted ? '<span class="status-icon">✅</span>' : ''}
+                `;
+                daysGrid.appendChild(dayCard);
+
+                // Add event listener to mark as complete when a card is clicked (if not already completed)
+                dayCard.addEventListener('click', (event) => {
+                    if (!event.target.classList.contains('action-btn')) { // Don't toggle if action button clicked
+                        toggleDayCompletion(day);
+                    }
+                });
+            });
+
+            // Scroll to current day if not completed and exists
+            const currentDayCard = document.querySelector(`.day-card[data-day="${currentDayIndex + 1}"]`);
+            if (currentDayCard && !currentDayCard.classList.contains('completed')) {
+                currentDayCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+
+        function toggleDayCompletion(dayNumber) {
+            const index = completedDays.indexOf(dayNumber);
+            if (index > -1) {
+                // Already completed, unmark it
+                completedDays.splice(index, 1);
+            } else {
+                // Not completed, mark it
+                completedDays.push(dayNumber);
+                completedDays.sort((a, b) => a - b); // Keep it sorted
+                // Move currentDayIndex to the next uncompleted day
+                findNextCurrentDay();
+            }
+            saveProgress();
+            renderDays(document.querySelector('.filter-btn.active').dataset.filter); // Re-render with current filter
+            updateStats();
+            syncWithCloud(); // Sync after state change
+        }
+
+        function findNextCurrentDay() {
+            let nextDayFound = false;
+            for (let i = 0; i < readingPlan.length; i++) {
+                const day = readingPlan[i].day;
+                if (!completedDays.includes(day)) {
+                    currentDayIndex = i;
+                    nextDayFound = true;
+                    break;
+                }
+            }
+            if (!nextDayFound) {
+                currentDayIndex = readingPlan.length - 1; // All days completed, stay on last day
+            }
+        }
+
+        function saveProgress() {
+            localStorage.setItem('completedDays', JSON.stringify(completedDays));
+            localStorage.setItem('currentDayIndex', currentDayIndex.toString());
+        }
+
+        // --- Event Listeners ---
+        function setupEventListeners() {
+            themeToggle.addEventListener('click', toggleTheme);
+
+            daysGrid.addEventListener('click', (event) => {
+                const dayBtn = event.target.closest('.action-btn');
+                if (dayBtn) {
+                    const day = parseInt(dayBtn.dataset.day);
+                    const dayData = readingPlan[day - 1]; // day - 1 because array is 0-indexed
+
+                    if (dayBtn.classList.contains('read-btn')) {
+                        displayScriptureText(dayData.scripture);
+                        highlightCurrentReading(dayData);
+                    } else if (dayBtn.classList.contains('listen-btn')) {
+                        // In a real app, you'd have audio files.
+                        // For demonstration, we'll just display a message.
+                        alert(`Listening to: ${dayData.scripture}\n(Audio functionality not implemented in this demo)`);
+                        // Example: loadAudio(`audio/${dayData.scripture.replace(/ /g, '_')}.mp3`);
+                        highlightCurrentReading(dayData);
+                    }
+                }
+            });
+
+            filterBtns.forEach(button => {
+                button.addEventListener('click', () => {
+                    filterBtns.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                    renderDays(button.dataset.filter);
+                });
+            });
+
+            // Audio control buttons
+            playBtn.addEventListener('click', () => {
+                if (audioPlayer.src) audioPlayer.play();
+            });
+            pauseBtn.addEventListener('click', () => {
+                if (audioPlayer.src) audioPlayer.pause();
+            });
+            stopBtn.addEventListener('click', () => {
+                if (audioPlayer.src) {
+                    audioPlayer.pause();
+                    audioPlayer.currentTime = 0;
+                }
+            });
+
+            // Sync button listener
+            syncButton.addEventListener('click', () => {
+                if (!CLOUD_SYNC.enabled) {
+                    enableSimpleCloudSync();
+                } else {
+                    syncWithCloud();
+                }
+            });
+        }
+
+        function displayScriptureText(scriptureRef) {
+            // This is a placeholder. In a real app, you'd fetch the actual scripture text.
+            verseDisplay.innerHTML = `<h4>${scriptureRef}</h4><p>This is where the scripture text for ${scriptureRef} would appear. For a full implementation, you would integrate with a Bible API (e.g., ESV API, Bible Gateway API) or include the text directly.</p><p>For example, you could dynamically fetch: <code>fetch('https://api.esv.org/v2/rest/passage?q=${encodeURIComponent(scriptureRef)}')</code></p>`;
+        }
+
+        function highlightCurrentReading(dayData) {
+            currentReading.innerHTML = `
+                <h3>Day ${dayData.day}: ${dayData.scripture}</h3>
+                <p>${dayData.theme}</p>
+            `;
+            // Show audio player if there was an actual audio source
+            audioPlayer.style.display = 'block';
+            // audioPlayer.src = `path/to/audio/${dayData.day}.mp3`; // This would be the actual audio source
+            audioPlayer.src = ''; // Clear source for demo, as no audio is linked
+        }
+
+        // --- JSONBin.io Cloud Sync Functions ---
+
         function initCloudSync() {
             const savedSyncSettings = JSON.parse(localStorage.getItem('cloudSyncSettings') || '{}');
-            if (savedSyncSettings.enabled) {
-                CLOUD_SYNC.enabled = savedSyncSettings.enabled;
-                CLOUD_SYNC.provider = savedSyncSettings.provider;
+            const savedCloudBinId = localStorage.getItem('cloudSyncId');
+            const savedCloudUserId = localStorage.getItem('cloudUserId');
+
+            if (savedSyncSettings.enabled && savedSyncSettings.provider === 'jsonbin' && savedCloudBinId && savedCloudUserId) {
+                CLOUD_SYNC.enabled = true;
                 CLOUD_SYNC.lastSync = savedSyncSettings.lastSync;
                 updateSyncStatus();
             }
@@ -671,7 +863,7 @@
             const syncIndicator = document.getElementById('syncIndicator');
             const syncText = document.getElementById('syncText');
             const syncButton = document.getElementById('syncButton');
-            
+
             if (CLOUD_SYNC.enabled) {
                 syncIndicator.textContent = CLOUD_SYNC.syncInProgress ? '🔄' : '☁️';
                 syncText.textContent = CLOUD_SYNC.syncInProgress ? 'Syncing...' : 'Cloud Synced';
@@ -683,142 +875,105 @@
                 syncButton.textContent = '☁️ Enable Cloud Sync';
                 syncButton.style.background = 'var(--secondary)';
             }
-            
-            if (CLOUD_SYNC.lastSync) {
+
+            if (CLOUD_SYNC.enabled && CLOUD_SYNC.lastSync) {
                 const lastSyncDate = new Date(CLOUD_SYNC.lastSync).toLocaleString();
-                syncText.textContent += ` (${lastSyncDate})`;
+                syncText.textContent += ` (Last: ${lastSyncDate})`;
             }
         }
 
-        // Google Drive API Integration
-        async function enableGoogleDriveSync() {
-            try {
-                // Load Google API
-                await loadGoogleAPI();
-                
-                // Initialize and authenticate
-                await gapi.load('auth2', async () => {
-                    await gapi.auth2.init({
-                        client_id: 'YOUR_GOOGLE_CLIENT_ID' // You'll need to get this from Google Cloud Console
-                    });
-                    
-                    const authInstance = gapi.auth2.getAuthInstance();
-                    const user = await authInstance.signIn({
-                        scope: 'https://www.googleapis.com/auth/drive.file'
-                    });
-                    
-                    if (user.isSignedIn()) {
-                        CLOUD_SYNC.enabled = true;
-                        CLOUD_SYNC.provider = 'google';
-                        saveSyncSettings();
-                        updateSyncStatus();
-                        
-                        // Initial sync
-                        await syncWithCloud();
-                        
-                        alert('✅ Google Drive sync enabled! Your progress will now sync across all devices.');
-                    }
-                });
-            } catch (error) {
-                console.error('Failed to enable Google Drive sync:', error);
-                alert('❌ Failed to enable Google Drive sync. Please try again.');
-            }
-        }
-
-        function loadGoogleAPI() {
-            return new Promise((resolve, reject) => {
-                if (window.gapi) {
-                    resolve();
-                    return;
-                }
-                
-                const script = document.createElement('script');
-                script.src = 'https://apis.google.com/js/api.js';
-                script.onload = () => {
-                    gapi.load('client:auth2', resolve);
-                };
-                script.onerror = reject;
-                document.head.appendChild(script);
-            });
-        }
-
-        // Firebase Integration (Alternative)
-        async function enableFirebaseSync() {
-            try {
-                // You would need to configure Firebase
-                alert('Firebase sync would be implemented here. This requires Firebase configuration.');
-                
-                // Example Firebase setup:
-                /*
-                const firebaseConfig = {
-                    apiKey: "your-api-key",
-                    authDomain: "your-project.firebaseapp.com",
-                    databaseURL: "your-database-url",
-                    projectId: "your-project-id"
-                };
-                
-                firebase.initializeApp(firebaseConfig);
-                const auth = firebase.auth();
-                const db = firebase.firestore();
-                
-                // Authenticate user
-                await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
-                
-                CLOUD_SYNC.enabled = true;
-                CLOUD_SYNC.provider = 'firebase';
-                */
-                
-            } catch (error) {
-                console.error('Firebase sync error:', error);
-                alert('❌ Failed to enable Firebase sync.');
-            }
-        }
-
-        // Simple JSON Cloud Storage (using a simple API service)
+        // Enable Simple Cloud Sync (JSONBin.io) - For initial setup or re-enabling
         async function enableSimpleCloudSync() {
-            const userId = prompt('Enter a unique User ID for syncing (this will be your sync key across devices):');
-            if (!userId || userId.trim() === '') {
+            const userIdPrompt = prompt('Enter a unique User ID for syncing (this will be your sync key across devices).\n\nIf you have synced before, enter your existing User ID to retrieve your data. Otherwise, enter a new one.');
+
+            if (!userIdPrompt || userIdPrompt.trim() === '') {
                 alert('❌ User ID is required for cloud sync.');
                 return;
             }
-            
+            const userId = userIdPrompt.trim();
+
+            CLOUD_SYNC.syncInProgress = true;
+            updateSyncStatus();
+
             try {
-                // Using JSONBin.io as a simple cloud storage (free tier available)
-                const response = await fetch('https://api.jsonbin.io/v3/b', {
+                // 1. Try to find an existing bin for this userId
+                const searchResponse = await fetch(`https://api.jsonbin.io/v3/c/669d5f70e41b4d34e414168c/find-one`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-Master-Key': '$2a$10$YZLtMt/.NpwiNccfSYI0Z.haGbe8./F3/c8yzSYFtktSJQFE8xLL2' // You need to get this from jsonbin.io
+                        'X-Master-Key': CLOUD_SYNC.jsonBinMasterKey
+                    },
+                    body: JSON.stringify({ userId: userId })
+                });
+
+                if (searchResponse.ok) {
+                    const searchData = await searchResponse.json();
+                    if (searchData.record && searchData.metadata && searchData.metadata.id) {
+                        // Found existing bin for this user
+                        const binId = searchData.metadata.id;
+                        localStorage.setItem('cloudSyncId', binId);
+                        localStorage.setItem('cloudUserId', userId);
+
+                        CLOUD_SYNC.enabled = true;
+                        saveSyncSettings();
+                        updateSyncStatus();
+
+                        alert(`✅ Cloud sync enabled! Existing data for User ID "${userId}" found and will be loaded.`);
+                        await loadFromCloud(); // Load the found data
+                        return;
+                    }
+                } else if (searchResponse.status === 404) {
+                    // No existing bin found, proceed to create a new one
+                    console.log(`No existing bin for User ID "${userId}". Creating a new one...`);
+                } else {
+                    const errorSearchText = await searchResponse.text();
+                    console.error('JSONBin search error:', searchResponse.status, errorSearchText);
+                    throw new Error(`Failed to search for existing data: ${searchResponse.statusText}`);
+                }
+
+                // 2. If no existing bin, create a new one
+                const createResponse = await fetch('https://api.jsonbin.io/v3/b', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Master-Key': CLOUD_SYNC.jsonBinMasterKey,
+                        'X-Bin-Name': `BibleJourney_${userId}` // Optional: give it a readable name
                     },
                     body: JSON.stringify({
                         userId: userId,
-                        completedDays: completedDays,
-                        currentDayIndex: currentDayIndex,
+                        completedDays: [], // Start with empty if new
+                        currentDayIndex: 0, // Start from day 0 if new
                         lastUpdated: new Date().toISOString()
                     })
                 });
-                
-                if (response.ok) {
-                    const data = await response.json();
+
+                if (createResponse.ok) {
+                    const data = await createResponse.json();
                     localStorage.setItem('cloudSyncId', data.metadata.id);
                     localStorage.setItem('cloudUserId', userId);
-                    
+
                     CLOUD_SYNC.enabled = true;
-                    CLOUD_SYNC.provider = 'jsonbin';
                     saveSyncSettings();
                     updateSyncStatus();
-                    
-                    alert(`✅ Cloud sync enabled! Your sync ID is: ${userId}\nUse this same ID on other devices to sync your progress.`);
+
+                    alert(`✅ Cloud sync enabled! New sync ID created for user "${userId}".\nYour local progress will now be saved to the cloud.`);
+                    await syncWithCloud(); // Immediately save local progress to the new bin
                 } else {
-                    throw new Error('Failed to create cloud storage');
+                    const errorCreateText = await createResponse.text();
+                    console.error('JSONBin create error:', createResponse.status, errorCreateText);
+                    throw new Error(`Failed to create cloud storage: ${createResponse.statusText}`);
                 }
             } catch (error) {
                 console.error('Simple cloud sync error:', error);
-                alert('❌ Failed to enable simple cloud sync. Please check your internet connection.');
+                alert('❌ Failed to enable simple cloud sync. Please check your internet connection and console for details.');
+            } finally {
+                CLOUD_SYNC.syncInProgress = false;
+                updateSyncStatus();
             }
         }
 
-        // Save sync settings
+
+        // Save sync settings (just local to the browser for CLOUD_SYNC.enabled state)
         function saveSyncSettings() {
             localStorage.setItem('cloudSyncSettings', JSON.stringify({
                 enabled: CLOUD_SYNC.enabled,
@@ -827,621 +982,150 @@
             }));
         }
 
-        // Sync with cloud
+        // Sync with cloud (main function)
         async function syncWithCloud() {
-            if (!CLOUD_SYNC.enabled) return;
-            
+            if (!CLOUD_SYNC.enabled) {
+                console.log('Cloud sync is not enabled. Skipping sync operation.');
+                return;
+            }
+
             CLOUD_SYNC.syncInProgress = true;
             updateSyncStatus();
-            
+            let success = false;
+
             try {
-                switch (CLOUD_SYNC.provider) {
-                    case 'google':
-                        await syncWithGoogleDrive();
-                        break;
-                    case 'firebase':
-                        await syncWithFirebase();
-                        break;
-                    case 'jsonbin':
-                        await syncWithJSONBin();
-                        break;
-                }
-                
+                await syncWithJSONBin(); // Call the specific JSONBin.io sync function
                 CLOUD_SYNC.lastSync = new Date().toISOString();
                 saveSyncSettings();
-                
+                success = true;
+                console.log('Cloud sync complete.');
             } catch (error) {
                 console.error('Sync failed:', error);
-                alert('⚠️ Sync failed. Your progress is still saved locally.');
+                alert('⚠️ Sync failed. Your progress is still saved locally. Check console for details.');
+            } finally {
+                CLOUD_SYNC.syncInProgress = false;
+                updateSyncStatus();
+                if (success) {
+                    // brief visual confirmation of sync
+                    const syncIndicator = document.getElementById('syncIndicator');
+                    syncIndicator.textContent = '✅';
+                    setTimeout(() => updateSyncStatus(), 1500); // Revert after 1.5 seconds
+                }
+            }
+        }
+
+        // JSONBin.io specific sync implementation
+        async function syncWithJSONBin() {
+            const BIN_ID = localStorage.getItem('cloudSyncId');
+            const cloudUserId = localStorage.getItem('cloudUserId');
+
+            if (!BIN_ID || !cloudUserId) {
+                console.warn('JSONBin sync skipped: No cloudSyncId or cloudUserId found.');
+                CLOUD_SYNC.enabled = false; // Disable sync if ID is missing
+                saveSyncSettings();
+                return;
+            }
+
+            try {
+                // Data to be saved to the cloud (local state is the source of truth for saving)
+                const dataToSave = {
+                    userId: cloudUserId,
+                    completedDays: completedDays,
+                    currentDayIndex: currentDayIndex,
+                    lastUpdated: new Date().toISOString()
+                };
+
+                const response = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
+                    method: 'PUT', // Use PUT to update an existing bin
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Master-Key': CLOUD_SYNC.jsonBinMasterKey,
+                        'X-Bin-Private': 'true' // Keep your bin private
+                    },
+                    body: JSON.stringify(dataToSave)
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('JSONBin update error:', response.status, errorText);
+                    throw new Error(`Failed to update JSONBin data: ${response.statusText}`);
+                }
+
+                console.log('✅ Data successfully updated on JSONBin.io');
+
+            } catch (error) {
+                console.error('Error during JSONBin sync:', error);
+                throw error; // Re-throw to be caught by the main syncWithCloud function
+            }
+        }
+
+        // Load data from JSONBin.io
+        async function loadFromCloud() {
+            if (!CLOUD_SYNC.enabled) {
+                console.log('Cloud sync is not enabled. Skipping cloud data load.');
+                return;
+            }
+
+            const BIN_ID = localStorage.getItem('cloudSyncId');
+            if (!BIN_ID) {
+                console.warn('Cannot load from JSONBin: No cloudSyncId found.');
+                return;
+            }
+
+            CLOUD_SYNC.syncInProgress = true;
+            updateSyncStatus();
+
+            try {
+                console.log('Attempting to load data from JSONBin.io...');
+                const response = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
+                    method: 'GET',
+                    headers: {
+                        'X-Master-Key': CLOUD_SYNC.jsonBinMasterKey,
+                        'X-Bin-Meta': 'false' // To get only the data payload
+                    }
+                });
+
+                if (response.ok) {
+                    const cloudData = await response.json();
+                    if (cloudData) {
+                        // Apply loaded data to your app state
+                        completedDays = Array.isArray(cloudData.completedDays) ? cloudData.completedDays : [];
+                        currentDayIndex = typeof cloudData.currentDayIndex === 'number' ? cloudData.currentDayIndex : 0;
+
+                        // Save loaded data to local storage
+                        localStorage.setItem('completedDays', JSON.stringify(completedDays));
+                        localStorage.setItem('currentDayIndex', currentDayIndex.toString());
+
+                        renderDays(document.querySelector('.filter-btn.active').dataset.filter); // Re-render the UI
+                        updateStats(); // Update progress stats
+                        console.log('✅ Data loaded from JSONBin.io successfully.');
+                        alert('Your progress has been loaded from the cloud!');
+                    }
+                } else if (response.status === 404) {
+                    console.warn(`JSONBin ID ${BIN_ID} not found. Could be deleted or incorrect. Attempting to re-enable.`);
+                    alert('Cloud data not found. Please try enabling sync again with your User ID.');
+                    CLOUD_SYNC.enabled = false;
+                    localStorage.removeItem('cloudSyncId');
+                    localStorage.removeItem('cloudUserId');
+                    saveSyncSettings();
+                }
+                else {
+                    const errorText = await response.text();
+                    console.error('Failed to load from JSONBin.io, response:', response.status, errorText);
+                    throw new Error(`Failed to load cloud data: ${response.statusText}`);
+                }
+            } catch (error) {
+                console.error('JSONBin load error:', error);
+                alert('⚠️ Failed to load progress from cloud. Using local data.');
             } finally {
                 CLOUD_SYNC.syncInProgress = false;
                 updateSyncStatus();
             }
         }
 
-        // Google Drive sync implementation
-        async function syncWithGoogleDrive() {
-            // Implementation for Google Drive API
-            // This would save/load a JSON file to/from Google Drive
-        }
 
-        // Firebase sync implementation  
-        async function syncWithFirebase() {
-            // Implementation for Firebase Firestore
-        }
-
-        // JSONBin sync implementation
-        async function syncWithJSONBin() {
-            const syncId = localStorage.getItem('cloudSyncId');
-            const userId = localStorage.getItem('cloudUserId');
-            
-            if (!syncId || !userId) {
-                throw new Error('No sync configuration found');
-            }
-            
-            // Upload current progress
-            const progressData = {
-                userId: userId,
-                completedDays: completedDays,
-                currentDayIndex: currentDayIndex,
-                lastUpdated: new Date().toISOString()
-            };
-            
-            const response = await fetch(`https://api.jsonbin.io/v3/b/${syncId}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Master-Key': '$2a$10$your-jsonbin-master-key'
-                },
-                body: JSON.stringify(progressData)
-            });
-            
-            if (!response.ok) {
-                throw new Error('Failed to sync with cloud');
-            }
-        }
-
-        // Load from cloud
-        async function loadFromCloud() {
-            if (!CLOUD_SYNC.enabled) return;
-            
-            try {
-                switch (CLOUD_SYNC.provider) {
-                    case 'jsonbin':
-                        await loadFromJSONBin();
-                        break;
-                    // Add other providers as needed
-                }
-                
-                renderDays();
-                updateStats();
-                
-            } catch (error) {
-                console.error('Failed to load from cloud:', error);
-            }
-        }
-
-        async function loadFromJSONBin() {
-            const syncId = localStorage.getItem('cloudSyncId');
-            if (!syncId) return;
-            
-            const response = await fetch(`https://api.jsonbin.io/v3/b/${syncId}/latest`, {
-                headers: {
-                    'X-Master-Key': '$2a$10$your-jsonbin-master-key'
-                }
-            });
-            
-            if (response.ok) {
-                const data = await response.json();
-                const cloudData = data.record;
-                
-                // Merge cloud data with local data (use the most recent)
-                const cloudDate = new Date(cloudData.lastUpdated);
-                const localDate = new Date(localStorage.getItem('lastUpdated') || '1970-01-01');
-                
-                if (cloudDate > localDate) {
-                    completedDays = cloudData.completedDays || [];
-                    currentDayIndex = cloudData.currentDayIndex || 0;
-                    
-                    localStorage.setItem('completedDays', JSON.stringify(completedDays));
-                    localStorage.setItem('currentDayIndex', currentDayIndex.toString());
-                    localStorage.setItem('lastUpdated', cloudData.lastUpdated);
-                }
-            }
-        }
-
-        // Disable cloud sync
-        function disableCloudSync() {
-            if (confirm('Are you sure you want to disable cloud sync? This will not delete your cloud data, but this device will stop syncing.')) {
-                CLOUD_SYNC.enabled = false;
-                CLOUD_SYNC.provider = 'none';
-                CLOUD_SYNC.lastSync = null;
-                
-                localStorage.removeItem('cloudSyncSettings');
-                localStorage.removeItem('cloudSyncId');
-                localStorage.removeItem('cloudUserId');
-                
-                updateSyncStatus();
-                alert('☁️ Cloud sync disabled. Your progress is now local only.');
-            }
-        }
-
-        // Show sync options modal
-        function showSyncOptions() {
-            const modal = document.createElement('div');
-            modal.style.cssText = `
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: rgba(0,0,0,0.8);
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                z-index: 10000;
-                font-family: Georgia, serif;
-            `;
-            
-            modal.innerHTML = `
-                <div style="background: var(--card-bg); padding: 30px; border-radius: 15px; max-width: 500px; width: 90%;">
-                    <h3 style="color: var(--primary); margin-bottom: 20px; text-align: center;">☁️ Cloud Sync Options</h3>
-                    <p style="margin-bottom: 20px; color: var(--text);">Choose how you want to sync your progress across devices:</p>
-                    
-                    <div style="display: flex; flex-direction: column; gap: 15px;">
-                        <button onclick="enableSimpleCloudSync(); document.body.removeChild(this.closest('.modal'))" 
-                                style="padding: 15px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer;">
-                            🔑 Simple Sync (Recommended)
-                            <div style="font-size: 0.8rem; opacity: 0.9; margin-top: 5px;">
-                                Uses a unique ID you create. Easy setup, works immediately.
-                            </div>
-                        </button>
-                        
-                        <button onclick="alert('Google Drive sync requires additional setup. See instructions in the console.'); document.body.removeChild(this.closest('.modal'))" 
-                                style="padding: 15px; background: var(--secondary); color: white; border: none; border-radius: 8px; cursor: pointer;">
-                            📁 Google Drive Sync
-                            <div style="font-size: 0.8rem; opacity: 0.9; margin-top: 5px;">
-                                Syncs with your Google Drive. Requires developer setup.
-                            </div>
-                        </button>
-                        
-                        <button onclick="alert('Firebase sync requires additional setup. See instructions in the console.'); document.body.removeChild(this.closest('.modal'))" 
-                                style="padding: 15px; background: var(--accent); color: white; border: none; border-radius: 8px; cursor: pointer;">
-                            🔥 Firebase Sync
-                            <div style="font-size: 0.8rem; opacity: 0.9; margin-top: 5px;">
-                                Real-time sync with Firebase. Requires Firebase project.
-                            </div>
-                        </button>
-                        
-                        <button onclick="document.body.removeChild(this.closest('.modal'))" 
-                                style="padding: 10px; background: transparent; color: var(--text); border: 2px solid var(--border); border-radius: 8px; cursor: pointer;">
-                            Cancel
-                        </button>
-                    </div>
-                </div>
-            `;
-            
-            modal.className = 'modal';
-            document.body.appendChild(modal);
-        }
-
-        // Setup theme
-        function setupTheme() {
-            if (darkMode) {
-                document.documentElement.setAttribute('data-theme', 'dark');
-                themeToggle.textContent = '🌙';
-            }
-        }
-
-        // Toggle theme
-        function toggleTheme() {
-            darkMode = !darkMode;
-            document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light');
-            themeToggle.textContent = darkMode ? '🌙' : '☀️';
-            localStorage.setItem('darkMode', JSON.stringify(darkMode));
-        }
-
-        // Render days in the grid
-        function renderDays(filter = 'all') {
-            daysGrid.innerHTML = '';
-            
-            readingPlan.forEach((reading, index) => {
-                const isCompleted = completedDays.includes(reading.day);
-                const isCurrent = index === currentDayIndex;
-                
-                // Apply filter
-                if (filter === 'completed' && !isCompleted) return;
-                if (filter === 'remaining' && isCompleted) return;
-                
-                const dayCard = document.createElement('div');
-                dayCard.className = `day-card ${isCompleted ? 'completed' : ''} ${isCurrent ? 'current' : ''}`;
-                
-                dayCard.innerHTML = `
-                    <div class="status-icon">
-                        ${isCompleted ? '✅' : isCurrent ? '🔥' : '📖'}
-                    </div>
-                    <div class="day-number">Day ${reading.day}</div>
-                    <div class="day-scripture">${reading.scripture}</div>
-                    <div class="day-theme">${reading.theme}</div>
-                    <div class="day-actions">
-                        <button class="action-btn read-btn" onclick="readScripture(${index})">
-                            📖 Read
-                        </button>
-                        <button class="action-btn listen-btn" onclick="playAudio(${index})">
-                            🎵 Listen
-                        </button>
-                        <button class="action-btn complete-btn" onclick="toggleComplete(${reading.day})">
-                            ${isCompleted ? '✅' : '☑️'}
-                        </button>
-                    </div>
-                `;
-                
-                daysGrid.appendChild(dayCard);
-            });
-        }
-
-        // Update statistics
-        function updateStats() {
-            const completed = completedDays.length;
-            const current = currentDayIndex + 1;
-            const remaining = 90 - completed;
-            const progressPercent = (completed / 90) * 100;
-            
-            document.getElementById('completedDays').textContent = completed;
-            document.getElementById('currentDay').textContent = current;
-            document.getElementById('remainingDays').textContent = remaining;
-            document.getElementById('progressFill').style.width = `${progressPercent}%`;
-        }
-
-        // Format scripture reference for URL
-        function formatScriptureForUrl(scripture) {
-            return scripture.replace(/\s+/g, '%20').replace(/:/g, '%3A').replace(/–/g, '-');
-        }
-
-        // Play audio for a specific reading
-        function playAudio(index) {
-            const reading = readingPlan[index];
-            currentAudioReading = reading;
-            
-            // Update current reading display
-            currentReading.innerHTML = `
-                <h3>Day ${reading.day}</h3>
-                <p>${reading.scripture} — ${reading.theme}</p>
-            `;
-            
-            // Format scripture for the audio URL
-            const formattedScripture = formatScriptureForUrl(reading.scripture);
-            const audioUrl = `https://www.stmarysnova.org/cgi-bin/gspeech.cgi?verses=${formattedScripture}`;
-            
-            // Show loading in verse display
-            verseDisplay.innerHTML = '<div class="loading">Loading audio and scripture text...</div>';
-            
-            // Set up audio player
-            audioPlayer.src = audioUrl;
-            audioPlayer.style.display = 'block';
-            
-            // Load audio
-            audioPlayer.onloadeddata = () => {
-                fetchVerseText(reading.scripture);
-            };
-            
-            audioPlayer.onerror = () => {
-                verseDisplay.innerHTML = `
-                    <div class="loading">
-                        <p>Audio not available for this passage.</p>
-                        <p><a href="${audioUrl}" target="_blank">Try opening audio source directly</a></p>
-                    </div>
-                `;
-                fetchVerseText(reading.scripture);
-            };
-            
-            audioPlayer.load();
-        }
-
-        // Read scripture (fetch text only)
-        function readScripture(index) {
-            const reading = readingPlan[index];
-            currentAudioReading = reading;
-            
-            // Update current reading display
-            currentReading.innerHTML = `
-                <h3>Day ${reading.day}</h3>
-                <p>${reading.scripture} — ${reading.theme}</p>
-            `;
-            
-            // Hide audio player
-            audioPlayer.style.display = 'none';
-            
-            // Fetch verse text
-            fetchVerseText(reading.scripture);
-        }
-
-        // Fetch verse text from Bible API
-        function fetchVerseText(passage) {
-            verseDisplay.innerHTML = '<div class="loading">Loading scripture text...</div>';
-            
-            // Try multiple API endpoints for better coverage
-            const apiUrl = `https://labs.bible.org/api/?passage=${encodeURIComponent(passage)}&type=json`;
-            
-            // Create script element for JSONP
-            const script = document.createElement('script');
-            const callbackName = 'handleVerseResponse_' + Date.now();
-            
-            // Create global callback function
-            window[callbackName] = function(data) {
-                handleVerseResponse(data, passage);
-                // Clean up
-                document.body.removeChild(script);
-                delete window[callbackName];
-            };
-            
-            script.src = `${apiUrl}&callback=${callbackName}`;
-            document.body.appendChild(script);
-            
-            // Fallback timeout
-            setTimeout(() => {
-                if (document.body.contains(script)) {
-                    document.body.removeChild(script);
-                    delete window[callbackName];
-                    showFallbackText(passage);
-                }
-            }, 10000);
-        }
-
-        // Handle verse response from API
-        function handleVerseResponse(data, passage) {
-            if (!data || data.length === 0) {
-                showFallbackText(passage);
-                return;
-            }
-            
-            let html = `<h4>${passage}</h4>`;
-            
-            if (Array.isArray(data)) {
-                data.forEach(verse => {
-                    html += `<p><sup>${verse.verse}</sup> ${verse.text}</p>`;
-                });
-            } else {
-                html += `<p>${data.text || 'Scripture text not available'}</p>`;
-            }
-            
-            verseDisplay.innerHTML = html;
-        }
-
-        // Show fallback text when API fails
-        function showFallbackText(passage) {
-            verseDisplay.innerHTML = `
-                <h4>${passage}</h4>
-                <p><em>Scripture text is loading... Please check your internet connection or try again later.</em></p>
-                <p>You can find this passage in your Bible or visit <a href="https://www.biblegateway.com/passage/?search=${encodeURIComponent(passage)}" target="_blank">Bible Gateway</a> to read it online.</p>
-            `;
-        }
-
-        // Toggle completion status
-        function toggleComplete(day) {
-            const index = completedDays.indexOf(day);
-            
-            if (index > -1) {
-                completedDays.splice(index, 1);
-            } else {
-                completedDays.push(day);
-                // Auto-advance to next day if completing current day
-                if (day === currentDayIndex + 1 && currentDayIndex < 89) {
-                    currentDayIndex++;
-                    localStorage.setItem('currentDayIndex', currentDayIndex.toString());
-                }
-            }
-            
-            localStorage.setItem('completedDays', JSON.stringify(completedDays));
-            localStorage.setItem('lastUpdated', new Date().toISOString());
-            renderDays();
-            updateStats();
-            
-            // Auto-sync if enabled
-            if (CLOUD_SYNC.enabled) {
-                syncWithCloud();
-            }
-        }
-
-        // Setup event listeners
-        function setupEventListeners() {
-            // Theme toggle
-            themeToggle.addEventListener('click', toggleTheme);
-            
-            // Audio controls
-            playBtn.addEventListener('click', () => {
-                if (audioPlayer.src) {
-                    audioPlayer.play();
-                }
-            });
-            
-            pauseBtn.addEventListener('click', () => {
-                audioPlayer.pause();
-            });
-            
-            stopBtn.addEventListener('click', () => {
-                audioPlayer.pause();
-                audioPlayer.currentTime = 0;
-            });
-            
-            // Filter buttons
-            filterBtns.forEach(btn => {
-                btn.addEventListener('click', () => {
-                    filterBtns.forEach(b => b.classList.remove('active'));
-                    btn.classList.add('active');
-                    renderDays(btn.dataset.filter);
-                });
-            });
-            
-            // Cloud sync button
-            document.getElementById('syncButton').addEventListener('click', () => {
-                if (CLOUD_SYNC.enabled) {
-                    syncWithCloud();
-                } else {
-                    showSyncOptions();
-                }
-            });
-            
-            // Keyboard shortcuts
-            document.addEventListener('keydown', (e) => {
-                if (e.ctrlKey || e.metaKey) {
-                    switch(e.key) {
-                        case ' ':
-                            e.preventDefault();
-                            if (audioPlayer.paused) {
-                                audioPlayer.play();
-                            } else {
-                                audioPlayer.pause();
-                            }
-                            break;
-                        case 'ArrowRight':
-                            e.preventDefault();
-                            nextDay();
-                            break;
-                        case 'ArrowLeft':
-                            e.preventDefault();
-                            previousDay();
-                            break;
-                    }
-                }
-            });
-        }
-
-        // Navigate to next day
-        function nextDay() {
-            if (currentDayIndex < 89) {
-                currentDayIndex++;
-                localStorage.setItem('currentDayIndex', currentDayIndex.toString());
-                renderDays();
-                updateStats();
-                
-                // Auto-play next day
-                playAudio(currentDayIndex);
-            }
-        }
-
-        // Navigate to previous day
-        function previousDay() {
-            if (currentDayIndex > 0) {
-                currentDayIndex--;
-                localStorage.setItem('currentDayIndex', currentDayIndex.toString());
-                renderDays();
-                updateStats();
-                
-                // Auto-play previous day
-                playAudio(currentDayIndex);
-            }
-        }
-
-        // Reset progress (for testing or starting over)
-        function resetProgress() {
-            if (confirm('Are you sure you want to reset your reading progress? This cannot be undone.')) {
-                completedDays = [];
-                currentDayIndex = 0;
-                localStorage.removeItem('completedDays');
-                localStorage.removeItem('currentDayIndex');
-                renderDays();
-                updateStats();
-                
-                // Reset audio
-                audioPlayer.style.display = 'none';
-                currentReading.innerHTML = `
-                    <h3>Select a reading</h3>
-                    <p>Choose a day to listen to the Scripture</p>
-                `;
-                verseDisplay.innerHTML = '<p>Select a reading to view the scripture text here.</p>';
-            }
-        }
-
-        // Export progress data
-        function exportProgress() {
-            const progressData = {
-                completedDays: completedDays,
-                currentDayIndex: currentDayIndex,
-                exportDate: new Date().toISOString(),
-                totalDays: 90
-            };
-            
-            const dataStr = JSON.stringify(progressData, null, 2);
-            const dataBlob = new Blob([dataStr], {type: 'application/json'});
-            
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(dataBlob);
-            link.download = '90-day-bible-reading-progress.json';
-            link.click();
-        }
-
-        // Import progress data
-        function importProgress(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const progressData = JSON.parse(e.target.result);
-                    
-                    if (progressData.completedDays && Array.isArray(progressData.completedDays)) {
-                        completedDays = progressData.completedDays;
-                        currentDayIndex = progressData.currentDayIndex || 0;
-                        
-                        localStorage.setItem('completedDays', JSON.stringify(completedDays));
-                        localStorage.setItem('currentDayIndex', currentDayIndex.toString());
-                        
-                        renderDays();
-                        updateStats();
-                        
-                        alert('Progress imported successfully!');
-                    }
-                } catch (error) {
-                    alert('Error importing progress data. Please check the file format.');
-                }
-            };
-            reader.readAsText(file);
-        }
-
-        // Add keyboard shortcut info
-        function showKeyboardShortcuts() {
-            alert(`Keyboard Shortcuts:
-            
-Ctrl/Cmd + Space: Play/Pause audio
-Ctrl/Cmd + →: Next day
-Ctrl/Cmd + ←: Previous day
-
-Pro tip: Use these shortcuts for hands-free navigation while listening!`);
-        }
-
-        // Initialize the application when DOM is loaded
+        // --- Initialize the App ---
         document.addEventListener('DOMContentLoaded', init);
-
-        // Add some utility functions to window for console access
-        window.bibleReading = {
-            resetProgress,
-            exportProgress,
-            showKeyboardShortcuts,
-            enableCloudSync: showSyncOptions,
-            disableCloudSync,
-            syncNow: () => syncWithCloud(),
-            goToDay: (day) => {
-                if (day >= 1 && day <= 90) {
-                    currentDayIndex = day - 1;
-                    localStorage.setItem('currentDayIndex', currentDayIndex.toString());
-                    renderDays();
-                    updateStats();
-                    playAudio(currentDayIndex);
-                }
-            }
-        };
     </script>
-
-    <!-- Hidden file input for progress import -->
-    <input type="file" id="importInput" accept=".json" style="display: none;" onchange="importProgress(event)">
-    
-    <!-- Add some helpful info in a small footer -->
-    <div style="text-align: center; margin-top: 40px; padding: 20px; color: var(--secondary); font-size: 0.9rem; font-style: italic;">
-        <p>✨ Your 90-day spiritual journey awaits • Press F12 and type <code>bibleReading.showKeyboardShortcuts()</code> for shortcuts ✨</p>
-        <p>Progress is automatically saved in your browser • Enable cloud sync to access across devices</p>
-        <p><strong>Setup Instructions:</strong> For full cloud sync, see the developer console for API key setup</p>
-    </div>
 </body>
 </html>
