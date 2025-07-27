@@ -265,9 +265,19 @@
         .video-title {
             color: #4a5568;
             font-size: 0.9rem;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
             font-weight: normal;
             line-height: 1.4;
+        }
+
+        .upload-info {
+            color: #666;
+            font-size: 0.85rem;
+            margin-bottom: 15px;
+            padding: 8px 12px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            border-left: 3px solid #667eea;
         }
 
         .loading-text {
@@ -619,14 +629,34 @@
             }
         }
 
+        function formatDateTime(isoString) {
+            const date = new Date(isoString);
+            
+            // Format time as HH:MM:SS
+            const hours = date.getHours().toString().padStart(2, '0');
+            const minutes = date.getMinutes().toString().padStart(2, '0');
+            const seconds = date.getSeconds().toString().padStart(2, '0');
+            const timeString = `${hours}:${minutes}:${seconds}`;
+            
+            // Format date as DD/MM/YYYY
+            const day = date.getDate().toString().padStart(2, '0');
+            const month = (date.getMonth() + 1).toString().padStart(2, '0');
+            const year = date.getFullYear();
+            const dateString = `${day}/${month}/${year}`;
+            
+            return `${timeString} • ${dateString}`;
+        }
+
         function displayVideos() {
             const morningContainer = document.getElementById('morningVideoContainer');
             const eveningContainer = document.getElementById('eveningVideoContainer');
 
             // Display morning video
             if (videoCache.morning) {
+                const uploadDateTime = formatDateTime(videoCache.morning.published);
                 morningContainer.innerHTML = `
                     <div class="video-title">${videoCache.morning.title}</div>
+                    <div class="upload-info">📅 Uploaded: ${uploadDateTime}</div>
                     <iframe class="youtube-player" 
                             src="https://www.youtube.com/embed/${videoCache.morning.videoId}" 
                             frameborder="0" 
@@ -640,8 +670,10 @@
 
             // Display evening video
             if (videoCache.evening) {
+                const uploadDateTime = formatDateTime(videoCache.evening.published);
                 eveningContainer.innerHTML = `
                     <div class="video-title">${videoCache.evening.title}</div>
+                    <div class="upload-info">📅 Uploaded: ${uploadDateTime}</div>
                     <iframe class="youtube-player" 
                             src="https://www.youtube.com/embed/${videoCache.evening.videoId}" 
                             frameborder="0" 
