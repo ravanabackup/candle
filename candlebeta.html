@@ -736,9 +736,11 @@
                         <div class="upload-info">📅 Uploaded: ${uploadDateTime}</div>
                         <div class="audio-mode-container">
                             <iframe class="youtube-player audio-mode"
-                                     src="https://www.youtube.com/embed/${videoCache.morning.videoId}?controls=1&modestbranding=1&rel=0&showinfo=0"
+                                     src="https://www.youtube.com/embed/${videoCache.morning.videoId}?controls=1&modestbranding=1&rel=0&showinfo=0&origin=${window.location.origin}&enablejsapi=0"
                                      frameborder="0"
-                                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                     loading="lazy"
+                                     allow="encrypted-media; picture-in-picture"
+                                     sandbox="allow-scripts allow-same-origin allow-presentation"
                                      allowfullscreen>
                             </iframe>
                         </div>
@@ -754,9 +756,11 @@
                         <div class="video-title">${videoCache.morning.title}</div>
                         <div class="upload-info">📅 Uploaded: ${uploadDateTime}</div>
                         <iframe class="youtube-player"
-                                 src="https://www.youtube.com/embed/${videoCache.morning.videoId}?controls=1&modestbranding=1&rel=0"
+                                 src="https://www.youtube.com/embed/${videoCache.morning.videoId}?controls=1&modestbranding=1&rel=0&origin=${window.location.origin}&enablejsapi=0"
                                  frameborder="0"
-                                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                 loading="lazy"
+                                 allow="encrypted-media; picture-in-picture"
+                                 sandbox="allow-scripts allow-same-origin allow-presentation"
                                  allowfullscreen>
                         </iframe>
                     `;
@@ -775,9 +779,11 @@
                         <div class="upload-info">📅 Uploaded: ${uploadDateTime}</div>
                         <div class="audio-mode-container">
                             <iframe class="youtube-player audio-mode"
-                                     src="https://www.youtube.com/embed/${videoCache.evening.videoId}?controls=1&modestbranding=1&rel=0&showinfo=0"
+                                     src="https://www.youtube.com/embed/${videoCache.evening.videoId}?controls=1&modestbranding=1&rel=0&showinfo=0&origin=${window.location.origin}&enablejsapi=0"
                                      frameborder="0"
-                                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                     loading="lazy"
+                                     allow="encrypted-media; picture-in-picture"
+                                     sandbox="allow-scripts allow-same-origin allow-presentation"
                                      allowfullscreen>
                             </iframe>
                         </div>
@@ -793,9 +799,11 @@
                         <div class="video-title">${videoCache.evening.title}</div>
                         <div class="upload-info">📅 Uploaded: ${uploadDateTime}</div>
                         <iframe class="youtube-player"
-                                 src="https://www.youtube.com/embed/${videoCache.evening.videoId}?controls=1&modestbranding=1&rel=0"
+                                 src="https://www.youtube.com/embed/${videoCache.evening.videoId}?controls=1&modestbranding=1&rel=0&origin=${window.location.origin}&enablejsapi=0"
                                  frameborder="0"
-                                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                 loading="lazy"
+                                 allow="encrypted-media; picture-in-picture"
+                                 sandbox="allow-scripts allow-same-origin allow-presentation"
                                  allowfullscreen>
                         </iframe>
                     `;
@@ -892,15 +900,39 @@
 
         // Initialize the page
         document.addEventListener('DOMContentLoaded', () => {
+            // Add error handler to suppress YouTube tracking errors
+            window.addEventListener('error', function(e) {
+                // Suppress YouTube embed player errors that don't affect functionality
+                if (e.message && (
+                    e.message.includes('youtube') || 
+                    e.message.includes('www-embed-player') ||
+                    e.message.includes('ptracking') ||
+                    e.message.includes('log_event')
+                )) {
+                    e.preventDefault();
+                    return false;
+                }
+            }, true);
+
+            // Suppress unhandled promise rejections from YouTube
+            window.addEventListener('unhandledrejection', function(e) {
+                if (e.reason && e.reason.toString().includes('youtube')) {
+                    e.preventDefault();
+                }
+            });
+
             updateDisplay();
-            // Set initial toggle button state
             updateMediaToggleButtons();
             
             // Load videos from cache first, then fetch fresh ones
             if (videoCache.morning || videoCache.evening) {
                 displayVideos();
             }
-            fetchYouTubeVideos(); // Always try to fetch fresh on load
+            
+            // Delay initial fetch to avoid conflicts with extensions
+            setTimeout(() => {
+                fetchYouTubeVideos();
+            }, 1000);
         });
 
         // Update every minute to catch day changes
