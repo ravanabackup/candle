@@ -375,7 +375,8 @@
                 <div class="date-info">
                     <div>Started: July 27, 2025</div>
                     <div>Current Date: <span id="currentDate"></span></div>
-                    <div>Completion: <span id="completionDate">October 25, 2025</span></div>
+                    <div>Fasting Period: <span id="completionDate">October 25, 2025</span></div>
+                    <div>Prayer Videos: Ongoing Journey ✨</div>
                 </div>
             </div>
 
@@ -414,8 +415,8 @@
                             <div class="stat-label">Days Completed</div>
                         </div>
                         <div class="stat-card">
-                            <div class="stat-number">90</div>
-                            <div class="stat-label">Total Days</div>
+                            <div class="stat-number">∞</div>
+                            <div class="stat-label">Ongoing Journey</div>
                         </div>
                     </div>
                 </div>
@@ -467,7 +468,7 @@
     <script>
         // Start date: July 27, 2025
         const startDate = new Date('2025-07-27');
-        const endDate = new Date('2025-10-25'); // 90 days later
+        const endDate = new Date('2025-10-25'); // 90 days later - fasting period only
 
         // YouTube channel RSS feed URL
         const YOUTUBE_RSS_URL = 'https://www.youtube.com/feeds/videos.xml?channel_id=UCbg8V1kty3s1kcCch2VHwEw';
@@ -506,7 +507,19 @@
             const start = new Date(progress.startDate);
             const diffTime = today - start;
             const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
-            return Math.max(1, Math.min(diffDays, 90));
+            return Math.max(1, diffDays); // Unlimited days for overall journey
+        }
+
+        function getCurrentFastingDay() {
+            const today = new Date();
+            const start = new Date(progress.startDate);
+            const diffTime = today - start;
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
+            return Math.max(1, Math.min(diffDays, 90)); // Limited to 90 days for fasting
+        }
+
+        function isFastingPeriodActive() {
+            return getCurrentFastingDay() <= 90;
         }
 
         function isWednesday() {
@@ -515,6 +528,7 @@
         }
 
         function getTotalWednesdays() {
+            // Calculate Wednesdays only within the 90-day fasting period
             let count = 0;
             let currentDate = new Date(startDate);
             
@@ -688,11 +702,12 @@
 
         function updateDisplay() {
             const currentDay = getCurrentDay();
+            const fastingDay = getCurrentFastingDay();
             const today = new Date();
             const todayString = getTodayString();
 
-            // Update day counter
-            document.getElementById('dayCounter').textContent = `Day ${currentDay} of 90`;
+            // Update day counter - ongoing journey
+            document.getElementById('dayCounter').textContent = `Day ${currentDay}`;
 
             // Update current date
             document.getElementById('currentDate').textContent = today.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
@@ -702,9 +717,14 @@
             const fastingText = document.getElementById('fastingText');
             const fastingBtn = document.getElementById('fastingBtn');
 
-            if (isWednesday()) {
+            if (!isFastingPeriodActive()) {
+                // Fasting period completed
+                fastingCard.classList.remove('wednesday-highlight');
+                fastingText.textContent = '90-day fasting period completed ✅';
+                fastingBtn.style.display = 'none';
+            } else if (isWednesday()) {
                 fastingCard.classList.add('wednesday-highlight');
-                fastingText.textContent = 'Today is Wednesday - Observe fasting';
+                fastingText.textContent = `Today is Wednesday - Observe fasting (Day ${fastingDay} of 90)`;
                 fastingBtn.style.display = 'inline-block';
 
                 if (progress.fastingDays.includes(todayString)) {
@@ -716,7 +736,11 @@
                 }
             } else {
                 fastingCard.classList.remove('wednesday-highlight');
-                fastingText.textContent = 'Today is not Wednesday - No fasting required';
+                if (isFastingPeriodActive()) {
+                    fastingText.textContent = `Today is not Wednesday - No fasting required (Day ${fastingDay} of 90)`;
+                } else {
+                    fastingText.textContent = '90-day fasting period completed ✅';
+                }
                 fastingBtn.style.display = 'none';
             }
 
@@ -737,6 +761,10 @@
         }
 
         function toggleFasting() {
+            if (!isFastingPeriodActive()) {
+                return; // Don't allow fasting actions after 90 days
+            }
+            
             const todayString = getTodayString();
             const index = progress.fastingDays.indexOf(todayString);
 
