@@ -1,0 +1,1447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>90-Day Bible Reading Journey</title>
+    <style>
+        :root {
+            --background: #f8f6f3;
+            --text: #2c2c2c;
+            --primary: #8b4513;
+            --secondary: #cd853f;
+            --accent: #daa520;
+            --card-bg: #ffffff;
+            --border: #e0d4c7;
+            --shadow: rgba(139, 69, 19, 0.1);
+            --completed: #228b22;
+            --current: #ff6b35;
+        }
+
+        [data-theme="dark"] {
+            --background: #1a1a2e;
+            --text: #e6e6e6;
+            --primary: #cd853f;
+            --secondary: #daa520;
+            --accent: #f4a460;
+            --card-bg: #16213e;
+            --border: #3a3a5c;
+            --shadow: rgba(0, 0, 0, 0.4);
+            --completed: #32cd32;
+            --current: #ff7f50;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Georgia', serif;
+            background: var(--background);
+            color: var(--text);
+            line-height: 1.6;
+            transition: all 0.3s ease;
+            background-image: 
+                radial-gradient(circle at 20% 80%, rgba(139, 69, 19, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(218, 165, 32, 0.1) 0%, transparent 50%);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            position: relative;
+            padding: 30px 0;
+        }
+
+        .header-title {
+            font-size: 3rem;
+            color: var(--primary);
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px var(--shadow);
+            font-weight: bold;
+        }
+
+        .header-subtitle {
+            font-size: 1.2rem;
+            color: var(--secondary);
+            font-style: italic;
+            margin-bottom: 20px;
+        }
+
+        .progress-overview {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+
+        .progress-stat {
+            text-align: center;
+            padding: 15px 25px;
+            background: var(--card-bg);
+            border-radius: 15px;
+            box-shadow: 0 4px 15px var(--shadow);
+            border: 2px solid var(--border);
+        }
+
+        .progress-stat h3 {
+            font-size: 2rem;
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+
+        .progress-stat p {
+            color: var(--secondary);
+            font-weight: bold;
+        }
+
+        .theme-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: var(--accent);
+            color: var(--card-bg);
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px var(--shadow);
+        }
+
+        .theme-toggle:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px var(--shadow);
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .reading-plan {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 25px var(--shadow);
+            border: 2px solid var(--border);
+        }
+
+        .plan-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .plan-title {
+            font-size: 1.8rem;
+            color: var(--primary);
+            font-weight: bold;
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .filter-btn {
+            padding: 8px 15px;
+            border: 2px solid var(--border);
+            background: transparent;
+            color: var(--text);
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .filter-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .filter-btn:hover {
+            background: var(--secondary);
+            color: white;
+            border-color: var(--secondary);
+        }
+
+        .days-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            max-height: 600px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        .day-card {
+            background: var(--card-bg);
+            border: 2px solid var(--border);
+            border-radius: 15px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            box-shadow: 0 4px 15px var(--shadow);
+        }
+
+        .day-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px var(--shadow);
+            border-color: var(--accent);
+        }
+
+        .day-card.completed {
+            border-color: var(--completed);
+            background: linear-gradient(135deg, var(--card-bg) 0%, rgba(34, 139, 34, 0.1) 100%);
+        }
+
+        .day-card.current {
+            border-color: var(--current);
+            background: linear-gradient(135deg, var(--card-bg) 0%, rgba(255, 107, 53, 0.1) 100%);
+            box-shadow: 0 8px 25px rgba(255, 107, 53, 0.3);
+        }
+
+        .day-number {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        .day-scripture {
+            font-size: 1.1rem;
+            color: var(--text);
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .day-theme {
+            font-size: 0.95rem;
+            color: var(--secondary);
+            font-style: italic;
+            margin-bottom: 15px;
+        }
+
+        .day-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+
+        .read-btn {
+            background: var(--primary);
+            color: white;
+        }
+
+        .read-btn:hover {
+            background: var(--secondary);
+            transform: translateY(-2px);
+        }
+
+        .listen-btn {
+            background: var(--accent);
+            color: white;
+        }
+
+        .listen-btn:hover {
+            background: var(--secondary);
+            transform: translateY(-2px);
+        }
+
+        .complete-btn {
+            background: var(--completed);
+            color: white;
+        }
+
+        .complete-btn:hover {
+            background: #32cd32;
+            transform: translateY(-2px);
+        }
+
+        .status-icon {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 1.2rem;
+        }
+
+        .audio-panel {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 25px var(--shadow);
+            border: 2px solid var(--border);
+            height: fit-content;
+        }
+
+        .audio-header {
+            text-align: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .audio-title {
+            font-size: 1.5rem;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        .current-reading {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .current-reading h3 {
+            font-size: 1.3rem;
+            margin-bottom: 5px;
+        }
+
+        .current-reading p {
+            opacity: 0.9;
+            font-style: italic;
+        }
+
+        .audio-controls {
+            margin-bottom: 20px;
+        }
+
+        .audio-player {
+            width: 100%;
+            margin-bottom: 15px;
+        }
+
+        .playback-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .control-btn {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid var(--border);
+            background: var(--card-bg);
+            color: var(--text);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .control-btn:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .verse-display {
+            background: var(--card-bg);
+            border: 2px solid var(--border);
+            border-radius: 15px;
+            padding: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+            line-height: 1.8;
+        }
+
+        .verse-display h4 {
+            color: var(--primary);
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .verse-display p {
+            margin-bottom: 10px;
+        }
+
+        .verse-display sup {
+            color: var(--secondary);
+            font-weight: bold;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: var(--secondary);
+            font-style: italic;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background: var(--border);
+            border-radius: 5px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            border-radius: 5px;
+            transition: width 0.5s ease;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .header-title {
+                font-size: 2rem;
+            }
+            
+            .progress-overview {
+                gap: 15px;
+            }
+            
+            .days-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .theme-toggle {
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                z-index: 1000;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <button id="themeToggle" class="theme-toggle" aria-label="Toggle dark mode">☀️</button>
+            <h1 class="header-title">90-Day Bible Reading Journey</h1>
+            <p class="header-subtitle">Transform your spiritual life through daily Scripture</p>
+            
+            <div class="progress-overview">
+                <div class="progress-stat">
+                    <h3 id="completedDays">0</h3>
+                    <p>Days Completed</p>
+                </div>
+                <div class="progress-stat">
+                    <h3 id="currentDay">1</h3>
+                    <p>Current Day</p>
+                </div>
+                <div class="progress-stat">
+                    <h3 id="remainingDays">90</h3>
+                    <p>Days Remaining</p>
+                </div>
+                <div class="progress-stat" id="syncStatus">
+                    <h3 id="syncIndicator">📱</h3>
+                    <p id="syncText">Local Only</p>
+                </div>
+            </div>
+            
+            <div class="progress-bar">
+                <div id="progressFill" class="progress-fill" style="width: 0%"></div>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <div class="reading-plan">
+                <div class="plan-header">
+                    <h2 class="plan-title">Daily Readings</h2>
+                    <div class="filter-buttons">
+                        <button class="filter-btn active" data-filter="all">All</button>
+                        <button class="filter-btn" data-filter="completed">Completed</button>
+                        <button class="filter-btn" data-filter="remaining">Remaining</button>
+                    </div>
+                </div>
+                
+                <div id="daysGrid" class="days-grid">
+                    <!-- Days will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <div class="audio-panel">
+                <div class="audio-header">
+                    <h3 class="audio-title">🎵 Scripture Audio</h3>
+                    <div style="text-align: center; margin-top: 10px;">
+                        <button id="syncButton" class="control-btn" style="font-size: 0.9rem; padding: 5px 15px;">
+                            ☁️ Enable Cloud Sync
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="currentReading" class="current-reading">
+                    <h3>Select a reading</h3>
+                    <p>Choose a day to listen to the Scripture</p>
+                </div>
+                
+                <div class="audio-controls">
+                    <audio id="audioPlayer" class="audio-player" controls style="display: none;">
+                        Your browser does not support the audio element.
+                    </audio>
+                    
+                    <div class="playback-controls">
+                        <button id="playBtn" class="control-btn">▶️ Play</button>
+                        <button id="pauseBtn" class="control-btn">⏸️ Pause</button>
+                        <button id="stopBtn" class="control-btn">⏹️ Stop</button>
+                    </div>
+                </div>
+                
+                <div id="verseDisplay" class="verse-display">
+                    <p>Select a reading to view the scripture text here.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Bible reading plan data
+        const readingPlan = [
+            { day: 1, scripture: "Matthew 6:1–18", theme: "Prayer, fasting, and humility" },
+            { day: 2, scripture: "Luke 1:26–38", theme: "Mary's \"Yes\" (The Annunciation)" },
+            { day: 3, scripture: "John 2:1–11", theme: "Wedding at Cana" },
+            { day: 4, scripture: "Psalm 91", theme: "God's protection over you" },
+            { day: 5, scripture: "Mark 5:21–43", theme: "Healing and faith" },
+            { day: 6, scripture: "Luke 15:11–32", theme: "The mercy of the Father" },
+            { day: 7, scripture: "Luke 18:1–8", theme: "Power of persistent prayer" },
+            { day: 8, scripture: "Mark 4:35–41", theme: "Jesus calms your storms" },
+            { day: 9, scripture: "Revelation 12:1–17", theme: "The woman clothed with the sun (Mary)" },
+            { day: 10, scripture: "Luke 23:33–47", theme: "Jesus' forgiveness from the Cross" },
+            { day: 11, scripture: "John 10:1–18", theme: "The Good Shepherd" },
+            { day: 12, scripture: "Romans 12:1–21", theme: "A life pleasing to God" },
+            { day: 13, scripture: "Psalm 103", theme: "Bless the Lord for His mercy" },
+            { day: 14, scripture: "Luke 7:36–50", theme: "A sinful woman forgiven" },
+            { day: 15, scripture: "Matthew 9:18–31", theme: "Two healings, one faith" },
+            { day: 16, scripture: "Isaiah 58:1–12", theme: "True fasting and its power" },
+            { day: 17, scripture: "Psalm 51", theme: "A heart of repentance" },
+            { day: 18, scripture: "1 Samuel 1:9–20", theme: "Hannah's prayer and promise" },
+            { day: 19, scripture: "Acts 12:1–17", theme: "The power of prayer in crisis" },
+            { day: 20, scripture: "Matthew 25:31–46", theme: "Serving Christ in others" },
+            { day: 21, scripture: "2 Chronicles 7:12–22", theme: "God's promise to heal the land" },
+            { day: 22, scripture: "Matthew 5:1–16", theme: "Beatitudes (true blessing)" },
+            { day: 23, scripture: "Exodus 14:10–31", theme: "The Red Sea miracle" },
+            { day: 24, scripture: "2 Kings 4:1–7", theme: "God multiplies your little" },
+            { day: 25, scripture: "Matthew 8:1–17", theme: "Jesus heals many" },
+            { day: 26, scripture: "James 1:2–18", theme: "Trials and perseverance" },
+            { day: 27, scripture: "Luke 17:11–19", theme: "The thankful leper" },
+            { day: 28, scripture: "Philippians 4:4–13", theme: "Joy and strength in Christ" },
+            { day: 29, scripture: "Genesis 22:1–19", theme: "Abraham's obedience" },
+            { day: 30, scripture: "Psalm 27", theme: "The Lord is my light" },
+            { day: 31, scripture: "Luke 5:1–11", theme: "Peter's calling and surrender" },
+            { day: 32, scripture: "Isaiah 40:1–11", theme: "Comfort and hope" },
+            { day: 33, scripture: "Matthew 13:1–23", theme: "The parable of the sower" },
+            { day: 34, scripture: "Ephesians 6:10–20", theme: "Armor of God" },
+            { day: 35, scripture: "Psalm 34", theme: "God hears the brokenhearted" },
+            { day: 36, scripture: "Matthew 14:22–33", theme: "Jesus walks on water" },
+            { day: 37, scripture: "Daniel 3:1–30", theme: "Fire cannot destroy the faithful" },
+            { day: 38, scripture: "Luke 10:38–42", theme: "Mary and Martha" },
+            { day: 39, scripture: "John 11:1–44", theme: "The raising of Lazarus" },
+            { day: 40, scripture: "Psalm 121", theme: "My help comes from the Lord" },
+            { day: 41, scripture: "2 Corinthians 4:7–18", theme: "Treasure in jars of clay" },
+            { day: 42, scripture: "John 3:1–21", theme: "Jesus and Nicodemus" },
+            { day: 43, scripture: "Matthew 11:25–30", theme: "Rest for the weary" },
+            { day: 44, scripture: "Hebrews 11:1–16", theme: "Faith of the ancestors" },
+            { day: 45, scripture: "Proverbs 3:1–12", theme: "Trust in the Lord" },
+            { day: 46, scripture: "Matthew 7:7–27", theme: "Ask, seek, knock" },
+            { day: 47, scripture: "1 Corinthians 13", theme: "The way of love" },
+            { day: 48, scripture: "Colossians 3:1–17", theme: "Life in Christ" },
+            { day: 49, scripture: "Luke 12:22–34", theme: "Do not worry" },
+            { day: 50, scripture: "Psalm 46", theme: "God is our refuge" },
+            { day: 51, scripture: "John 15:1–17", theme: "Remain in my love" },
+            { day: 52, scripture: "Jeremiah 29:11–14", theme: "Hope and future" },
+            { day: 53, scripture: "Mark 10:46–52", theme: "Blind Bartimaeus" },
+            { day: 54, scripture: "Deuteronomy 6:1–9", theme: "Love the Lord" },
+            { day: 55, scripture: "1 Kings 17:8–16", theme: "The widow's obedience" },
+            { day: 56, scripture: "Ecclesiastes 3:1–15", theme: "A time for everything" },
+            { day: 57, scripture: "Psalm 42", theme: "My soul thirsts for God" },
+            { day: 58, scripture: "Matthew 19:16–30", theme: "The rich young man" },
+            { day: 59, scripture: "Genesis 37:1–36", theme: "Joseph's trials begin" },
+            { day: 60, scripture: "Genesis 50:15–26", theme: "Forgiveness and restoration" },
+            { day: 61, scripture: "Acts 3:1–16", theme: "Healing at the temple gate" },
+            { day: 62, scripture: "Job 1", theme: "Faith under testing" },
+            { day: 63, scripture: "Job 42", theme: "Restoration after trial" },
+            { day: 64, scripture: "Matthew 20:1–16", theme: "God's generous mercy" },
+            { day: 65, scripture: "Psalm 139", theme: "God knows you completely" },
+            { day: 66, scripture: "Zechariah 9:9–17", theme: "Rejoice, daughter of Zion" },
+            { day: 67, scripture: "Matthew 26:36–56", theme: "Gethsemane" },
+            { day: 68, scripture: "Luke 22:1–38", theme: "The betrayal foretold" },
+            { day: 69, scripture: "John 19:1–30", theme: "The crucifixion" },
+            { day: 70, scripture: "John 20:1–29", theme: "The resurrection" },
+            { day: 71, scripture: "Luke 24:13–35", theme: "Emmaus encounter" },
+            { day: 72, scripture: "Acts 2:1–13", theme: "Pentecost" },
+            { day: 73, scripture: "Galatians 5:16–26", theme: "Fruits of the Spirit" },
+            { day: 74, scripture: "2 Peter 1:3–11", theme: "Spiritual growth" },
+            { day: 75, scripture: "Titus 2:11–15", theme: "Living in grace" },
+            { day: 76, scripture: "1 Thessalonians 5:12–28", theme: "Christian living" },
+            { day: 77, scripture: "Matthew 6:25–34", theme: "Do not worry about tomorrow" },
+            { day: 78, scripture: "Psalm 19", theme: "God's Word is pure" },
+            { day: 79, scripture: "Luke 1:46–56", theme: "Mary's Magnificat" },
+            { day: 80, scripture: "Exodus 3:1–15", theme: "God calls Moses" },
+            { day: 81, scripture: "Joshua 1:1–9", theme: "Be strong and courageous" },
+            { day: 82, scripture: "Matthew 16:13–28", theme: "Take up your cross" },
+            { day: 83, scripture: "Philippians 2:1–11", theme: "Christ's humility" },
+            { day: 84, scripture: "1 John 4:7–21", theme: "God is love" },
+            { day: 85, scripture: "John 14:1–14", theme: "Jesus the way" },
+            { day: 86, scripture: "Revelation 21:1–8", theme: "A new heaven and earth" },
+            { day: 87, scripture: "Psalm 90", theme: "Teach us to number our days" },
+            { day: 88, scripture: "Hebrews 4:12–16", theme: "The power of God's Word" },
+            { day: 89, scripture: "Romans 8:1–17", theme: "Life in the Spirit" },
+            { day: 90, scripture: "Romans 8:18–39", theme: "Nothing can separate you from God's love" }
+        ];
+
+        // Application state
+        let completedDays = JSON.parse(localStorage.getItem('completedDays') || '[]');
+        let currentDayIndex = parseInt(localStorage.getItem('currentDayIndex') || '0');
+        let darkMode = JSON.parse(localStorage.getItem('darkMode') || 'false');
+        let currentAudioReading = null;
+        
+        // Cloud sync configuration
+        const CLOUD_SYNC = {
+            enabled: false,
+            provider: 'none', // 'google', 'firebase', 'custom'
+            lastSync: null,
+            syncInProgress: false
+        };
+
+        // DOM elements
+        const themeToggle = document.getElementById('themeToggle');
+        const daysGrid = document.getElementById('daysGrid');
+        const audioPlayer = document.getElementById('audioPlayer');
+        const verseDisplay = document.getElementById('verseDisplay');
+        const currentReading = document.getElementById('currentReading');
+        const playBtn = document.getElementById('playBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const filterBtns = document.querySelectorAll('.filter-btn');
+
+        // Initialize the application
+        function init() {
+            setupTheme();
+            renderDays();
+            updateStats();
+            setupEventListeners();
+            initCloudSync();
+            
+            // Load from cloud on startup
+            if (CLOUD_SYNC.enabled) {
+                loadFromCloud();
+            }
+        }
+
+        // Cloud Sync Functions
+        function initCloudSync() {
+            const savedSyncSettings = JSON.parse(localStorage.getItem('cloudSyncSettings') || '{}');
+            if (savedSyncSettings.enabled) {
+                CLOUD_SYNC.enabled = savedSyncSettings.enabled;
+                CLOUD_SYNC.provider = savedSyncSettings.provider;
+                CLOUD_SYNC.lastSync = savedSyncSettings.lastSync;
+                updateSyncStatus();
+            }
+        }
+
+        function updateSyncStatus() {
+            const syncIndicator = document.getElementById('syncIndicator');
+            const syncText = document.getElementById('syncText');
+            const syncButton = document.getElementById('syncButton');
+            
+            if (CLOUD_SYNC.enabled) {
+                syncIndicator.textContent = CLOUD_SYNC.syncInProgress ? '🔄' : '☁️';
+                syncText.textContent = CLOUD_SYNC.syncInProgress ? 'Syncing...' : 'Cloud Synced';
+                syncButton.textContent = '☁️ Sync Now';
+                syncButton.style.background = 'var(--completed)';
+            } else {
+                syncIndicator.textContent = '📱';
+                syncText.textContent = 'Local Only';
+                syncButton.textContent = '☁️ Enable Cloud Sync';
+                syncButton.style.background = 'var(--secondary)';
+            }
+            
+            if (CLOUD_SYNC.lastSync) {
+                const lastSyncDate = new Date(CLOUD_SYNC.lastSync).toLocaleString();
+                syncText.textContent += ` (${lastSyncDate})`;
+            }
+        }
+
+        // Google Drive API Integration
+        async function enableGoogleDriveSync() {
+            try {
+                // Load Google API
+                await loadGoogleAPI();
+                
+                // Initialize and authenticate
+                await gapi.load('auth2', async () => {
+                    await gapi.auth2.init({
+                        client_id: 'YOUR_GOOGLE_CLIENT_ID' // You'll need to get this from Google Cloud Console
+                    });
+                    
+                    const authInstance = gapi.auth2.getAuthInstance();
+                    const user = await authInstance.signIn({
+                        scope: 'https://www.googleapis.com/auth/drive.file'
+                    });
+                    
+                    if (user.isSignedIn()) {
+                        CLOUD_SYNC.enabled = true;
+                        CLOUD_SYNC.provider = 'google';
+                        saveSyncSettings();
+                        updateSyncStatus();
+                        
+                        // Initial sync
+                        await syncWithCloud();
+                        
+                        alert('✅ Google Drive sync enabled! Your progress will now sync across all devices.');
+                    }
+                });
+            } catch (error) {
+                console.error('Failed to enable Google Drive sync:', error);
+                alert('❌ Failed to enable Google Drive sync. Please try again.');
+            }
+        }
+
+        function loadGoogleAPI() {
+            return new Promise((resolve, reject) => {
+                if (window.gapi) {
+                    resolve();
+                    return;
+                }
+                
+                const script = document.createElement('script');
+                script.src = 'https://apis.google.com/js/api.js';
+                script.onload = () => {
+                    gapi.load('client:auth2', resolve);
+                };
+                script.onerror = reject;
+                document.head.appendChild(script);
+            });
+        }
+
+        // Firebase Integration (Alternative)
+        async function enableFirebaseSync() {
+            try {
+                // You would need to configure Firebase
+                alert('Firebase sync would be implemented here. This requires Firebase configuration.');
+                
+                // Example Firebase setup:
+                /*
+                const firebaseConfig = {
+                    apiKey: "your-api-key",
+                    authDomain: "your-project.firebaseapp.com",
+                    databaseURL: "your-database-url",
+                    projectId: "your-project-id"
+                };
+                
+                firebase.initializeApp(firebaseConfig);
+                const auth = firebase.auth();
+                const db = firebase.firestore();
+                
+                // Authenticate user
+                await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
+                
+                CLOUD_SYNC.enabled = true;
+                CLOUD_SYNC.provider = 'firebase';
+                */
+                
+            } catch (error) {
+                console.error('Firebase sync error:', error);
+                alert('❌ Failed to enable Firebase sync.');
+            }
+        }
+
+        // Simple JSON Cloud Storage (using a simple API service)
+        async function enableSimpleCloudSync() {
+            const userId = prompt('Enter a unique User ID for syncing (this will be your sync key across devices):');
+            if (!userId || userId.trim() === '') {
+                alert('❌ User ID is required for cloud sync.');
+                return;
+            }
+            
+            try {
+                // Using JSONBin.io as a simple cloud storage (free tier available)
+                const response = await fetch('https://api.jsonbin.io/v3/b', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Master-Key': '$2a$10$YZLtMt/.NpwiNccfSYI0Z.haGbe8./F3/c8yzSYFtktSJQFE8xLL2' // You need to get this from jsonbin.io
+                    },
+                    body: JSON.stringify({
+                        userId: userId,
+                        completedDays: completedDays,
+                        currentDayIndex: currentDayIndex,
+                        lastUpdated: new Date().toISOString()
+                    })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    localStorage.setItem('cloudSyncId', data.metadata.id);
+                    localStorage.setItem('cloudUserId', userId);
+                    
+                    CLOUD_SYNC.enabled = true;
+                    CLOUD_SYNC.provider = 'jsonbin';
+                    saveSyncSettings();
+                    updateSyncStatus();
+                    
+                    alert(`✅ Cloud sync enabled! Your sync ID is: ${userId}\nUse this same ID on other devices to sync your progress.`);
+                } else {
+                    throw new Error('Failed to create cloud storage');
+                }
+            } catch (error) {
+                console.error('Simple cloud sync error:', error);
+                alert('❌ Failed to enable simple cloud sync. Please check your internet connection.');
+            }
+        }
+
+        // Save sync settings
+        function saveSyncSettings() {
+            localStorage.setItem('cloudSyncSettings', JSON.stringify({
+                enabled: CLOUD_SYNC.enabled,
+                provider: CLOUD_SYNC.provider,
+                lastSync: CLOUD_SYNC.lastSync
+            }));
+        }
+
+        // Sync with cloud
+        async function syncWithCloud() {
+            if (!CLOUD_SYNC.enabled) return;
+            
+            CLOUD_SYNC.syncInProgress = true;
+            updateSyncStatus();
+            
+            try {
+                switch (CLOUD_SYNC.provider) {
+                    case 'google':
+                        await syncWithGoogleDrive();
+                        break;
+                    case 'firebase':
+                        await syncWithFirebase();
+                        break;
+                    case 'jsonbin':
+                        await syncWithJSONBin();
+                        break;
+                }
+                
+                CLOUD_SYNC.lastSync = new Date().toISOString();
+                saveSyncSettings();
+                
+            } catch (error) {
+                console.error('Sync failed:', error);
+                alert('⚠️ Sync failed. Your progress is still saved locally.');
+            } finally {
+                CLOUD_SYNC.syncInProgress = false;
+                updateSyncStatus();
+            }
+        }
+
+        // Google Drive sync implementation
+        async function syncWithGoogleDrive() {
+            // Implementation for Google Drive API
+            // This would save/load a JSON file to/from Google Drive
+        }
+
+        // Firebase sync implementation  
+        async function syncWithFirebase() {
+            // Implementation for Firebase Firestore
+        }
+
+        // JSONBin sync implementation
+        async function syncWithJSONBin() {
+            const syncId = localStorage.getItem('cloudSyncId');
+            const userId = localStorage.getItem('cloudUserId');
+            
+            if (!syncId || !userId) {
+                throw new Error('No sync configuration found');
+            }
+            
+            // Upload current progress
+            const progressData = {
+                userId: userId,
+                completedDays: completedDays,
+                currentDayIndex: currentDayIndex,
+                lastUpdated: new Date().toISOString()
+            };
+            
+            const response = await fetch(`https://api.jsonbin.io/v3/b/${syncId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Master-Key': '$2a$10$your-jsonbin-master-key'
+                },
+                body: JSON.stringify(progressData)
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to sync with cloud');
+            }
+        }
+
+        // Load from cloud
+        async function loadFromCloud() {
+            if (!CLOUD_SYNC.enabled) return;
+            
+            try {
+                switch (CLOUD_SYNC.provider) {
+                    case 'jsonbin':
+                        await loadFromJSONBin();
+                        break;
+                    // Add other providers as needed
+                }
+                
+                renderDays();
+                updateStats();
+                
+            } catch (error) {
+                console.error('Failed to load from cloud:', error);
+            }
+        }
+
+        async function loadFromJSONBin() {
+            const syncId = localStorage.getItem('cloudSyncId');
+            if (!syncId) return;
+            
+            const response = await fetch(`https://api.jsonbin.io/v3/b/${syncId}/latest`, {
+                headers: {
+                    'X-Master-Key': '$2a$10$your-jsonbin-master-key'
+                }
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                const cloudData = data.record;
+                
+                // Merge cloud data with local data (use the most recent)
+                const cloudDate = new Date(cloudData.lastUpdated);
+                const localDate = new Date(localStorage.getItem('lastUpdated') || '1970-01-01');
+                
+                if (cloudDate > localDate) {
+                    completedDays = cloudData.completedDays || [];
+                    currentDayIndex = cloudData.currentDayIndex || 0;
+                    
+                    localStorage.setItem('completedDays', JSON.stringify(completedDays));
+                    localStorage.setItem('currentDayIndex', currentDayIndex.toString());
+                    localStorage.setItem('lastUpdated', cloudData.lastUpdated);
+                }
+            }
+        }
+
+        // Disable cloud sync
+        function disableCloudSync() {
+            if (confirm('Are you sure you want to disable cloud sync? This will not delete your cloud data, but this device will stop syncing.')) {
+                CLOUD_SYNC.enabled = false;
+                CLOUD_SYNC.provider = 'none';
+                CLOUD_SYNC.lastSync = null;
+                
+                localStorage.removeItem('cloudSyncSettings');
+                localStorage.removeItem('cloudSyncId');
+                localStorage.removeItem('cloudUserId');
+                
+                updateSyncStatus();
+                alert('☁️ Cloud sync disabled. Your progress is now local only.');
+            }
+        }
+
+        // Show sync options modal
+        function showSyncOptions() {
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0,0,0,0.8);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 10000;
+                font-family: Georgia, serif;
+            `;
+            
+            modal.innerHTML = `
+                <div style="background: var(--card-bg); padding: 30px; border-radius: 15px; max-width: 500px; width: 90%;">
+                    <h3 style="color: var(--primary); margin-bottom: 20px; text-align: center;">☁️ Cloud Sync Options</h3>
+                    <p style="margin-bottom: 20px; color: var(--text);">Choose how you want to sync your progress across devices:</p>
+                    
+                    <div style="display: flex; flex-direction: column; gap: 15px;">
+                        <button onclick="enableSimpleCloudSync(); document.body.removeChild(this.closest('.modal'))" 
+                                style="padding: 15px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer;">
+                            🔑 Simple Sync (Recommended)
+                            <div style="font-size: 0.8rem; opacity: 0.9; margin-top: 5px;">
+                                Uses a unique ID you create. Easy setup, works immediately.
+                            </div>
+                        </button>
+                        
+                        <button onclick="alert('Google Drive sync requires additional setup. See instructions in the console.'); document.body.removeChild(this.closest('.modal'))" 
+                                style="padding: 15px; background: var(--secondary); color: white; border: none; border-radius: 8px; cursor: pointer;">
+                            📁 Google Drive Sync
+                            <div style="font-size: 0.8rem; opacity: 0.9; margin-top: 5px;">
+                                Syncs with your Google Drive. Requires developer setup.
+                            </div>
+                        </button>
+                        
+                        <button onclick="alert('Firebase sync requires additional setup. See instructions in the console.'); document.body.removeChild(this.closest('.modal'))" 
+                                style="padding: 15px; background: var(--accent); color: white; border: none; border-radius: 8px; cursor: pointer;">
+                            🔥 Firebase Sync
+                            <div style="font-size: 0.8rem; opacity: 0.9; margin-top: 5px;">
+                                Real-time sync with Firebase. Requires Firebase project.
+                            </div>
+                        </button>
+                        
+                        <button onclick="document.body.removeChild(this.closest('.modal'))" 
+                                style="padding: 10px; background: transparent; color: var(--text); border: 2px solid var(--border); border-radius: 8px; cursor: pointer;">
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            modal.className = 'modal';
+            document.body.appendChild(modal);
+        }
+
+        // Setup theme
+        function setupTheme() {
+            if (darkMode) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                themeToggle.textContent = '🌙';
+            }
+        }
+
+        // Toggle theme
+        function toggleTheme() {
+            darkMode = !darkMode;
+            document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light');
+            themeToggle.textContent = darkMode ? '🌙' : '☀️';
+            localStorage.setItem('darkMode', JSON.stringify(darkMode));
+        }
+
+        // Render days in the grid
+        function renderDays(filter = 'all') {
+            daysGrid.innerHTML = '';
+            
+            readingPlan.forEach((reading, index) => {
+                const isCompleted = completedDays.includes(reading.day);
+                const isCurrent = index === currentDayIndex;
+                
+                // Apply filter
+                if (filter === 'completed' && !isCompleted) return;
+                if (filter === 'remaining' && isCompleted) return;
+                
+                const dayCard = document.createElement('div');
+                dayCard.className = `day-card ${isCompleted ? 'completed' : ''} ${isCurrent ? 'current' : ''}`;
+                
+                dayCard.innerHTML = `
+                    <div class="status-icon">
+                        ${isCompleted ? '✅' : isCurrent ? '🔥' : '📖'}
+                    </div>
+                    <div class="day-number">Day ${reading.day}</div>
+                    <div class="day-scripture">${reading.scripture}</div>
+                    <div class="day-theme">${reading.theme}</div>
+                    <div class="day-actions">
+                        <button class="action-btn read-btn" onclick="readScripture(${index})">
+                            📖 Read
+                        </button>
+                        <button class="action-btn listen-btn" onclick="playAudio(${index})">
+                            🎵 Listen
+                        </button>
+                        <button class="action-btn complete-btn" onclick="toggleComplete(${reading.day})">
+                            ${isCompleted ? '✅' : '☑️'}
+                        </button>
+                    </div>
+                `;
+                
+                daysGrid.appendChild(dayCard);
+            });
+        }
+
+        // Update statistics
+        function updateStats() {
+            const completed = completedDays.length;
+            const current = currentDayIndex + 1;
+            const remaining = 90 - completed;
+            const progressPercent = (completed / 90) * 100;
+            
+            document.getElementById('completedDays').textContent = completed;
+            document.getElementById('currentDay').textContent = current;
+            document.getElementById('remainingDays').textContent = remaining;
+            document.getElementById('progressFill').style.width = `${progressPercent}%`;
+        }
+
+        // Format scripture reference for URL
+        function formatScriptureForUrl(scripture) {
+            return scripture.replace(/\s+/g, '%20').replace(/:/g, '%3A').replace(/–/g, '-');
+        }
+
+        // Play audio for a specific reading
+        function playAudio(index) {
+            const reading = readingPlan[index];
+            currentAudioReading = reading;
+            
+            // Update current reading display
+            currentReading.innerHTML = `
+                <h3>Day ${reading.day}</h3>
+                <p>${reading.scripture} — ${reading.theme}</p>
+            `;
+            
+            // Format scripture for the audio URL
+            const formattedScripture = formatScriptureForUrl(reading.scripture);
+            const audioUrl = `https://www.stmarysnova.org/cgi-bin/gspeech.cgi?verses=${formattedScripture}`;
+            
+            // Show loading in verse display
+            verseDisplay.innerHTML = '<div class="loading">Loading audio and scripture text...</div>';
+            
+            // Set up audio player
+            audioPlayer.src = audioUrl;
+            audioPlayer.style.display = 'block';
+            
+            // Load audio
+            audioPlayer.onloadeddata = () => {
+                fetchVerseText(reading.scripture);
+            };
+            
+            audioPlayer.onerror = () => {
+                verseDisplay.innerHTML = `
+                    <div class="loading">
+                        <p>Audio not available for this passage.</p>
+                        <p><a href="${audioUrl}" target="_blank">Try opening audio source directly</a></p>
+                    </div>
+                `;
+                fetchVerseText(reading.scripture);
+            };
+            
+            audioPlayer.load();
+        }
+
+        // Read scripture (fetch text only)
+        function readScripture(index) {
+            const reading = readingPlan[index];
+            currentAudioReading = reading;
+            
+            // Update current reading display
+            currentReading.innerHTML = `
+                <h3>Day ${reading.day}</h3>
+                <p>${reading.scripture} — ${reading.theme}</p>
+            `;
+            
+            // Hide audio player
+            audioPlayer.style.display = 'none';
+            
+            // Fetch verse text
+            fetchVerseText(reading.scripture);
+        }
+
+        // Fetch verse text from Bible API
+        function fetchVerseText(passage) {
+            verseDisplay.innerHTML = '<div class="loading">Loading scripture text...</div>';
+            
+            // Try multiple API endpoints for better coverage
+            const apiUrl = `https://labs.bible.org/api/?passage=${encodeURIComponent(passage)}&type=json`;
+            
+            // Create script element for JSONP
+            const script = document.createElement('script');
+            const callbackName = 'handleVerseResponse_' + Date.now();
+            
+            // Create global callback function
+            window[callbackName] = function(data) {
+                handleVerseResponse(data, passage);
+                // Clean up
+                document.body.removeChild(script);
+                delete window[callbackName];
+            };
+            
+            script.src = `${apiUrl}&callback=${callbackName}`;
+            document.body.appendChild(script);
+            
+            // Fallback timeout
+            setTimeout(() => {
+                if (document.body.contains(script)) {
+                    document.body.removeChild(script);
+                    delete window[callbackName];
+                    showFallbackText(passage);
+                }
+            }, 10000);
+        }
+
+        // Handle verse response from API
+        function handleVerseResponse(data, passage) {
+            if (!data || data.length === 0) {
+                showFallbackText(passage);
+                return;
+            }
+            
+            let html = `<h4>${passage}</h4>`;
+            
+            if (Array.isArray(data)) {
+                data.forEach(verse => {
+                    html += `<p><sup>${verse.verse}</sup> ${verse.text}</p>`;
+                });
+            } else {
+                html += `<p>${data.text || 'Scripture text not available'}</p>`;
+            }
+            
+            verseDisplay.innerHTML = html;
+        }
+
+        // Show fallback text when API fails
+        function showFallbackText(passage) {
+            verseDisplay.innerHTML = `
+                <h4>${passage}</h4>
+                <p><em>Scripture text is loading... Please check your internet connection or try again later.</em></p>
+                <p>You can find this passage in your Bible or visit <a href="https://www.biblegateway.com/passage/?search=${encodeURIComponent(passage)}" target="_blank">Bible Gateway</a> to read it online.</p>
+            `;
+        }
+
+        // Toggle completion status
+        function toggleComplete(day) {
+            const index = completedDays.indexOf(day);
+            
+            if (index > -1) {
+                completedDays.splice(index, 1);
+            } else {
+                completedDays.push(day);
+                // Auto-advance to next day if completing current day
+                if (day === currentDayIndex + 1 && currentDayIndex < 89) {
+                    currentDayIndex++;
+                    localStorage.setItem('currentDayIndex', currentDayIndex.toString());
+                }
+            }
+            
+            localStorage.setItem('completedDays', JSON.stringify(completedDays));
+            localStorage.setItem('lastUpdated', new Date().toISOString());
+            renderDays();
+            updateStats();
+            
+            // Auto-sync if enabled
+            if (CLOUD_SYNC.enabled) {
+                syncWithCloud();
+            }
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Theme toggle
+            themeToggle.addEventListener('click', toggleTheme);
+            
+            // Audio controls
+            playBtn.addEventListener('click', () => {
+                if (audioPlayer.src) {
+                    audioPlayer.play();
+                }
+            });
+            
+            pauseBtn.addEventListener('click', () => {
+                audioPlayer.pause();
+            });
+            
+            stopBtn.addEventListener('click', () => {
+                audioPlayer.pause();
+                audioPlayer.currentTime = 0;
+            });
+            
+            // Filter buttons
+            filterBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    filterBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    renderDays(btn.dataset.filter);
+                });
+            });
+            
+            // Cloud sync button
+            document.getElementById('syncButton').addEventListener('click', () => {
+                if (CLOUD_SYNC.enabled) {
+                    syncWithCloud();
+                } else {
+                    showSyncOptions();
+                }
+            });
+            
+            // Keyboard shortcuts
+            document.addEventListener('keydown', (e) => {
+                if (e.ctrlKey || e.metaKey) {
+                    switch(e.key) {
+                        case ' ':
+                            e.preventDefault();
+                            if (audioPlayer.paused) {
+                                audioPlayer.play();
+                            } else {
+                                audioPlayer.pause();
+                            }
+                            break;
+                        case 'ArrowRight':
+                            e.preventDefault();
+                            nextDay();
+                            break;
+                        case 'ArrowLeft':
+                            e.preventDefault();
+                            previousDay();
+                            break;
+                    }
+                }
+            });
+        }
+
+        // Navigate to next day
+        function nextDay() {
+            if (currentDayIndex < 89) {
+                currentDayIndex++;
+                localStorage.setItem('currentDayIndex', currentDayIndex.toString());
+                renderDays();
+                updateStats();
+                
+                // Auto-play next day
+                playAudio(currentDayIndex);
+            }
+        }
+
+        // Navigate to previous day
+        function previousDay() {
+            if (currentDayIndex > 0) {
+                currentDayIndex--;
+                localStorage.setItem('currentDayIndex', currentDayIndex.toString());
+                renderDays();
+                updateStats();
+                
+                // Auto-play previous day
+                playAudio(currentDayIndex);
+            }
+        }
+
+        // Reset progress (for testing or starting over)
+        function resetProgress() {
+            if (confirm('Are you sure you want to reset your reading progress? This cannot be undone.')) {
+                completedDays = [];
+                currentDayIndex = 0;
+                localStorage.removeItem('completedDays');
+                localStorage.removeItem('currentDayIndex');
+                renderDays();
+                updateStats();
+                
+                // Reset audio
+                audioPlayer.style.display = 'none';
+                currentReading.innerHTML = `
+                    <h3>Select a reading</h3>
+                    <p>Choose a day to listen to the Scripture</p>
+                `;
+                verseDisplay.innerHTML = '<p>Select a reading to view the scripture text here.</p>';
+            }
+        }
+
+        // Export progress data
+        function exportProgress() {
+            const progressData = {
+                completedDays: completedDays,
+                currentDayIndex: currentDayIndex,
+                exportDate: new Date().toISOString(),
+                totalDays: 90
+            };
+            
+            const dataStr = JSON.stringify(progressData, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(dataBlob);
+            link.download = '90-day-bible-reading-progress.json';
+            link.click();
+        }
+
+        // Import progress data
+        function importProgress(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const progressData = JSON.parse(e.target.result);
+                    
+                    if (progressData.completedDays && Array.isArray(progressData.completedDays)) {
+                        completedDays = progressData.completedDays;
+                        currentDayIndex = progressData.currentDayIndex || 0;
+                        
+                        localStorage.setItem('completedDays', JSON.stringify(completedDays));
+                        localStorage.setItem('currentDayIndex', currentDayIndex.toString());
+                        
+                        renderDays();
+                        updateStats();
+                        
+                        alert('Progress imported successfully!');
+                    }
+                } catch (error) {
+                    alert('Error importing progress data. Please check the file format.');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // Add keyboard shortcut info
+        function showKeyboardShortcuts() {
+            alert(`Keyboard Shortcuts:
+            
+Ctrl/Cmd + Space: Play/Pause audio
+Ctrl/Cmd + →: Next day
+Ctrl/Cmd + ←: Previous day
+
+Pro tip: Use these shortcuts for hands-free navigation while listening!`);
+        }
+
+        // Initialize the application when DOM is loaded
+        document.addEventListener('DOMContentLoaded', init);
+
+        // Add some utility functions to window for console access
+        window.bibleReading = {
+            resetProgress,
+            exportProgress,
+            showKeyboardShortcuts,
+            enableCloudSync: showSyncOptions,
+            disableCloudSync,
+            syncNow: () => syncWithCloud(),
+            goToDay: (day) => {
+                if (day >= 1 && day <= 90) {
+                    currentDayIndex = day - 1;
+                    localStorage.setItem('currentDayIndex', currentDayIndex.toString());
+                    renderDays();
+                    updateStats();
+                    playAudio(currentDayIndex);
+                }
+            }
+        };
+    </script>
+
+    <!-- Hidden file input for progress import -->
+    <input type="file" id="importInput" accept=".json" style="display: none;" onchange="importProgress(event)">
+    
+    <!-- Add some helpful info in a small footer -->
+    <div style="text-align: center; margin-top: 40px; padding: 20px; color: var(--secondary); font-size: 0.9rem; font-style: italic;">
+        <p>✨ Your 90-day spiritual journey awaits • Press F12 and type <code>bibleReading.showKeyboardShortcuts()</code> for shortcuts ✨</p>
+        <p>Progress is automatically saved in your browser • Enable cloud sync to access across devices</p>
+        <p><strong>Setup Instructions:</strong> For full cloud sync, see the developer console for API key setup</p>
+    </div>
+</body>
+</html>
