@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>90-Day Kreupasanm Tracker</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse; /* Essential for clean borders in Excel paste */
+            margin: 0 auto;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            background-color: #fff;
+        }
+        th, td {
+            border: 1px solid #ccc; /* Defines the borders */
+            /* Increased padding for larger boxes, suitable for writing */
+            padding: 20px 25px; 
+            min-height: 80px; /* Ensures a good minimum height for each cell */
+            text-align: left;
+            font-size: 16px; /* Slightly larger font for print visibility */
+            vertical-align: top; /* Align text to the top for consistency */
+        }
+        th {
+            background-color: #e9ecef;
+            font-weight: bold;
+            color: #495057;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        /* Style for alternating rows for better readability */
+        tbody tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        /* Hover effect for rows */
+        tbody tr:hover {
+            background-color: #e2e6ea;
+        }
+        /* Style for Wednesday rows */
+        tbody tr.is-wednesday {
+            background-color: #d4edda; /* A light green for Wednesdays */
+            font-weight: bold;
+        }
+        tbody tr.is-wednesday:hover {
+            background-color: #c3e6cb;
+        }
+
+        /* Optional: Print-specific styles for better print layout */
+        @media print {
+            body {
+                margin: 0;
+                background-color: #fff;
+            }
+            h1 {
+                font-size: 24px;
+                margin-bottom: 20px;
+            }
+            table {
+                box-shadow: none; /* Remove shadow for cleaner print */
+            }
+            th, td {
+                padding: 15px 20px; /* Slightly less padding for print efficiency */
+                min-height: 70px; /* Slightly adjusted min-height for print */
+                font-size: 12px;
+                border: 1px solid #999; /* Darker border for print visibility */
+            }
+            /* Ensure background colors print (browser setting dependent, but good to include) */
+            tbody tr.is-wednesday {
+                -webkit-print-color-adjust: exact;
+                color-adjust: exact;
+            }
+            tbody tr:nth-child(even) {
+                -webkit-print-color-adjust: exact;
+                color-adjust: exact;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>90-Day Kreupasanm Tracker</h1>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Day</th>
+                <th>Morning Tracker</th>
+                <th>Evening Tracker</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- JavaScript will populate the rows here -->
+        </tbody>
+    </table>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const tbody = document.querySelector('table tbody');
+            const totalDays = 90;
+
+            // Set the start date to July 27, 2025
+            const startDate = new Date('2025-07-27T00:00:00'); // Use ISO format for consistent parsing
+
+            // Array of day names for display
+            const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+            for (let i = 0; i < totalDays; i++) {
+                const currentDayNumber = i + 1;
+                const dayNumberFormatted = String(currentDayNumber).padStart(2, '0'); // Formats as 01, 02, ..., 90
+
+                // Calculate the date for the current day
+                const currentDate = new Date(startDate);
+                currentDate.setDate(startDate.getDate() + i);
+
+                // Get the day of the week (0 for Sunday, 1 for Monday, ..., 3 for Wednesday)
+                const dayOfWeek = currentDate.getDay();
+                const dayOfWeekName = dayNames[dayOfWeek];
+
+                // Format the date as DD/MM/YYYY
+                const formattedDate = currentDate.toLocaleDateString('en-GB', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric'
+                });
+
+                const row = document.createElement('tr');
+                
+                // Add class if it's a Wednesday (dayOfWeek === 3)
+                if (dayOfWeek === 3) {
+                    row.classList.add('is-wednesday');
+                }
+
+                row.innerHTML = `
+                    <td>Day ${currentDayNumber}</td>
+                    <td>Kreupasanm Tracker Day ${dayNumberFormatted} (Morning) - ${formattedDate} (${dayOfWeekName})</td>
+                    <td>Kreupasanm Tracker Day ${dayNumberFormatted} (Evening) - ${formattedDate} (${dayOfWeekName})</td>
+                `;
+                tbody.appendChild(row);
+            }
+        });
+    </script>
+
+</body>
+</html>
