@@ -484,8 +484,8 @@
         const YOUTUBE_RSS_URL = 'https://www.youtube.com/feeds/videos.xml?channel_id=UCbg8V1kty3s1kcCch2VHwEw';
                 
         // Proxy service to handle CORS (you may need to use a different service)
-        // Changed proxy to a more reliable one for Canvas environment
-        const CORS_PROXY = 'https://text-based.googleusercontent.com/text?url='; 
+        // Using a more general-purpose CORS proxy to try and fix the 'Failed to fetch' error.
+        const CORS_PROXY = 'https://corsproxy.io/?'; 
 
         // Load saved progress from memory
         let progress = {
@@ -585,7 +585,7 @@
                 const response = await fetch(CORS_PROXY + encodeURIComponent(YOUTUBE_RSS_URL));
                                 
                 if (!response.ok) {
-                    throw new Error('Failed to fetch RSS feed');
+                    throw new Error(`Failed to fetch RSS feed: ${response.status} ${response.statusText}`);
                 }
 
                 const xmlText = await response.text();
@@ -695,7 +695,8 @@
 
             // Determine iframe height and parameters based on mode
             const iframeHeightClass = mediaDisplayMode === 'audio' ? 'youtube-player audio-mode' : 'youtube-player';
-            const iframeParams = mediaDisplayMode === 'audio' ? '?controls=1&modestbranding=1&enablejsapi=1&rel=0&showinfo=0' : '?controls=1&modestbranding=1&rel=0';
+            // Added autoplay=1 and playsinline=1 for audio mode
+            const iframeParams = mediaDisplayMode === 'audio' ? '?controls=1&modestbranding=1&enablejsapi=1&rel=0&showinfo=0&autoplay=1&playsinline=1' : '?controls=1&modestbranding=1&rel=0';
 
 
             // Display morning video
