@@ -251,14 +251,51 @@
 
         .youtube-player {
             width: 100%;
-            height: 200px; /* Default video height */
+            height: 200px;
             border-radius: 10px;
             margin-bottom: 15px;
         }
 
         .youtube-player.audio-mode {
-            height: 50px; /* Compact height for audio mode */
-            /* Further styling for audio mode can be added here, e.g., filter: grayscale(100%); */
+            height: 80px;
+            position: relative;
+        }
+
+        /* Audio mode styling - makes it look more like an audio player */
+        .audio-mode-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.1rem;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .audio-mode-container {
+            position: relative;
+        }
+
+        .audio-controls {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        .audio-note {
+            color: #666;
+            font-size: 0.9rem;
+            font-style: italic;
+            margin-top: 5px;
         }
 
         .media-description {
@@ -340,6 +377,21 @@
 
         .reset-btn:hover {
             background: #c53030;
+        }
+
+        .play-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 0.9rem;
+        }
+
+        .play-btn:hover {
+            background: #5a67d8;
         }
 
         @media (max-width: 768px) {
@@ -482,45 +534,26 @@
 
         // YouTube channel RSS feed URL
         const YOUTUBE_RSS_URL = 'https://www.youtube.com/feeds/videos.xml?channel_id=UCbg8V1kty3s1kcCch2VHwEw';
-                
-        // Proxy service to handle CORS (you may need to use a different service)
-        // Using a more general-purpose CORS proxy to try and fix the 'Failed to fetch' error.
-        const CORS_PROXY = 'https://corsproxy.io/?'; 
+        
+        // Using a more reliable CORS proxy
+        const CORS_PROXY = 'https://api.allorigins.win/raw?url=';
 
-        // Load saved progress from memory
+        // In-memory storage instead of localStorage (as per artifact requirements)
         let progress = {
-            fastingDays: JSON.parse(localStorage.getItem('fastingDays')) || [],
-            readingDays: JSON.parse(localStorage.getItem('readingDays')) || [],
-            startDate: localStorage.getItem('startDate') || '2025-07-27'
+            fastingDays: [],
+            readingDays: [],
+            startDate: '2025-07-27'
         };
 
         // Cache for YouTube videos
         let videoCache = {
-            morning: JSON.parse(localStorage.getItem('morningVideo')) || null,
-            evening: JSON.parse(localStorage.getItem('eveningVideo')) || null,
-            lastFetch: localStorage.getItem('lastVideoFetch') || null
+            morning: null,
+            evening: null,
+            lastFetch: null
         };
 
         // Media display mode preference (default to 'audio')
-        let mediaDisplayMode = localStorage.getItem('mediaDisplayMode') || 'audio';
-
-
-        function saveProgress() {
-            localStorage.setItem('fastingDays', JSON.stringify(progress.fastingDays));
-            localStorage.setItem('readingDays', JSON.stringify(progress.readingDays));
-            localStorage.setItem('startDate', progress.startDate);
-        }
-
-        function saveVideoCache() {
-            localStorage.setItem('morningVideo', JSON.stringify(videoCache.morning));
-            localStorage.setItem('eveningVideo', JSON.stringify(videoCache.evening));
-            localStorage.setItem('lastVideoFetch', videoCache.lastFetch);
-        }
-
-        // Save media display mode
-        function saveMediaDisplayMode() {
-            localStorage.setItem('mediaDisplayMode', mediaDisplayMode);
-        }
+        let mediaDisplayMode = 'audio';
 
         function getCurrentDay() {
             const today = new Date();
@@ -538,7 +571,7 @@
         function getTotalWednesdays() {
             let count = 0;
             let currentDate = new Date(startDate);
-                        
+            
             while (currentDate <= endDate) {
                 if (currentDate.getDay() === 3) {
                     count++;
@@ -559,10 +592,10 @@
                 'ജനുവരി', 'ഫെബ്രുവരി', 'മാർച്ച്', 'ഏപ്രിൽ', 'മേയ്', 'ജൂൺ',
                 'ജൂലൈ', 'ഓഗസ്റ്റ്', 'സെപ്റ്റംബർ', 'ഒക്ടോബർ', 'നവംബർ', 'ഡിസംബർ'
             ];
-                        
+            
             const day = today.getDate();
             const month = months[today.getMonth()];
-                        
+            
             return `${month} ${day}`;
         }
 
@@ -572,7 +605,7 @@
                 const now = new Date().getTime();
                 const lastFetch = videoCache.lastFetch ? new Date(videoCache.lastFetch).getTime() : 0;
                 const hourInMs = 60 * 60 * 1000;
-                                
+                
                 if (now - lastFetch < hourInMs && videoCache.morning && videoCache.evening) {
                     displayVideos(); // Just re-display from cache
                     return;
@@ -583,7 +616,7 @@
                 document.getElementById('eveningVideoContainer').innerHTML = '<div class="loading-text">🔄 Fetching latest videos...</div>';
 
                 const response = await fetch(CORS_PROXY + encodeURIComponent(YOUTUBE_RSS_URL));
-                                
+                
                 if (!response.ok) {
                     throw new Error(`Failed to fetch RSS feed: ${response.status} ${response.statusText}`);
                 }
@@ -591,10 +624,10 @@
                 const xmlText = await response.text();
                 const parser = new DOMParser();
                 const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
-                                
+                
                 const entries = xmlDoc.getElementsByTagName('entry');
                 const currentDateMalayalam = getCurrentDateInMalayalam();
-                                
+                
                 let morningVideo = null;
                 let eveningVideo = null;
 
@@ -604,12 +637,10 @@
                     const title = entry.getElementsByTagName('title')[0]?.textContent || '';
                     const videoId = entry.getElementsByTagName('yt:videoId')[0]?.textContent;
                     const published = entry.getElementsByTagName('published')[0]?.textContent;
-                                        
+                    
                     if (!videoId) continue;
 
-                    // Check for evening prayer (മരിയൻ ഉടമ്പടി സായാഹ്ന പ്രാർത്ഥന)
-                    // We look for "മരിയൻ ഉടമ്പടി സായാഹ്ന പ്രാർത്ഥന" and also ensure it's a recent video
-                    // For a full app, you might match by date more strictly.
+                    // Check for evening prayer
                     if (title.includes('മരിയൻ ഉടമ്പടി സായാഹ്ന പ്രാർത്ഥന') && !eveningVideo) {
                         eveningVideo = {
                             title: title,
@@ -618,7 +649,7 @@
                         };
                     }
 
-                    // Check for morning prayer (current date + കൃപാസനം അനുദിന അനുഗ്രഹ പ്രാർത്ഥന)
+                    // Check for morning prayer
                     if (title.includes(currentDateMalayalam) && 
                         title.includes('കൃപാസനം അനുദിന അനുഗ്രഹ പ്രാർത്ഥന') && 
                         !morningVideo) {
@@ -639,7 +670,6 @@
                 videoCache.morning = morningVideo;
                 videoCache.evening = eveningVideo;
                 videoCache.lastFetch = new Date().toISOString();
-                saveVideoCache();
 
                 displayVideos();
 
@@ -654,26 +684,25 @@
 
         function formatDateTime(isoString) {
             const date = new Date(isoString);
-                        
+            
             // Format time as HH:MM:SS
             const hours = date.getHours().toString().padStart(2, '0');
             const minutes = date.getMinutes().toString().padStart(2, '0');
             const seconds = date.getSeconds().toString().padStart(2, '0');
             const timeString = `${hours}:${minutes}:${seconds}`;
-                        
+            
             // Format date as DD/MM/YYYY
             const day = date.getDate().toString().padStart(2, '0');
             const month = (date.getMonth() + 1).toString().padStart(2, '0');
             const year = date.getFullYear();
             const dateString = `${day}/${month}/${year}`;
-                        
+            
             return `${timeString} • ${dateString}`;
         }
 
         // Function to set and update the media display mode
         function setMediaDisplayMode(mode) {
             mediaDisplayMode = mode;
-            saveMediaDisplayMode();
             updateMediaToggleButtons(); // Update button styling
             displayVideos(); // Re-render videos with new mode
         }
@@ -689,29 +718,49 @@
             }
         }
 
+        function openYouTubeLink(videoId) {
+            window.open(`https://www.youtube.com/watch?v=${videoId}`, '_blank');
+        }
+
         function displayVideos() {
             const morningContainer = document.getElementById('morningVideoContainer');
             const eveningContainer = document.getElementById('eveningVideoContainer');
 
-            // Determine iframe height and parameters based on mode
-            const iframeHeightClass = mediaDisplayMode === 'audio' ? 'youtube-player audio-mode' : 'youtube-player';
-            // Added autoplay=1 and playsinline=1 for audio mode
-            const iframeParams = mediaDisplayMode === 'audio' ? '?controls=1&modestbranding=1&enablejsapi=1&rel=0&showinfo=0&autoplay=1&playsinline=1' : '?controls=1&modestbranding=1&rel=0';
-
-
             // Display morning video
             if (videoCache.morning) {
                 const uploadDateTime = formatDateTime(videoCache.morning.published);
-                morningContainer.innerHTML = `
-                    <div class="video-title">${videoCache.morning.title}</div>
-                    <div class="upload-info">📅 Uploaded: ${uploadDateTime}</div>
-                    <iframe class="${iframeHeightClass}"
-                             src="https://www.youtube.com/embed/${videoCache.morning.videoId}${iframeParams}"
-                             frameborder="0"
-                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                             allowfullscreen>
-                    </iframe>
-                `;
+                
+                if (mediaDisplayMode === 'audio') {
+                    morningContainer.innerHTML = `
+                        <div class="video-title">${videoCache.morning.title}</div>
+                        <div class="upload-info">📅 Uploaded: ${uploadDateTime}</div>
+                        <div class="audio-mode-container">
+                            <iframe class="youtube-player audio-mode"
+                                     src="https://www.youtube.com/embed/${videoCache.morning.videoId}?controls=1&modestbranding=1&rel=0&showinfo=0"
+                                     frameborder="0"
+                                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                     allowfullscreen>
+                            </iframe>
+                        </div>
+                        <div class="audio-controls">
+                            <button class="play-btn" onclick="openYouTubeLink('${videoCache.morning.videoId}')">
+                                🎵 Open in YouTube
+                            </button>
+                            <div class="audio-note">For better audio experience, click to open in YouTube app</div>
+                        </div>
+                    `;
+                } else {
+                    morningContainer.innerHTML = `
+                        <div class="video-title">${videoCache.morning.title}</div>
+                        <div class="upload-info">📅 Uploaded: ${uploadDateTime}</div>
+                        <iframe class="youtube-player"
+                                 src="https://www.youtube.com/embed/${videoCache.morning.videoId}?controls=1&modestbranding=1&rel=0"
+                                 frameborder="0"
+                                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                 allowfullscreen>
+                        </iframe>
+                    `;
+                }
             } else {
                 morningContainer.innerHTML = '<div class="error-text">Morning prayer video not found for today</div>';
             }
@@ -719,16 +768,38 @@
             // Display evening video
             if (videoCache.evening) {
                 const uploadDateTime = formatDateTime(videoCache.evening.published);
-                eveningContainer.innerHTML = `
-                    <div class="video-title">${videoCache.evening.title}</div>
-                    <div class="upload-info">📅 Uploaded: ${uploadDateTime}</div>
-                    <iframe class="${iframeHeightClass}"
-                             src="https://www.youtube.com/embed/${videoCache.evening.videoId}${iframeParams}"
-                             frameborder="0"
-                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                             allowfullscreen>
-                    </iframe>
-                `;
+                
+                if (mediaDisplayMode === 'audio') {
+                    eveningContainer.innerHTML = `
+                        <div class="video-title">${videoCache.evening.title}</div>
+                        <div class="upload-info">📅 Uploaded: ${uploadDateTime}</div>
+                        <div class="audio-mode-container">
+                            <iframe class="youtube-player audio-mode"
+                                     src="https://www.youtube.com/embed/${videoCache.evening.videoId}?controls=1&modestbranding=1&rel=0&showinfo=0"
+                                     frameborder="0"
+                                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                     allowfullscreen>
+                            </iframe>
+                        </div>
+                        <div class="audio-controls">
+                            <button class="play-btn" onclick="openYouTubeLink('${videoCache.evening.videoId}')">
+                                🎵 Open in YouTube
+                            </button>
+                            <div class="audio-note">For better audio experience, click to open in YouTube app</div>
+                        </div>
+                    `;
+                } else {
+                    eveningContainer.innerHTML = `
+                        <div class="video-title">${videoCache.evening.title}</div>
+                        <div class="upload-info">📅 Uploaded: ${uploadDateTime}</div>
+                        <iframe class="youtube-player"
+                                 src="https://www.youtube.com/embed/${videoCache.evening.videoId}?controls=1&modestbranding=1&rel=0"
+                                 frameborder="0"
+                                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                 allowfullscreen>
+                        </iframe>
+                    `;
+                }
             } else {
                 eveningContainer.innerHTML = '<div class="error-text">Evening prayer video not found</div>';
             }
@@ -793,7 +864,6 @@
             } else {
                 progress.fastingDays.push(todayString);
             }
-            saveProgress();
             updateDisplay();
         }
 
@@ -806,7 +876,6 @@
             } else {
                 progress.readingDays.push(todayString);
             }
-            saveProgress();
             updateDisplay();
         }
 
@@ -815,9 +884,8 @@
                 progress = {
                     fastingDays: [],
                     readingDays: [],
-                    startDate: '2025-07-27' // Resetting to original start date
+                    startDate: '2025-07-27'
                 };
-                saveProgress(); // Save the reset state
                 updateDisplay();
             }
         }
