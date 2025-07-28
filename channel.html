@@ -5,6 +5,40 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Holy Channels Video Viewer</title>
     <style>
+        :root {
+            /* Light mode colors */
+            --bg-gradient-start: #667eea;
+            --bg-gradient-end: #764ba2;
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --text-primary: #333;
+            --text-secondary: #4a5568;
+            --text-muted: #718096;
+            --border-color: #e2e8f0;
+            --header-bg: rgba(255, 255, 255, 0.95);
+            --control-bg: rgba(255, 255, 255, 0.9);
+            --video-card-bg: white;
+            --error-bg: #fed7d7;
+            --error-color: #c53030;
+            --error-border: #feb2b2;
+        }
+
+        [data-theme="dark"] {
+            /* Dark mode colors */
+            --bg-gradient-start: #1a202c;
+            --bg-gradient-end: #2d3748;
+            --card-bg: rgba(45, 55, 72, 0.95);
+            --text-primary: #e2e8f0;
+            --text-secondary: #cbd5e0;
+            --text-muted: #a0aec0;
+            --border-color: #4a5568;
+            --header-bg: rgba(45, 55, 72, 0.95);
+            --control-bg: rgba(45, 55, 72, 0.9);
+            --video-card-bg: #2d3748;
+            --error-bg: #742a2a;
+            --error-color: #feb2b2;
+            --error-border: #c53030;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -13,9 +47,10 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
             min-height: 100vh;
-            color: #333;
+            color: var(--text-primary);
+            transition: all 0.3s ease;
         }
 
         .container {
@@ -27,21 +62,22 @@
         .header {
             text-align: center;
             margin-bottom: 30px;
-            background: rgba(255, 255, 255, 0.95);
+            background: var(--header-bg);
             padding: 30px;
             border-radius: 20px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
         }
 
         .header h1 {
-            color: #4a5568;
+            color: var(--text-secondary);
             font-size: 2.5rem;
             margin-bottom: 10px;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         .header p {
-            color: #718096;
+            color: var(--text-muted);
             font-size: 1.1rem;
         }
 
@@ -57,23 +93,26 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            background: rgba(255, 255, 255, 0.9);
+            background: var(--control-bg);
             padding: 15px 20px;
             border-radius: 12px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
         }
 
         .control-group label {
             font-weight: 600;
-            color: #4a5568;
+            color: var(--text-secondary);
         }
 
         select, button {
             padding: 8px 15px;
-            border: 2px solid #e2e8f0;
+            border: 2px solid var(--border-color);
             border-radius: 8px;
             font-size: 14px;
             transition: all 0.3s ease;
+            background: var(--video-card-bg);
+            color: var(--text-primary);
         }
 
         select:focus, button:focus {
@@ -95,18 +134,35 @@
             box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
         }
 
+        .theme-toggle {
+            background: var(--control-bg);
+            border: 2px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 10px 15px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+        }
+
+        .theme-toggle:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
         .loading {
             text-align: center;
             padding: 50px;
-            background: rgba(255, 255, 255, 0.9);
+            background: var(--card-bg);
             border-radius: 15px;
             margin: 20px 0;
+            backdrop-filter: blur(10px);
         }
 
         .loading-spinner {
             width: 50px;
             height: 50px;
-            border: 4px solid #e2e8f0;
+            border: 4px solid var(--border-color);
             border-top: 4px solid #667eea;
             border-radius: 50%;
             animation: spin 1s linear infinite;
@@ -119,7 +175,7 @@
         }
 
         .channel-section {
-            background: rgba(255, 255, 255, 0.95);
+            background: var(--card-bg);
             margin: 25px 0;
             padding: 25px;
             border-radius: 20px;
@@ -132,13 +188,13 @@
             align-items: center;
             margin-bottom: 20px;
             padding-bottom: 15px;
-            border-bottom: 3px solid #e2e8f0;
+            border-bottom: 3px solid var(--border-color);
         }
 
         .channel-name {
             font-size: 1.5rem;
             font-weight: 700;
-            color: #2d3748;
+            color: var(--text-secondary);
             margin-right: 15px;
         }
 
@@ -158,7 +214,7 @@
         }
 
         .video-card {
-            background: white;
+            background: var(--video-card-bg);
             border-radius: 15px;
             overflow: hidden;
             box-shadow: 0 6px 25px rgba(0, 0, 0, 0.1);
@@ -175,7 +231,7 @@
 
         .video-card.live {
             border: 3px solid #ff4444;
-            background: linear-gradient(135deg, #fff 0%, #ffe6e6 100%);
+            background: linear-gradient(135deg, var(--video-card-bg) 0%, rgba(255, 230, 230, 0.1) 100%);
             box-shadow: 0 8px 30px rgba(255, 68, 68, 0.2);
         }
 
@@ -189,7 +245,7 @@
             padding-bottom: 56.25%;
             height: 0;
             overflow: hidden;
-            background: #f7fafc;
+            background: var(--border-color);
         }
 
         .video-thumbnail img {
@@ -213,7 +269,7 @@
         .video-title {
             font-size: 1rem;
             font-weight: 600;
-            color: #2d3748;
+            color: var(--text-secondary);
             margin-bottom: 10px;
             line-height: 1.4;
             display: -webkit-box;
@@ -223,9 +279,18 @@
         }
 
         .video-date {
-            color: #718096;
+            color: var(--text-muted);
             font-size: 0.9rem;
             margin-bottom: 15px;
+        }
+
+        .video-channel {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .play-button {
@@ -327,7 +392,7 @@
         }
 
         .live-section {
-            background: linear-gradient(135deg, #fff 0%, #ffe6e6 100%);
+            background: linear-gradient(135deg, var(--card-bg) 0%, rgba(255, 230, 230, 0.1) 100%);
             border: 3px solid #ff4444;
             margin: 25px 0;
             padding: 25px;
@@ -355,13 +420,13 @@
         }
 
         .error {
-            background: #fed7d7;
-            color: #c53030;
+            background: var(--error-bg);
+            color: var(--error-color);
             padding: 20px;
             border-radius: 12px;
             margin: 20px 0;
             text-align: center;
-            border: 2px solid #feb2b2;
+            border: 2px solid var(--error-border);
         }
 
         .load-more {
@@ -417,10 +482,15 @@
                     <option value="vachanam">VachanamTV</option>
                     <option value="divine">Divine Mercy Daily News</option>
                     <option value="goodness">GOODNESS TV ONLINE</option>
+                    <option value="kreupasanam">Kreupasanam Official</option>
+                    <option value="gregorian">Gregorian TV</option>
                 </select>
             </div>
             <div class="control-group">
                 <button onclick="loadVideos()">🔄 Refresh Videos</button>
+            </div>
+            <div class="control-group">
+                <button class="theme-toggle" onclick="toggleTheme()" id="themeToggle">🌙</button>
             </div>
         </div>
 
@@ -453,10 +523,49 @@
                 id: 'goodness',
                 name: 'GOODNESS TV ONLINE',
                 feedUrl: 'https://www.youtube.com/feeds/videos.xml?channel_id=UC1qaqWyxs3QK-4ljZMuSxSA'
+            },
+            {
+                id: 'kreupasanam',
+                name: 'Kreupasanam Official',
+                feedUrl: 'https://www.youtube.com/feeds/videos.xml?channel_id=UCbg8V1kty3s1kcCch2VHwEw'
+            },
+            {
+                id: 'gregorian',
+                name: 'Gregorian TV',
+                feedUrl: 'https://www.youtube.com/feeds/videos.xml?channel_id=UC8ebJ_anG4byfhC_2hT7eKw'
             }
         ];
 
         let allVideos = [];
+
+        // Theme management
+        function toggleTheme() {
+            const html = document.documentElement;
+            const themeToggle = document.getElementById('themeToggle');
+            
+            if (html.getAttribute('data-theme') === 'dark') {
+                html.removeAttribute('data-theme');
+                themeToggle.textContent = '🌙';
+                localStorage.setItem('theme', 'light');
+            } else {
+                html.setAttribute('data-theme', 'dark');
+                themeToggle.textContent = '☀️';
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+
+        // Initialize theme
+        function initTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            const themeToggle = document.getElementById('themeToggle');
+            
+            if (savedTheme === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                themeToggle.textContent = '☀️';
+            } else {
+                themeToggle.textContent = '🌙';
+            }
+        }
 
         async function fetchChannelVideos(channel) {
             try {
@@ -570,6 +679,7 @@
                     </div>
                     <div class="video-info">
                         <h3 class="video-title">${video.title}</h3>
+                        ${isLive ? `<div class="video-channel">📺 ${video.channel}</div>` : ''}
                         <p class="video-date">📅 ${isLive ? '<span class="live-indicator"></span><strong>STREAMING NOW</strong>' : formatDateIST(video.pubDate) + ' IST'}</p>
                         <button class="play-button" onclick="playVideo('${videoId}', ${index})" style="${isLive ? 'background: linear-gradient(135deg, #ff4444, #cc0000); animation: pulse 2s infinite;' : ''}">
                             ${isLive ? '🔴 JOIN LIVE STREAM' : '▶️ Play Video'}
@@ -690,8 +800,11 @@
         document.getElementById('videoCount').addEventListener('change', displayVideos);
         document.getElementById('channelFilter').addEventListener('change', displayVideos);
 
-        // Load videos when page loads
-        loadVideos();
+        // Initialize theme and load videos when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            initTheme();
+            loadVideos();
+        });
     </script>
 </body>
 </html>
