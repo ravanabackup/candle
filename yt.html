@@ -306,6 +306,16 @@
             background: #5a67d8;
         }
 
+        .debug-info {
+            background: #f0f8ff;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 4px solid #4299e1;
+            font-family: monospace;
+            font-size: 0.9rem;
+        }
+
         .prayer-section {
             background: rgba(255, 255, 255, 0.95);
             padding: 30px;
@@ -430,6 +440,12 @@
                 <button class="refresh-btn" onclick="fetchYouTubeVideos()">🔄 Refresh Videos</button>
             </div>
 
+            <!-- Debug Information -->
+            <div id="debugInfo" class="debug-info" style="display: none;">
+                <strong>Debug Information:</strong><br>
+                <div id="debugContent"></div>
+            </div>
+
             <div class="media-container">
                 <div class="media-card morning">
                     <h3><span class="icon">🌅</span>Morning Prayer</h3>
@@ -462,6 +478,7 @@
                 your maternal intercession. Amen."
             </div>
             <button class="reset-btn" onclick="resetProgress()">Reset All Progress</button>
+            <button class="btn" onclick="toggleDebug()" style="margin-left: 10px;">Toggle Debug Info</button>
         </div>
     </div>
 
@@ -476,30 +493,27 @@
         // Proxy service to handle CORS (you may need to use a different service)
         const CORS_PROXY = 'https://api.allorigins.win/raw?url=';
 
-        // Load saved progress from memory
+        // Store data in memory instead of localStorage
         let progress = {
-            fastingDays: JSON.parse(localStorage.getItem('fastingDays')) || [],
-            readingDays: JSON.parse(localStorage.getItem('readingDays')) || [],
-            startDate: localStorage.getItem('startDate') || '2025-07-27'
+            fastingDays: [],
+            readingDays: [],
+            startDate: '2025-07-27'
         };
 
         // Cache for YouTube videos
         let videoCache = {
-            morning: JSON.parse(localStorage.getItem('morningVideo')) || null,
-            evening: JSON.parse(localStorage.getItem('eveningVideo')) || null,
-            lastFetch: localStorage.getItem('lastVideoFetch') || null
+            morning: null,
+            evening: null,
+            lastFetch: null,
+            debugInfo: []
         };
 
         function saveProgress() {
-            localStorage.setItem('fastingDays', JSON.stringify(progress.fastingDays));
-            localStorage.setItem('readingDays', JSON.stringify(progress.readingDays));
-            localStorage.setItem('startDate', progress.startDate);
+            // Memory storage - data persists during session only
         }
 
         function saveVideoCache() {
-            localStorage.setItem('morningVideo', JSON.stringify(videoCache.morning));
-            localStorage.setItem('eveningVideo', JSON.stringify(videoCache.evening));
-            localStorage.setItem('lastVideoFetch', videoCache.lastFetch);
+            // Memory storage - data persists during session only
         }
 
         function getCurrentDay() {
@@ -559,17 +573,29 @@
             return `${month} ${day}`;
         }
 
+        function toggleDebug() {
+            const debugInfo = document.getElementById('debugInfo');
+            debugInfo.style.display = debugInfo.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function updateDebugInfo() {
+            const debugContent = document.getElementById('debugContent');
+            const currentDateMalayalam = getCurrentDateInMalayalam();
+            
+            debugContent.innerHTML = `
+                <strong>Current Date (Malayalam):</strong> ${currentDateMalayalam}<br>
+                <strong>Video Cache:</strong><br>
+                - Morning Video: ${videoCache.morning ? videoCache.morning.title : 'Not found'}<br>
+                - Evening Video: ${videoCache.evening ? videoCache.evening.title : 'Not found'}<br>
+                <strong>Debug Log:</strong><br>
+                ${videoCache.debugInfo.map(info => `- ${info}`).join('<br>')}
+            `;
+        }
+
         async function fetchYouTubeVideos() {
             try {
-                // Check if we should fetch (don't fetch more than once per hour)
-                const now = new Date().getTime();
-                const lastFetch = videoCache.lastFetch ? new Date(videoCache.lastFetch).getTime() : 0;
-                const hourInMs = 60 * 60 * 1000;
-                
-                if (now - lastFetch < hourInMs && videoCache.morning && videoCache.evening) {
-                    displayVideos();
-                    return;
-                }
+                videoCache.debugInfo = []; // Clear debug info
+                videoCache.debugInfo.push('Starting video fetch...');
 
                 // Show loading state
                 document.getElementById('morningVideoContainer').innerHTML = '<div class="loading-text">🔄 Fetching latest videos...</div>';
@@ -582,23 +608,30 @@
                 }
 
                 const xmlText = await response.text();
+                videoCache.debugInfo.push('RSS feed fetched successfully');
+                
                 const parser = new DOMParser();
                 const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
                 
                 const entries = xmlDoc.getElementsByTagName('entry');
+                videoCache.debugInfo.push(`Found ${entries.length} video entries`);
+                
                 const currentDateMalayalam = getCurrentDateInMalayalam();
+                videoCache.debugInfo.push(`Looking for date: "${currentDateMalayalam}"`);
                 
                 let morningVideo = null;
                 let eveningVideo = null;
 
                 // Search through videos
-                for (let i = 0; i < entries.length; i++) {
+                for (let i = 0; i < Math.min(entries.length, 20); i++) { // Check first 20 videos
                     const entry = entries[i];
                     const title = entry.getElementsByTagName('title')[0]?.textContent || '';
                     const videoId = entry.getElementsByTagName('yt:videoId')[0]?.textContent;
                     const published = entry.getElementsByTagName('published')[0]?.textContent;
                     
                     if (!videoId) continue;
+
+                    videoCache.debugInfo.push(`Video ${i + 1}: "${title}"`);
 
                     // Check for evening prayer (മരിയൻ ഉടമ്പടി സായാഹ്ന പ്രാർത്ഥന)
                     if (title.includes('മരിയൻ ഉടമ്പടി സായാഹ്ന പ്രാർത്ഥന') && !eveningVideo) {
@@ -607,22 +640,48 @@
                             videoId: videoId,
                             published: published
                         };
+                        videoCache.debugInfo.push(`✓ Found evening prayer: "${title}"`);
                     }
 
-                    // Check for morning prayer (current date + കൃപാസനം അനുദിന അനുഗ്രഹ പ്രാർത്ഥന)
-                    if (title.includes(currentDateMalayalam) && 
-                        title.includes('കൃപാസനം അനുദിന അനുഗ്രഹ പ്രാർത്ഥന') && 
-                        !morningVideo) {
+                    // Check for morning prayer - improved matching
+                    const hasDate = title.includes(currentDateMalayalam);
+                    const hasMorningKeyword = title.includes('കൃപാസനം') || title.includes('Our Daily Bread');
+                    
+                    if (hasDate && hasMorningKeyword && !morningVideo) {
                         morningVideo = {
                             title: title,
                             videoId: videoId,
                             published: published
                         };
+                        videoCache.debugInfo.push(`✓ Found morning prayer: "${title}"`);
                     }
 
-                    // Break if we found both
-                    if (morningVideo && eveningVideo) {
-                        break;
+                    // Log matching details for debugging
+                    if (hasDate || hasMorningKeyword) {
+                        videoCache.debugInfo.push(`  - Has date (${currentDateMalayalam}): ${hasDate}`);
+                        videoCache.debugInfo.push(`  - Has morning keyword: ${hasMorningKeyword}`);
+                    }
+                }
+
+                // If we didn't find today's morning prayer, look for the most recent "കൃപാസনം" video
+                if (!morningVideo) {
+                    videoCache.debugInfo.push('No exact date match found, looking for recent കൃപാസനം video...');
+                    
+                    for (let i = 0; i < Math.min(entries.length, 10); i++) {
+                        const entry = entries[i];
+                        const title = entry.getElementsByTagName('title')[0]?.textContent || '';
+                        const videoId = entry.getElementsByTagName('yt:videoId')[0]?.textContent;
+                        const published = entry.getElementsByTagName('published')[0]?.textContent;
+                        
+                        if (title.includes('കൃപാസനം') || title.includes('Our Daily Bread')) {
+                            morningVideo = {
+                                title: title,
+                                videoId: videoId,
+                                published: published
+                            };
+                            videoCache.debugInfo.push(`✓ Using recent morning prayer: "${title}"`);
+                            break;
+                        }
                     }
                 }
 
@@ -630,12 +689,17 @@
                 videoCache.morning = morningVideo;
                 videoCache.evening = eveningVideo;
                 videoCache.lastFetch = new Date().toISOString();
-                saveVideoCache();
-
+                
+                videoCache.debugInfo.push(`Final result - Morning: ${morningVideo ? 'Found' : 'Not found'}, Evening: ${eveningVideo ? 'Found' : 'Not found'}`);
+                
+                updateDebugInfo();
                 displayVideos();
 
             } catch (error) {
                 console.error('Error fetching YouTube videos:', error);
+                videoCache.debugInfo.push(`Error: ${error.message}`);
+                updateDebugInfo();
+                
                 document.getElementById('morningVideoContainer').innerHTML = 
                     '<div class="error-text">❌ Unable to load videos. Please try refreshing.</div>';
                 document.getElementById('eveningVideoContainer').innerHTML = 
@@ -805,10 +869,7 @@
         // Initialize the page
         updateDisplay();
         
-        // Load videos from cache first, then fetch fresh ones
-        if (videoCache.morning || videoCache.evening) {
-            displayVideos();
-        }
+        // Fetch videos immediately
         fetchYouTubeVideos();
 
         // Update every minute to catch day changes
