@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RSS Feed Reader</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e1e1e, #2d2d2d);
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .status {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 25px;
+            font-size: 0.9rem;
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #4ecdc4;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .feed-container {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .feed-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 4px solid #4ecdc4;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .feed-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .feed-item.new {
+            border-left-color: #ff6b6b;
+            background: rgba(255, 107, 107, 0.1);
+            animation: newItem 0.5s ease;
+        }
+
+        @keyframes newItem {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .feed-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #fff;
+            line-height: 1.4;
+        }
+
+        .feed-date {
+            color: #4ecdc4;
+            font-size: 0.85rem;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+
+        .feed-description {
+            color: #b0b0b0;
+            line-height: 1.5;
+            margin-bottom: 15px;
+        }
+
+        .feed-link {
+            display: inline-block;
+            padding: 8px 16px;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            color: white;
+            text-decoration: none;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .feed-link:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-size: 1.1rem;
+            color: #4ecdc4;
+        }
+
+        .error {
+            text-align: center;
+            padding: 40px;
+            color: #ff6b6b;
+            background: rgba(255, 107, 107, 0.1);
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(78, 205, 196, 0.3);
+            border-top: 4px solid #4ecdc4;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .status {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .status-item {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎥 YouTube RSS Feed Reader</h1>
+            <div class="status">
+                <div class="status-item">
+                    <div class="status-indicator"></div>
+                    <span>Status: <span id="status">Loading...</span></span>
+                </div>
+                <div class="status-item">
+                    <span>📅 Last Update: <span id="lastUpdate">Never</span></span>
+                </div>
+                <div class="status-item">
+                    <span>📊 Total Posts: <span id="totalPosts">0</span></span>
+                </div>
+                <div class="status-item">
+                    <span>🔔 New Posts: <span id="newPosts">0</span></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="feed-container">
+            <div id="feedContent">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    Loading RSS feed...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class RSSFeedReader {
+            constructor() {
+                this.feedUrl = 'https://cors.kawiesh.top/https://www.youtube.com/feeds/videos.xml?channel_id=UCbg8V1kty3s1kcCch2VHwEw';
+                this.feedData = [];
+                this.knownItems = new Set();
+                this.newItemsCount = 0;
+                this.originalTitle = document.title;
+                this.updateInterval = null;
+                
+                this.init();
+            }
+
+            init() {
+                this.fetchFeed();
+                // Update every minute (60000ms)
+                this.updateInterval = setInterval(() => this.fetchFeed(), 60000);
+            }
+
+            async fetchFeed() {
+                try {
+                    document.getElementById('status').textContent = 'Fetching...';
+                    
+                    const response = await fetch(this.feedUrl);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    
+                    const xmlText = await response.text();
+                    const parser = new DOMParser();
+                    const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
+                    
+                    this.processFeed(xmlDoc);
+                    this.updateStatus('Connected');
+                    this.updateLastUpdateTime();
+                    
+                } catch (error) {
+                    console.error('Error fetching feed:', error);
+                    this.showError(`Failed to load RSS feed: ${error.message}`);
+                    this.updateStatus('Error');
+                }
+            }
+
+            processFeed(xmlDoc) {
+                const entries = xmlDoc.querySelectorAll('entry');
+                const newItems = [];
+                
+                entries.forEach(entry => {
+                    const id = entry.querySelector('id')?.textContent || '';
+                    const title = entry.querySelector('title')?.textContent || 'No title';
+                    const link = entry.querySelector('link')?.getAttribute('href') || '#';
+                    const published = entry.querySelector('published')?.textContent || '';
+                    const summary = entry.querySelector('media\\:group media\\:description, group description')?.textContent || 
+                                   entry.querySelector('summary')?.textContent || 'No description available';
+                    
+                    const isNew = !this.knownItems.has(id);
+                    this.knownItems.add(id);
+                    
+                    if (isNew && this.feedData.length > 0) {
+                        newItems.push(id);
+                        this.newItemsCount++;
+                    }
+                    
+                    const item = {
+                        id,
+                        title,
+                        link,
+                        published: this.parseDate(published),
+                        summary: this.cleanSummary(summary),
+                        isNew
+                    };
+                    
+                    // Only add if not already in feedData
+                    if (!this.feedData.find(existing => existing.id === id)) {
+                        this.feedData.unshift(item);
+                    }
+                });
+                
+                // Sort by date (newest first)
+                this.feedData.sort((a, b) => new Date(b.published) - new Date(a.published));
+                
+                if (newItems.length > 0) {
+                    this.updateTitle();
+                    // Mark new items for highlighting
+                    setTimeout(() => {
+                        newItems.forEach(id => {
+                            const item = this.feedData.find(i => i.id === id);
+                            if (item) item.isNew = false;
+                        });
+                    }, 5000); // Remove "new" highlight after 5 seconds
+                }
+                
+                this.renderFeed();
+                this.updateTotalPosts();
+            }
+
+            parseDate(dateString) {
+                const date = new Date(dateString);
+                return date.toLocaleDateString('en-GB', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric'
+                }).replace(/\//g, '');
+            }
+
+            cleanSummary(summary) {
+                // Remove HTML tags and limit length
+                const cleanText = summary.replace(/<[^>]*>/g, '').trim();
+                return cleanText.length > 200 ? cleanText.substring(0, 200) + '...' : cleanText;
+            }
+
+            updateTitle() {
+                if (this.newItemsCount > 0) {
+                    document.title = `(${this.newItemsCount}) New Posts - ${this.originalTitle}`;
+                } else {
+                    document.title = this.originalTitle;
+                }
+            }
+
+            updateStatus(status) {
+                document.getElementById('status').textContent = status;
+                const indicator = document.querySelector('.status-indicator');
+                if (status === 'Connected') {
+                    indicator.style.background = '#4ecdc4';
+                } else if (status === 'Error') {
+                    indicator.style.background = '#ff6b6b';
+                } else {
+                    indicator.style.background = '#ffa500';
+                }
+            }
+
+            updateLastUpdateTime() {
+                const now = new Date();
+                const timeString = now.toLocaleString('en-GB', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                });
+                document.getElementById('lastUpdate').textContent = timeString;
+            }
+
+            updateTotalPosts() {
+                document.getElementById('totalPosts').textContent = this.feedData.length;
+                document.getElementById('newPosts').textContent = this.newItemsCount;
+            }
+
+            renderFeed() {
+                const feedContent = document.getElementById('feedContent');
+                
+                if (this.feedData.length === 0) {
+                    feedContent.innerHTML = '<div class="loading">No posts found</div>';
+                    return;
+                }
+                
+                const html = this.feedData.map(item => `
+                    <div class="feed-item ${item.isNew ? 'new' : ''}" onclick="window.open('${item.link}', '_blank')">
+                        <div class="feed-title">${this.escapeHtml(item.title)}</div>
+                        <div class="feed-date">📅 ${item.published}</div>
+                        <div class="feed-description">${this.escapeHtml(item.summary)}</div>
+                        <a href="${item.link}" class="feed-link" target="_blank" onclick="event.stopPropagation()">
+                            🎬 Watch Video
+                        </a>
+                    </div>
+                `).join('');
+                
+                feedContent.innerHTML = html;
+            }
+
+            showError(message) {
+                const feedContent = document.getElementById('feedContent');
+                feedContent.innerHTML = `
+                    <div class="error">
+                        <h3>⚠️ Error Loading Feed</h3>
+                        <p>${message}</p>
+                        <p>Retrying in 60 seconds...</p>
+                    </div>
+                `;
+            }
+
+            escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+        }
+
+        // Initialize the RSS feed reader when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new RSSFeedReader();
+        });
+
+        // Handle page visibility changes to update title
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) {
+                // Reset new items count when user views the page
+                setTimeout(() => {
+                    document.title = document.title.replace(/^\(\d+\) New Posts - /, '');
+                }, 1000);
+            }
+        });
+    </script>
+</body>
+</html>
