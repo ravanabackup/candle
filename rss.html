@@ -89,6 +89,9 @@
             border-left: 4px solid #4ecdc4;
             transition: all 0.3s ease;
             cursor: pointer;
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
         }
 
         .feed-item:hover {
@@ -114,6 +117,24 @@
             }
         }
 
+        .feed-thumbnail {
+            width: 200px;
+            height: 112px;
+            border-radius: 8px;
+            object-fit: cover;
+            flex-shrink: 0;
+            transition: transform 0.3s ease;
+        }
+
+        .feed-thumbnail:hover {
+            transform: scale(1.05);
+        }
+
+        .feed-content {
+            flex: 1;
+            min-width: 0;
+        }
+
         .feed-title {
             font-size: 1.3rem;
             font-weight: 600;
@@ -127,6 +148,14 @@
             font-size: 0.85rem;
             margin-bottom: 10px;
             font-weight: 500;
+            display: flex;
+            gap: 15px;
+        }
+
+        .date-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
         }
 
         .feed-description {
@@ -195,6 +224,23 @@
             
             .status-item {
                 justify-content: center;
+            }
+
+            .feed-item {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .feed-thumbnail {
+                width: 100%;
+                height: auto;
+                max-width: 300px;
+                margin: 0 auto;
+            }
+
+            .feed-date {
+                flex-direction: column;
+                gap: 5px;
             }
         }
     </style>
@@ -285,6 +331,10 @@
                     const summary = entry.querySelector('media\\:group media\\:description, group description')?.textContent || 
                                    entry.querySelector('summary')?.textContent || 'No description available';
                     
+                    // Extract video ID from YouTube URL for thumbnail
+                    const videoId = this.extractVideoId(link);
+                    const thumbnail = videoId ? `https://cors.kawiesh.top/https://i2.ytimg.com/vi/${videoId}/hqdefault.jpg` : null;
+                    
                     const isNew = !this.knownItems.has(id);
                     this.knownItems.add(id);
                     
@@ -297,8 +347,9 @@
                         id,
                         title,
                         link,
-                        published: this.parseDate(published),
+                        published: this.parseDateTime(published),
                         summary: this.cleanSummary(summary),
+                        thumbnail,
                         isNew
                     };
                     
@@ -309,7 +360,7 @@
                 });
                 
                 // Sort by date (newest first)
-                this.feedData.sort((a, b) => new Date(b.published) - new Date(a.published));
+                this.feedData.sort((a, b) => new Date(b.published.full) - new Date(a.published.full));
                 
                 if (newItems.length > 0) {
                     this.updateTitle();
@@ -326,13 +377,32 @@
                 this.updateTotalPosts();
             }
 
-            parseDate(dateString) {
+            extractVideoId(url) {
+                // Extract video ID from YouTube URL
+                const regex = /(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+                const match = url.match(regex);
+                return match ? match[1] : null;
+            }
+
+            parseDateTime(dateString) {
                 const date = new Date(dateString);
-                return date.toLocaleDateString('en-GB', {
+                const dateFormatted = date.toLocaleDateString('en-GB', {
                     day: '2-digit',
                     month: '2-digit',
                     year: 'numeric'
-                }).replace(/\//g, '');
+                });
+                const timeFormatted = date.toLocaleTimeString('en-GB', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: false
+                });
+                
+                return {
+                    date: dateFormatted,
+                    time: timeFormatted,
+                    full: date
+                };
             }
 
             cleanSummary(summary) {
@@ -389,12 +459,18 @@
                 
                 const html = this.feedData.map(item => `
                     <div class="feed-item ${item.isNew ? 'new' : ''}" onclick="window.open('${item.link}', '_blank')">
-                        <div class="feed-title">${this.escapeHtml(item.title)}</div>
-                        <div class="feed-date">📅 ${item.published}</div>
-                        <div class="feed-description">${this.escapeHtml(item.summary)}</div>
-                        <a href="${item.link}" class="feed-link" target="_blank" onclick="event.stopPropagation()">
-                            🎬 Watch Video
-                        </a>
+                        ${item.thumbnail ? `<img src="${item.thumbnail}" alt="${this.escapeHtml(item.title)}" class="feed-thumbnail" onerror="this.style.display='none'">` : ''}
+                        <div class="feed-content">
+                            <div class="feed-title">${this.escapeHtml(item.title)}</div>
+                            <div class="feed-date">
+                                <div class="date-item">📅 ${item.published.date}</div>
+                                <div class="date-item">🕐 ${item.published.time}</div>
+                            </div>
+                            <div class="feed-description">${this.escapeHtml(item.summary)}</div>
+                            <a href="${item.link}" class="feed-link" target="_blank" onclick="event.stopPropagation()">
+                                🎬 Watch Video
+                            </a>
+                        </div>
                     </div>
                 `).join('');
                 
