@@ -482,6 +482,40 @@
             transition: all 0.4s ease-in-out;
             animation: slideIn 0.3s ease-out;
         }
+        
+        .message-modal-content {
+            background-color: var(--surface-color);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            animation: fadeInScale 0.3s ease-out;
+        }
+
+        @keyframes fadeInScale {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .message-modal-content p {
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+        }
+
+        .message-modal-content button {
+            padding: 10px 20px;
+            background-color: var(--primary-color);
+            color: var(--md-sys-color-on-primary-dark);
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease-in-out;
+        }
+
+        .message-modal-content button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
 
         @keyframes slideIn {
             from { opacity: 0; transform: translateY(-50px); }
@@ -667,6 +701,14 @@
         </div>
     </div>
 
+    <!-- Custom Message Box Modal -->
+    <div id="messageModal" class="modal">
+        <div class="message-modal-content">
+            <p id="messageText"></p>
+            <button id="closeMessageModalButton">OK</button>
+        </div>
+    </div>
+
     <script>
         class RSSFeedReader {
             constructor() {
@@ -695,6 +737,11 @@
                 // Translation settings
                 this.isTranslationEnabled = false;
                 this.translationSwitch = document.getElementById('translationSwitch');
+                
+                // Message modal elements
+                this.messageModal = document.getElementById('messageModal');
+                this.messageText = document.getElementById('messageText');
+                this.closeMessageModalButton = document.getElementById('closeMessageModalButton');
 
                 this.init();
             }
@@ -746,6 +793,11 @@
                     if (event.target === modal) {
                         modal.style.display = 'none';
                     }
+                });
+                
+                // Setup for the new message modal
+                this.closeMessageModalButton.addEventListener('click', () => {
+                    this.messageModal.style.display = 'none';
                 });
 
                 // Handle debug mode switch
@@ -1169,6 +1221,12 @@
                 return div.innerHTML;
             }
 
+            // Displays a custom message box
+            showMessageBox(message) {
+                this.messageText.textContent = message;
+                this.messageModal.style.display = 'flex';
+            }
+
             // Copies post information to the clipboard
             copyToClipboard(title, date, time, url, event) {
                 event.stopPropagation();
@@ -1181,7 +1239,7 @@
                 try {
                     document.execCommand('copy');
                     // Show a custom message box instead of alert()
-                    alert('Video info copied to clipboard!');
+                    this.showMessageBox('Video info copied to clipboard!');
                 } catch (err) {
                     console.error('Failed to copy text: ', err);
                 }
@@ -1208,7 +1266,7 @@
                 if (savedTheme) {
                     document.body.classList.remove('light-theme', 'dark-theme');
                     document.body.classList.add(`${savedTheme}-theme`);
-                    themeIcon.textContent = savedTheme === 'dark' ? '☀️' : '�';
+                    themeIcon.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
                 } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
                     document.body.classList.add('dark-theme');
                     themeIcon.textContent = '☀️';
@@ -1239,4 +1297,3 @@
     </script>
 </body>
 </html>
-�
