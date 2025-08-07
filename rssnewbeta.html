@@ -5,54 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RSS Feed Reader</title>
     <style>
+        /* Base Material You Expressive Palette */
         :root {
-            --background-dark: #121212;
-            --surface-dark: #1f1f1f;
-            --surface-variant-dark: #2c2c2c;
-            --primary-dark: #bb86fc;
-            --secondary-dark: #03dac6;
-            --text-dark: #e0e0e0;
-            --text-secondary-dark: #b0b0b0;
-            --error-dark: #cf6679;
-            --background-light: #f5f5f5;
-            --surface-light: #ffffff;
-            --surface-variant-light: #e0e0e0;
-            --primary-light: #6200ee;
-            --secondary-light: #03dac5;
-            --text-light: #1f1f1f;
-            --text-secondary-light: #666666;
-            --error-light: #b00020;
-            --shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            --border-radius: 12px;
-            --transition-duration: 0.3s;
-        }
-        @media (prefers-color-scheme: light) {
-            :root {
-                --background-color: var(--background-light);
-                --surface-color: var(--surface-light);
-                --surface-variant-color: var(--surface-variant-light);
-                --primary-color: var(--primary-light);
-                --secondary-color: var(--secondary-light);
-                --text-color: var(--text-light);
-                --text-secondary-color: var(--text-secondary-light);
-                --error-color: var(--error-light);
-            }
-        }
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --background-color: var(--background-dark);
-                --surface-color: var(--surface-dark);
-                --surface-variant-color: var(--surface-variant-dark);
-                --primary-color: var(--primary-dark);
-                --secondary-color: var(--secondary-dark);
-                --text-color: var(--text-dark);
-                --text-secondary-color: var(--text-secondary-dark);
-                --error-color: var(--error-dark);
-            }
-        }
-        /* Material You Expressive Palette */
-        :root {
-            /* Expressive Tonal Palette */
+            /* Light Theme */
             --md-sys-color-primary-light: #6750A4;
             --md-sys-color-on-primary-light: #FFFFFF;
             --md-sys-color-primary-container-light: #EADDFF;
@@ -66,6 +21,7 @@
             --md-sys-color-error-light: #B3261E;
             --md-sys-color-error-container-light: #F9DEDC;
 
+            /* Dark Theme */
             --md-sys-color-primary-dark: #D0BCFF;
             --md-sys-color-on-primary-dark: #381E72;
             --md-sys-color-primary-container-dark: #4F378B;
@@ -80,6 +36,7 @@
             --md-sys-color-error-container-dark: #8C1D18;
         }
 
+        /* Default (Light) Theme */
         body.light-theme {
             --background-color: var(--md-sys-color-surface-light);
             --surface-color: var(--md-sys-color-surface-light);
@@ -89,8 +46,11 @@
             --text-color: var(--md-sys-color-on-surface-light);
             --text-secondary-color: var(--md-sys-color-on-primary-container-light);
             --error-color: var(--md-sys-color-error-light);
+            --no-stats-bg: #FFEBEE;
+            --no-stats-border: #F8BBD0;
         }
 
+        /* Dark Theme */
         body.dark-theme {
             --background-color: var(--md-sys-color-surface-dark);
             --surface-color: var(--md-sys-color-surface-dark);
@@ -100,45 +60,47 @@
             --text-color: var(--md-sys-color-on-surface-dark);
             --text-secondary-color: var(--md-sys-color-on-primary-container-dark);
             --error-color: var(--md-sys-color-error-dark);
+            --no-stats-bg: #2C2020;
+            --no-stats-border: #8C1D18;
         }
-
+        
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-
+        
         body {
             font-family: 'Google Sans', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: var(--background-color);
             color: var(--text-color);
             min-height: 100vh;
             padding: 20px;
-            transition: background-color var(--transition-duration), color var(--transition-duration);
+            transition: background-color 0.4s ease-in-out, color 0.4s ease-in-out;
         }
-
+        
         .container {
             max-width: 1200px;
             margin: 0 auto;
         }
-
+        
         .header {
             text-align: center;
             margin-bottom: 30px;
             padding: 20px;
             background-color: var(--surface-color);
-            border-radius: var(--border-radius);
-            box-shadow: var(--shadow);
-            transition: background-color var(--transition-duration), box-shadow var(--transition-duration);
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            transition: all 0.4s ease-in-out;
         }
-
+        
         .header h1 {
             font-size: 2.5rem;
             color: var(--primary-color);
             margin-bottom: 10px;
-            transition: color var(--transition-duration);
+            transition: color 0.4s ease-in-out;
         }
-
+        
         .status {
             display: flex;
             justify-content: space-between;
@@ -147,7 +109,7 @@
             gap: 15px;
             margin-bottom: 20px;
         }
-
+        
         .status-item {
             display: flex;
             align-items: center;
@@ -157,36 +119,82 @@
             color: var(--text-secondary-color);
             border-radius: 25px;
             font-size: 0.9rem;
-            transition: background-color var(--transition-duration), color var(--transition-duration);
+            transition: all 0.4s ease-in-out;
         }
-
+        
         .status-indicator {
             width: 12px;
             height: 12px;
             border-radius: 50%;
-            background: var(--secondary-color);
+            background: #bdbdbd; /* Gray for initial state */
+            animation: none;
+            transition: background-color 0.4s ease-in-out;
+        }
+        
+        .status-indicator.loading {
+            background-color: #ff9800; /* Orange */
             animation: pulse 2s infinite;
         }
-
+        
+        .status-indicator.connected {
+            background-color: #4caf50; /* Green */
+            animation: none;
+        }
+        
+        .status-indicator.error {
+            background-color: #f44336; /* Red */
+            animation: none;
+        }
+        
         @keyframes pulse {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.5; }
         }
-
+        
+        .filter-controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .filter-button {
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: 500;
+            cursor: pointer;
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+            background-color: transparent;
+            transition: all 0.3s ease-in-out;
+        }
+        
+        .filter-button.active {
+            background-color: var(--primary-color);
+            color: var(--md-sys-color-on-primary-dark);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        .filter-button:hover:not(.active) {
+            background-color: color-mix(in srgb, var(--primary-color) 20%, transparent);
+            transform: translateY(-1px);
+        }
+        
         .feed-container {
             background-color: var(--surface-color);
-            border-radius: var(--border-radius);
+            border-radius: 20px;
             padding: 20px;
-            box-shadow: var(--shadow);
-            transition: background-color var(--transition-duration), box-shadow var(--transition-duration);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            transition: all 0.4s ease-in-out;
         }
-
+        
         #debugLog h4 {
             margin-bottom: 10px;
             color: var(--primary-color);
             font-size: 1.2rem;
         }
-
+        
         #debugLog pre {
             white-space: pre-wrap;
             word-wrap: break-word;
@@ -194,41 +202,52 @@
             overflow-y: auto;
             background-color: rgba(0, 0, 0, 0.2);
             padding: 10px;
-            border-radius: 8px;
+            border-radius: 12px;
             color: var(--text-secondary-color);
+            transition: all 0.4s ease-in-out;
         }
-
+        
         .feed-item {
             background-color: var(--surface-variant-color);
-            border-radius: var(--border-radius);
+            border-radius: 16px;
             padding: 20px;
             margin-bottom: 15px;
             border-left: 4px solid var(--primary-color);
-            transition: all var(--transition-duration) ease;
+            transition: all 0.3s ease-in-out;
             display: flex;
             gap: 20px;
             align-items: flex-start;
             position: relative;
+            animation: fadeIn 0.5s ease-in-out;
         }
-
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .feed-item.no-stats-post {
+            background-color: var(--no-stats-bg);
+            border-left-color: var(--no-stats-border);
+        }
+        
         .feed-item:hover {
-            background-color: color-mix(in srgb, var(--surface-variant-color) 80%, var(--primary-color));
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            transform: scale(1.01);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
         }
-
+        
         .feed-item-content {
             cursor: default;
             flex: 1;
             display: flex;
             gap: 20px;
         }
-
+        
         .feed-item.new {
             border-left-color: var(--secondary-color);
             animation: newItem 0.5s ease;
         }
-
+        
         @keyframes newItem {
             from {
                 opacity: 0;
@@ -239,28 +258,84 @@
                 transform: translateY(0);
             }
         }
-
-        .feed-thumbnail {
+        
+        .feed-thumbnail-container {
+            position: relative;
             width: 200px;
             height: 112px;
-            border-radius: 8px;
-            object-fit: cover;
             flex-shrink: 0;
+            cursor: pointer;
+        }
+        
+        .feed-thumbnail {
+            width: 100%;
+            height: 100%;
+            border-radius: 12px;
+            object-fit: cover;
+            transition: transform 0.3s ease-in-out;
+        }
+        
+        .feed-item:hover .feed-thumbnail {
+            transform: scale(1.05);
+        }
+        
+        .play-icon {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60px;
+            height: 60px;
+            background-color: rgba(0, 0, 0, 0.6);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease-in-out;
+            opacity: 0.9;
+        }
+        
+        .feed-item:hover .play-icon {
+            transform: translate(-50%, -50%) scale(1.1);
+            opacity: 1;
+        }
+        
+        .play-icon::after {
+            content: '';
+            border-style: solid;
+            border-width: 15px 0 15px 25px;
+            border-color: transparent transparent transparent #fff;
         }
 
+        .iframe-container {
+            width: 200px;
+            height: 112px;
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+            flex-shrink: 0;
+        }
+        
+        .iframe-container iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        
         .feed-content {
             flex: 1;
             min-width: 0;
         }
-
+        
         .feed-title {
             font-size: 1.3rem;
             font-weight: 600;
             margin-bottom: 8px;
             color: var(--text-color);
             line-height: 1.4;
+            transition: color 0.4s ease-in-out;
         }
-
+        
         .feed-date {
             color: var(--text-secondary-color);
             font-size: 0.85rem;
@@ -268,26 +343,28 @@
             font-weight: 500;
             display: flex;
             gap: 15px;
+            transition: color 0.4s ease-in-out;
         }
-
+        
         .date-item {
             display: flex;
             align-items: center;
             gap: 5px;
         }
-
+        
         .feed-description {
             color: var(--text-secondary-color);
             line-height: 1.5;
             margin-bottom: 15px;
+            transition: color 0.4s ease-in-out;
         }
-
+        
         .actions {
             display: flex;
             gap: 10px;
             align-items: center;
         }
-
+        
         .action-button {
             display: inline-flex;
             align-items: center;
@@ -298,42 +375,45 @@
             border-radius: 20px;
             font-size: 0.85rem;
             font-weight: 500;
-            transition: all var(--transition-duration) ease;
+            transition: all 0.3s ease-in-out;
             border: none;
             cursor: pointer;
         }
-
+        
         .action-button:hover {
-            transform: scale(1.05);
-            opacity: 0.9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
         }
-
+        
         .action-button.copy {
             background-color: var(--secondary-color);
             color: var(--md-sys-color-on-secondary-dark);
         }
-
-        .action-button.debug {
-            background-color: var(--secondary-color);
-            color: var(--md-sys-color-on-secondary-dark);
+        
+        .action-button.advanced {
+            background-color: transparent;
+            color: var(--primary-color);
+            border: 2px solid var(--primary-color);
         }
-
+        
         .loading {
             text-align: center;
             padding: 40px;
             font-size: 1.1rem;
             color: var(--primary-color);
+            transition: all 0.4s ease-in-out;
         }
-
+        
         .error {
             text-align: center;
             padding: 40px;
             color: var(--error-color);
             background-color: var(--error-container-light);
-            border-radius: var(--border-radius);
+            border-radius: 20px;
             margin-bottom: 20px;
+            transition: all 0.4s ease-in-out;
         }
-
+        
         .spinner {
             width: 40px;
             height: 40px;
@@ -343,12 +423,12 @@
             animation: spin 1s linear infinite;
             margin: 0 auto 20px;
         }
-
+        
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-
+        
         .theme-switch {
             position: fixed;
             bottom: 20px;
@@ -363,41 +443,158 @@
             justify-content: center;
             font-size: 1.5rem;
             cursor: pointer;
-            box-shadow: var(--shadow);
-            transition: background-color var(--transition-duration), transform var(--transition-duration);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease-in-out;
             z-index: 100;
         }
-
+        
         .theme-switch:hover {
             transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
         }
-
+        
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 101;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(5px);
+            transition: all 0.4s ease-in-out;
+        }
+        
+        .modal-content {
+            background-color: var(--surface-color);
+            margin: auto;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+            width: 90%;
+            max-width: 500px;
+            position: relative;
+            transition: all 0.4s ease-in-out;
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-50px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .close-button {
+            color: var(--text-secondary-color);
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.3s ease-in-out;
+        }
+        
+        .close-button:hover {
+            color: var(--text-color);
+        }
+        
+        .modal-content h3 {
+            margin-bottom: 20px;
+            color: var(--primary-color);
+            transition: color 0.4s ease-in-out;
+        }
+        
+        .modal-option {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid var(--surface-variant-color);
+            transition: border-bottom-color 0.4s ease-in-out;
+        }
+        
+        .modal-option:last-child {
+            border-bottom: none;
+        }
+        
+        /* Toggle Switch Styles */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 28px;
+        }
+        
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--surface-variant-color);
+            transition: 0.4s;
+            border-radius: 34px;
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 4px;
+            bottom: 4px;
+            background-color: var(--text-secondary-color);
+            transition: 0.4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .slider {
+            background-color: var(--primary-color);
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(22px);
+            background-color: var(--md-sys-color-on-primary-dark);
+        }
+        
         @media (max-width: 768px) {
             .header h1 {
                 font-size: 2rem;
             }
-
+        
             .status {
                 flex-direction: column;
                 align-items: stretch;
             }
-
+        
             .status-item {
                 justify-content: center;
             }
-
+        
             .feed-item-content {
                 flex-direction: column;
                 gap: 15px;
             }
-
-            .feed-thumbnail {
+        
+            .feed-thumbnail-container {
                 width: 100%;
                 height: auto;
                 max-width: 300px;
                 margin: 0 auto;
             }
-
+        
             .feed-date {
                 flex-direction: column;
                 gap: 5px;
@@ -427,16 +624,12 @@
                 <div class="status-item">
                     <span>🔔 New Posts: <span id="newPosts">0</span></span>
                 </div>
-                <div class="status-item">
-                    <span>Debug Mode: <span id="debugStatus">Off</span></span>
-                </div>
-                <button id="debugButton" class="action-button debug">Start Debug</button>
+                <button id="advancedSettingsButton" class="action-button advanced">⚙️ Advanced Settings</button>
             </div>
-            <div class="status" style="margin-top: 15px;">
-                <div class="status-item">
-                    <span>Translator: <span id="translationStatus">Off</span></span>
-                </div>
-                <button id="toggleTranslationButton" class="action-button">Turn On Translator</button>
+            <div class="filter-controls">
+                <button class="filter-button active" data-filter="all">All</button>
+                <button class="filter-button" data-filter="released">Released</button>
+                <button class="filter-button" data-filter="unreleased">Unreleased</button>
             </div>
         </div>
 
@@ -447,9 +640,30 @@
                     Loading RSS feed...
                 </div>
             </div>
-            <div id="debugLog" style="display: none; margin-top: 20px; padding: 15px; background-color: var(--surface-variant-color); border-radius: var(--border-radius); color: var(--text-color); font-family: monospace;">
+            <div id="debugLog" style="display: block; margin-top: 20px; padding: 15px; background-color: var(--surface-variant-color); border-radius: 20px; color: var(--text-color); font-family: monospace;">
                 <h4>Debug Log</h4>
                 <pre id="logContent"></pre>
+            </div>
+        </div>
+    </div>
+
+    <div id="settingsModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" id="closeModalButton">&times;</span>
+            <h3>Advanced Settings</h3>
+            <div class="modal-option">
+                <span>Debug Mode</span>
+                <label class="switch">
+                    <input type="checkbox" id="debugSwitch" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div class="modal-option">
+                <span>Translation</span>
+                <label class="switch">
+                    <input type="checkbox" id="translationSwitch">
+                    <span class="slider"></span>
+                </label>
             </div>
         </div>
     </div>
@@ -463,40 +677,76 @@
                 this.newItemsCount = 0;
                 this.originalTitle = document.title;
                 this.updateInterval = null;
+                this.currentFilter = 'all';
 
-                this.isDebugging = false;
+                this.isDebugging = true;
                 this.debugLogElement = document.getElementById('debugLog');
                 this.logContentElement = document.getElementById('logContent');
-                this.debugStatusElement = document.getElementById('debugStatus');
-                this.debugButton = document.getElementById('debugButton');
+                this.debugSwitch = document.getElementById('debugSwitch');
 
-                this.isTranslationEnabled = false; // New state variable
-                this.toggleTranslationButton = document.getElementById('toggleTranslationButton');
-                this.translationStatusElement = document.getElementById('translationStatus');
+                this.isTranslationEnabled = false;
+                this.translationSwitch = document.getElementById('translationSwitch');
 
                 this.init();
             }
 
             init() {
                 this.fetchFeed();
-                this.updateInterval = setInterval(() => this.fetchFeed(), 60000); // Update every minute
+                this.updateInterval = setInterval(() => this.fetchFeed(), 60000);
                 this.setupThemeSwitch();
-                this.setupDebugButton();
-                this.setupTranslationToggle(); // New setup for the button
+                this.setupModal();
+                this.setupFilterControls();
             }
 
-            setupTranslationToggle() {
-                this.toggleTranslationButton.addEventListener('click', async () => {
-                    this.isTranslationEnabled = !this.isTranslationEnabled;
-                    this.translationStatusElement.textContent = this.isTranslationEnabled ? 'On' : 'Off';
-                    this.toggleTranslationButton.textContent = this.isTranslationEnabled ? 'Turn Off Translator' : 'Turn On Translator';
+            setupModal() {
+                const modal = document.getElementById('settingsModal');
+                const advancedSettingsButton = document.getElementById('advancedSettingsButton');
+                const closeModalButton = document.getElementById('closeModalButton');
+
+                advancedSettingsButton.addEventListener('click', () => {
+                    modal.style.display = 'flex';
+                });
+
+                closeModalButton.addEventListener('click', () => {
+                    modal.style.display = 'none';
+                });
+
+                window.addEventListener('click', (event) => {
+                    if (event.target === modal) {
+                        modal.style.display = 'none';
+                    }
+                });
+
+                this.debugSwitch.addEventListener('change', () => {
+                    this.isDebugging = this.debugSwitch.checked;
+                    this.debugLogElement.style.display = this.isDebugging ? 'block' : 'none';
+                    this.logMessage(`Debug mode ${this.isDebugging ? 'started' : 'stopped'}.`);
+                    if (this.isDebugging) {
+                        this.logContentElement.textContent = '';
+                        this.fetchFeed();
+                    }
+                });
+
+                this.translationSwitch.addEventListener('change', async () => {
+                    this.isTranslationEnabled = this.translationSwitch.checked;
                     if (this.isTranslationEnabled && this.feedData.some(item => !item.translatedTitle)) {
                         this.logMessage('Translation enabled. Translating titles...');
-                        await this.translateAllTitles(); // Translate if needed
-                    } else {
-                        this.logMessage('Translation toggled.');
+                        await this.translateAllTitles();
                     }
-                    this.renderFeed(); // Re-render the feed to apply the change
+                    this.logMessage(`Translation toggled ${this.isTranslationEnabled ? 'on' : 'off'}.`);
+                    this.renderFeed();
+                });
+            }
+
+            setupFilterControls() {
+                const filterButtons = document.querySelectorAll('.filter-button');
+                filterButtons.forEach(button => {
+                    button.addEventListener('click', () => {
+                        filterButtons.forEach(btn => btn.classList.remove('active'));
+                        button.classList.add('active');
+                        this.currentFilter = button.dataset.filter;
+                        this.renderFeed();
+                    });
                 });
             }
 
@@ -509,22 +759,6 @@
                 await Promise.all(promises);
             }
 
-            setupDebugButton() {
-                this.debugButton.addEventListener('click', () => {
-                    this.isDebugging = !this.isDebugging;
-                    this.debugButton.textContent = this.isDebugging ? 'Stop Debug' : 'Start Debug';
-                    this.debugStatusElement.textContent = this.isDebugging ? 'On' : 'Off';
-                    this.debugLogElement.style.display = this.isDebugging ? 'block' : 'none';
-                    if (this.isDebugging) {
-                        this.logContentElement.textContent = ''; // Clear log on start
-                        this.logMessage('Debug mode started.');
-                        this.fetchFeed(); // Run an immediate fetch to show the process
-                    } else {
-                        this.logMessage('Debug mode stopped.');
-                    }
-                });
-            }
-
             logMessage(message) {
                 if (this.isDebugging) {
                     const now = new Date().toLocaleTimeString('en-GB');
@@ -535,10 +769,8 @@
 
             async fetchFeed() {
                 this.logMessage('Starting feed fetch...');
+                this.updateStatus('Fetching...');
                 try {
-                    document.getElementById('status').textContent = 'Fetching...';
-                    this.logMessage('Fetching from CORS proxy...');
-
                     const response = await fetch(this.feedUrl);
                     if (!response.ok) {
                         this.logMessage(`HTTP error! Status: ${response.status}`);
@@ -579,15 +811,12 @@
                 if (/^[a-zA-Z0-9\s.,!?'"()\-]+$/.test(text)) {
                     return text;
                 }
-
                 try {
                     const response = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=ml&tl=en&dt=t&q=${encodeURIComponent(text)}`);
-
                     if (!response.ok) {
                         this.logMessage(`Translation API error: ${response.status}`);
                         throw new Error(`Translation API error: ${response.status}`);
                     }
-
                     const data = await response.json();
                     const translatedText = data[0][0][0];
                     return translatedText;
@@ -612,13 +841,20 @@
                     const link = entry.querySelector('link')?.getAttribute('href') || '#';
                     const published = entry.querySelector('published')?.textContent || '';
                     const updated = entry.querySelector('updated')?.textContent || '';
-                    const summary = entry.querySelector('media\\:group media\\:description, group description')?.textContent ||
-                        entry.querySelector('summary')?.textContent || 'No description available';
 
-                    const community = entry.querySelector('media\\:community');
-                    const starRating = community?.querySelector('media\\:starRating')?.getAttribute('average') || '0.00';
-                    const ratingCount = community?.querySelector('media\\:starRating')?.getAttribute('count') || '0';
-                    const views = community?.querySelector('media\\:statistics')?.getAttribute('views') || '0';
+                    const mediaGroup = entry.getElementsByTagNameNS('http://search.yahoo.com/mrss/', 'group')[0];
+                    let summary = entry.querySelector('summary')?.textContent || 'No description available';
+                    if (mediaGroup) {
+                        const descriptionElement = mediaGroup.getElementsByTagNameNS('http://search.yahoo.com/mrss/', 'description')[0];
+                        if (descriptionElement && descriptionElement.textContent.trim() !== '') {
+                            summary = descriptionElement.textContent;
+                        }
+                    }
+
+                    const community = entry.getElementsByTagNameNS('http://search.yahoo.com/mrss/', 'community')[0];
+                    const starRating = community?.getElementsByTagNameNS('http://search.yahoo.com/mrss/', 'starRating')[0]?.getAttribute('average') || '0.00';
+                    const ratingCount = community?.getElementsByTagNameNS('http://search.yahoo.com/mrss/', 'starRating')[0]?.getAttribute('count') || '0';
+                    const views = community?.getElementsByTagNameNS('http://search.yahoo.com/mrss/', 'statistics')[0]?.getAttribute('views') || '0';
 
                     const videoId = this.extractVideoId(link);
                     const thumbnail = videoId ? `https://cors.kawiesh.top/https://i2.ytimg.com/vi/${videoId}/hqdefault.jpg` : null;
@@ -631,6 +867,7 @@
                         this.knownItems.add(id);
                     }
 
+                    const hasStats = parseInt(views) > 0;
                     const item = {
                         id,
                         title: originalTitle,
@@ -646,12 +883,13 @@
                             ratingCount,
                             views
                         },
-                        isNew
+                        isNew,
+                        hasStats,
+                        videoId
                     };
 
                     uniqueItems.set(id, item);
                 }
-
                 this.feedData = Array.from(uniqueItems.values());
                 this.feedData.sort((a, b) => new Date(b.published.full) - new Date(a.published.full));
 
@@ -718,12 +956,13 @@
             updateStatus(status) {
                 document.getElementById('status').textContent = status;
                 const indicator = document.querySelector('.status-indicator');
+                indicator.className = 'status-indicator';
                 if (status === 'Connected') {
-                    indicator.style.background = 'var(--secondary-color)';
+                    indicator.classList.add('connected');
                 } else if (status === 'Error') {
-                    indicator.style.background = 'var(--error-color)';
+                    indicator.classList.add('error');
                 } else {
-                    indicator.style.background = 'var(--primary-color)';
+                    indicator.classList.add('loading');
                 }
             }
 
@@ -746,37 +985,72 @@
             }
 
             renderFeed() {
-                const feedContent = document.getElementById('feedContent');
+                const allCount = this.feedData.length;
+                const releasedCount = this.feedData.filter(item => item.hasStats).length;
+                const unreleasedCount = this.feedData.filter(item => !item.hasStats).length;
+                
+                document.querySelector('[data-filter="all"]').textContent = `All (${allCount})`;
+                document.querySelector('[data-filter="released"]').textContent = `Released (${releasedCount})`;
+                document.querySelector('[data-filter="unreleased"]').textContent = `Unreleased (${unreleasedCount})`;
 
-                if (this.feedData.length === 0) {
-                    feedContent.innerHTML = '<div class="loading">No posts found</div>';
+                let filteredData = this.feedData;
+
+                if (this.currentFilter === 'released') {
+                    filteredData = this.feedData.filter(item => item.hasStats);
+                } else if (this.currentFilter === 'unreleased') {
+                    filteredData = this.feedData.filter(item => !item.hasStats);
+                }
+
+                const feedContent = document.getElementById('feedContent');
+                if (filteredData.length === 0) {
+                    feedContent.innerHTML = '<div class="loading">No posts found with this filter.</div>';
                     return;
                 }
 
-                const html = this.feedData.map(item => {
+                const html = filteredData.map(item => {
                     const displayTitle = this.isTranslationEnabled && item.translatedTitle ? item.translatedTitle : item.originalTitle;
-
-                    const formattedViews = new Intl.NumberFormat('en-IN').format(item.community.views);
-                    const starRating = '⭐'.repeat(Math.round(parseFloat(item.community.starRating)));
                     const updatedTimeHtml = item.updated ? `<div class="date-item">🔄 Updated: ${item.updated.date} ${item.updated.time}</div>` : '';
+                    let communityStatsHtml = '';
+                    let postClass = item.isNew ? 'new' : '';
+
+                    if (item.hasStats) {
+                        const formattedViews = new Intl.NumberFormat('en-IN').format(item.community.views);
+                        const starRating = '⭐'.repeat(Math.round(parseFloat(item.community.starRating)));
+                        communityStatsHtml = `
+                            <div class="date-item">
+                                📈 <b>Community Stats:</b><br>
+                                ${starRating} (${item.community.starRating} average from ${item.community.ratingCount} ratings)<br>
+                                👀 Views: ${formattedViews}
+                            </div>
+                        `;
+                    } else {
+                         communityStatsHtml = `
+                            <div class="date-item">
+                                📈 <b>Community Stats:</b> Not yet available (Video may be live soon!)
+                            </div>
+                        `;
+                        postClass += ' no-stats-post';
+                    }
+
+                    const descriptionHtml = item.hasStats ? `<div class="feed-description">${this.escapeHtml(item.summary)}</div>` : '';
 
                     return `
-                        <div class="feed-item ${item.isNew ? 'new' : ''}">
+                        <div class="feed-item ${postClass}" data-video-id="${item.videoId}" data-video-link="${item.link}">
                             <div class="feed-item-content">
-                                ${item.thumbnail ? `<img src="${item.thumbnail}" alt="${this.escapeHtml(displayTitle)}" class="feed-thumbnail" onerror="this.style.display='none'">` : ''}
+                                ${item.thumbnail ? `
+                                    <div class="feed-thumbnail-container" data-video-id="${item.videoId}">
+                                        <img src="${item.thumbnail}" alt="${this.escapeHtml(displayTitle)}" class="feed-thumbnail" onerror="this.style.display='none'">
+                                        <div class="play-icon"></div>
+                                    </div>
+                                ` : ''}
                                 <div class="feed-content">
                                     <div class="feed-title">${this.escapeHtml(displayTitle)}</div>
                                     <div class="feed-date">
                                         <div class="date-item">📅 Published: ${item.published.date} ${item.published.time}</div>
                                         ${updatedTimeHtml}
                                     </div>
-                                    <div class="feed-description">${this.escapeHtml(item.summary)}</div>
-                                    <div class="date-item">
-                                        📈 **Community Stats:**
-                                        ${starRating} (${item.community.starRating} average from ${item.community.ratingCount} ratings)
-                                        <br>
-                                        👀 Views: ${formattedViews}
-                                    </div>
+                                    ${descriptionHtml}
+                                    ${communityStatsHtml}
                                     <div class="actions">
                                         <a href="${item.link}" class="action-button" target="_blank" onclick="event.stopPropagation()">
                                             🎬 Watch Video
@@ -792,6 +1066,36 @@
                 }).join('');
 
                 feedContent.innerHTML = html;
+                this.attachThumbnailClickListeners();
+            }
+
+            attachThumbnailClickListeners() {
+                const thumbnailContainers = document.querySelectorAll('.feed-thumbnail-container');
+                thumbnailContainers.forEach(container => {
+                    container.addEventListener('click', (event) => {
+                        const videoId = container.dataset.videoId;
+                        if (videoId) {
+                            const iframeHtml = `<div class="iframe-container"><iframe width="200" height="112" src="https://www.youtube.com/embed/${videoId}?autoplay=1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>`;
+                            const parent = container.parentNode;
+                            parent.replaceChild(this.createIframeWrapper(videoId), container);
+                        }
+                        event.stopPropagation();
+                    });
+                });
+            }
+
+            createIframeWrapper(videoId) {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'iframe-container';
+                const iframe = document.createElement('iframe');
+                iframe.width = "200";
+                iframe.height = "112";
+                iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
+                iframe.frameborder = "0";
+                iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture";
+                iframe.allowFullscreen = true;
+                wrapper.appendChild(iframe);
+                return wrapper;
             }
 
             showError(message) {
@@ -812,7 +1116,7 @@
             }
 
             copyToClipboard(title, date, time, url, event) {
-                event.stopPropagation(); // Prevent the main card click event
+                event.stopPropagation();
                 const textToCopy = `Title: ${title}\nDate: 📅 ${date} ${time}\nURL: ${url}`;
                 navigator.clipboard.writeText(textToCopy).then(() => {
                     alert('Video info copied to clipboard!');
