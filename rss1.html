@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RSS Feed Reader</title>
+    <style>
+        :root {
+            --background-dark: #121212;
+            --surface-dark: #1f1f1f;
+            --surface-variant-dark: #2c2c2c;
+            --primary-dark: #bb86fc;
+            --secondary-dark: #03dac6;
+            --text-dark: #e0e0e0;
+            --text-secondary-dark: #b0b0b0;
+            --error-dark: #cf6679;
+
+            --background-light: #f5f5f5;
+            --surface-light: #ffffff;
+            --surface-variant-light: #e0e0e0;
+            --primary-light: #6200ee;
+            --secondary-light: #03dac5;
+            --text-light: #1f1f1f;
+            --text-secondary-light: #666666;
+            --error-light: #b00020;
+
+            --shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            --border-radius: 12px;
+            --transition-duration: 0.3s;
+        }
+
+        @media (prefers-color-scheme: light) {
+            :root {
+                --background-color: var(--background-light);
+                --surface-color: var(--surface-light);
+                --surface-variant-color: var(--surface-variant-light);
+                --primary-color: var(--primary-light);
+                --secondary-color: var(--secondary-light);
+                --text-color: var(--text-light);
+                --text-secondary-color: var(--text-secondary-light);
+                --error-color: var(--error-light);
+            }
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --background-color: var(--background-dark);
+                --surface-color: var(--surface-dark);
+                --surface-variant-color: var(--surface-variant-dark);
+                --primary-color: var(--primary-dark);
+                --secondary-color: var(--secondary-dark);
+                --text-color: var(--text-dark);
+                --text-secondary-color: var(--text-secondary-dark);
+                --error-color: var(--error-dark);
+            }
+        }
+        
+        /* Material You Expressive Palette */
+        :root {
+            /* Expressive Tonal Palette */
+            --md-sys-color-primary-light: #6750A4;
+            --md-sys-color-on-primary-light: #FFFFFF;
+            --md-sys-color-primary-container-light: #EADDFF;
+            --md-sys-color-on-primary-container-light: #21005D;
+            --md-sys-color-secondary-light: #625B71;
+            --md-sys-color-on-secondary-light: #FFFFFF;
+            --md-sys-color-tertiary-light: #7D5260;
+            --md-sys-color-on-tertiary-light: #FFFFFF;
+            --md-sys-color-surface-light: #FFFBFE;
+            --md-sys-color-on-surface-light: #1C1B1F;
+            --md-sys-color-error-light: #B3261E;
+            --md-sys-color-error-container-light: #F9DEDC;
+
+            --md-sys-color-primary-dark: #D0BCFF;
+            --md-sys-color-on-primary-dark: #381E72;
+            --md-sys-color-primary-container-dark: #4F378B;
+            --md-sys-color-on-primary-container-dark: #EADDFF;
+            --md-sys-color-secondary-dark: #CCC2DC;
+            --md-sys-color-on-secondary-dark: #332D41;
+            --md-sys-color-tertiary-dark: #EFB8C8;
+            --md-sys-color-on-tertiary-dark: #492532;
+            --md-sys-color-surface-dark: #1C1B1F;
+            --md-sys-color-on-surface-dark: #E6E1E5;
+            --md-sys-color-error-dark: #F2B8B5;
+            --md-sys-color-error-container-dark: #8C1D18;
+        }
+
+        body.light-theme {
+            --background-color: var(--md-sys-color-surface-light);
+            --surface-color: var(--md-sys-color-surface-light);
+            --surface-variant-color: var(--md-sys-color-primary-container-light);
+            --primary-color: var(--md-sys-color-primary-light);
+            --secondary-color: var(--md-sys-color-secondary-light);
+            --text-color: var(--md-sys-color-on-surface-light);
+            --text-secondary-color: var(--md-sys-color-on-primary-container-light);
+            --error-color: var(--md-sys-color-error-light);
+        }
+
+        body.dark-theme {
+            --background-color: var(--md-sys-color-surface-dark);
+            --surface-color: var(--md-sys-color-surface-dark);
+            --surface-variant-color: var(--md-sys-color-primary-container-dark);
+            --primary-color: var(--md-sys-color-primary-dark);
+            --secondary-color: var(--md-sys-color-secondary-dark);
+            --text-color: var(--md-sys-color-on-surface-dark);
+            --text-secondary-color: var(--md-sys-color-on-primary-container-dark);
+            --error-color: var(--md-sys-color-error-dark);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Google Sans', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            padding: 20px;
+            transition: background-color var(--transition-duration), color var(--transition-duration);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: var(--surface-color);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            transition: background-color var(--transition-duration), box-shadow var(--transition-duration);
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            transition: color var(--transition-duration);
+        }
+
+        .status {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 15px;
+            background-color: var(--surface-variant-color);
+            color: var(--text-secondary-color);
+            border-radius: 25px;
+            font-size: 0.9rem;
+            transition: background-color var(--transition-duration), color var(--transition-duration);
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--secondary-color);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .feed-container {
+            background-color: var(--surface-color);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            box-shadow: var(--shadow);
+            transition: background-color var(--transition-duration), box-shadow var(--transition-duration);
+        }
+        
+        #debugLog h4 {
+            margin-bottom: 10px;
+            color: var(--primary-color);
+            font-size: 1.2rem;
+        }
+
+        #debugLog pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-height: 300px;
+            overflow-y: auto;
+            background-color: rgba(0, 0, 0, 0.2);
+            padding: 10px;
+            border-radius: 8px;
+            color: var(--text-secondary-color);
+        }
+
+        .feed-item {
+            background-color: var(--surface-variant-color);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 4px solid var(--primary-color);
+            transition: all var(--transition-duration) ease;
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+            position: relative;
+        }
+
+        .feed-item:hover {
+            background-color: color-mix(in srgb, var(--surface-variant-color) 80%, var(--primary-color));
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .feed-item-content {
+            cursor: default;
+            flex: 1;
+            display: flex;
+            gap: 20px;
+        }
+
+        .feed-item.new {
+            border-left-color: var(--secondary-color);
+            animation: newItem 0.5s ease;
+        }
+
+        @keyframes newItem {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .feed-thumbnail {
+            width: 200px;
+            height: 112px;
+            border-radius: 8px;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+
+        .feed-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .feed-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text-color);
+            line-height: 1.4;
+        }
+
+        .feed-date {
+            color: var(--text-secondary-color);
+            font-size: 0.85rem;
+            margin-bottom: 10px;
+            font-weight: 500;
+            display: flex;
+            gap: 15px;
+        }
+
+        .date-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .feed-description {
+            color: var(--text-secondary-color);
+            line-height: 1.5;
+            margin-bottom: 15px;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .action-button {
+            display: inline-flex;
+            align-items: center;
+            padding: 8px 16px;
+            background-color: var(--primary-color);
+            color: var(--md-sys-color-on-primary-dark); /* Use on-primary for contrast */
+            text-decoration: none;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all var(--transition-duration) ease;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .action-button:hover {
+            transform: scale(1.05);
+            opacity: 0.9;
+        }
+        
+        .action-button.copy {
+            background-color: var(--secondary-color);
+            color: var(--md-sys-color-on-secondary-dark); /* Use on-secondary for contrast */
+        }
+        
+        .action-button.debug {
+            background-color: var(--secondary-color);
+            color: var(--md-sys-color-on-secondary-dark);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-size: 1.1rem;
+            color: var(--primary-color);
+        }
+
+        .error {
+            text-align: center;
+            padding: 40px;
+            color: var(--error-color);
+            background-color: var(--error-container-light);
+            border-radius: var(--border-radius);
+            margin-bottom: 20px;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid color-mix(in srgb, var(--primary-color) 30%, transparent);
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .theme-switch {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            background-color: var(--primary-color);
+            color: var(--md-sys-color-on-primary-dark);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: var(--shadow);
+            transition: background-color var(--transition-duration), transform var(--transition-duration);
+            z-index: 100;
+        }
+
+        .theme-switch:hover {
+            transform: scale(1.1);
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .status {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .status-item {
+                justify-content: center;
+            }
+
+            .feed-item-content {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .feed-thumbnail {
+                width: 100%;
+                height: auto;
+                max-width: 300px;
+                margin: 0 auto;
+            }
+
+            .feed-date {
+                flex-direction: column;
+                gap: 5px;
+            }
+        }
+    </style>
+</head>
+<body class="dark-theme">
+    <div class="theme-switch" id="themeSwitch">
+        <span id="themeIcon">☀️</span>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1>🎥 YouTube RSS Feed Reader</h1>
+            <div class="status">
+                <div class="status-item">
+                    <div class="status-indicator"></div>
+                    <span>Status: <span id="status">Loading...</span></span>
+                </div>
+                <div class="status-item">
+                    <span>📅 Last Update: <span id="lastUpdate">Never</span></span>
+                </div>
+                <div class="status-item">
+                    <span>📊 Total Posts: <span id="totalPosts">0</span></span>
+                </div>
+                <div class="status-item">
+                    <span>🔔 New Posts: <span id="newPosts">0</span></span>
+                </div>
+                <div class="status-item">
+                    <span>Debug Mode: <span id="debugStatus">Off</span></span>
+                </div>
+                <button id="debugButton" class="action-button debug">Start Debug</button>
+            </div>
+        </div>
+
+        <div class="feed-container">
+            <div id="feedContent">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    Loading RSS feed...
+                </div>
+            </div>
+            <div id="debugLog" style="display: none; margin-top: 20px; padding: 15px; background-color: var(--surface-variant-color); border-radius: var(--border-radius); color: var(--text-color); font-family: monospace;">
+                <h4>Debug Log</h4>
+                <pre id="logContent"></pre>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class RSSFeedReader {
+            constructor() {
+                this.feedUrl = 'https://cors.kawiesh.top/https://www.youtube.com/feeds/videos.xml?channel_id=UCbg8V1kty3s1kcCch2VHwEw';
+                this.feedData = [];
+                this.knownItems = new Set();
+                this.newItemsCount = 0;
+                this.originalTitle = document.title;
+                this.updateInterval = null;
+                
+                this.isDebugging = false;
+                this.debugLogElement = document.getElementById('debugLog');
+                this.logContentElement = document.getElementById('logContent');
+                this.debugStatusElement = document.getElementById('debugStatus');
+                this.debugButton = document.getElementById('debugButton');
+                
+                this.init();
+            }
+
+            init() {
+                this.fetchFeed();
+                this.updateInterval = setInterval(() => this.fetchFeed(), 60000); // Update every minute
+                this.setupThemeSwitch();
+                this.setupDebugButton();
+            }
+
+            setupDebugButton() {
+                this.debugButton.addEventListener('click', () => {
+                    this.isDebugging = !this.isDebugging;
+                    this.debugButton.textContent = this.isDebugging ? 'Stop Debug' : 'Start Debug';
+                    this.debugStatusElement.textContent = this.isDebugging ? 'On' : 'Off';
+                    this.debugLogElement.style.display = this.isDebugging ? 'block' : 'none';
+                    if (this.isDebugging) {
+                        this.logContentElement.textContent = ''; // Clear log on start
+                        this.logMessage('Debug mode started.');
+                        this.fetchFeed(); // Run an immediate fetch to show the process
+                    } else {
+                        this.logMessage('Debug mode stopped.');
+                    }
+                });
+            }
+
+            logMessage(message) {
+                if (this.isDebugging) {
+                    const now = new Date().toLocaleTimeString('en-GB');
+                    this.logContentElement.textContent += `[${now}] ${message}\n`;
+                    this.logContentElement.scrollTop = this.logContentElement.scrollHeight;
+                }
+            }
+            
+            async fetchFeed() {
+                this.logMessage('Starting feed fetch...');
+                try {
+                    document.getElementById('status').textContent = 'Fetching...';
+                    this.logMessage('Fetching from CORS proxy...');
+                    
+                    const response = await fetch(this.feedUrl);
+                    if (!response.ok) {
+                        this.logMessage(`HTTP error! Status: ${response.status}`);
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    
+                    this.logMessage('Response received, parsing XML...');
+                    const xmlText = await response.text();
+                    const parser = new DOMParser();
+                    const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
+                    
+                    this.logMessage('XML parsed successfully.');
+                    this.logMessage('Processing feed entries...');
+                    
+                    await this.processFeed(xmlDoc);
+                    
+                    this.logMessage('Feed processed. Rendering UI.');
+                    this.updateStatus('Connected');
+                    this.updateLastUpdateTime();
+                    this.logMessage('UI updated successfully.');
+                    
+                } catch (error) {
+                    console.error('Error fetching feed:', error);
+                    this.logMessage(`Error: ${error.message}`);
+                    this.showError(`Failed to load RSS feed: ${error.message}`);
+                    this.updateStatus('Error');
+                }
+            }
+
+            async translateTitle(text) {
+                if (!text || text.trim() === '') {
+                    return 'No title';
+                }
+                // Check for non-English characters. If none found, no need to translate.
+                if (/^[a-zA-Z0-9\s.,!?'"()\-]+$/.test(text)) {
+                    return text;
+                }
+
+                try {
+                    const response = await fetch('https://cors.kawiesh.top/https://libretranslate.de/translate', {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            q: text,
+                            source: 'ml', // Source language code for Malayalam
+                            target: 'en', // Target language code for English
+                        }),
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                    
+                    if (!response.ok) {
+                        this.logMessage(`Translation API error: ${response.status}`);
+                        throw new Error(`Translation API error: ${response.status}`);
+                    }
+                    
+                    const data = await response.json();
+                    return data.translatedText;
+                } catch (error) {
+                    console.error('Translation failed:', error);
+                    this.logMessage(`Translation failed for text: "${text}". Returning original.`);
+                    return text; // Return original text on failure
+                }
+            }
+
+            async processFeed(xmlDoc) {
+                const entries = xmlDoc.querySelectorAll('entry');
+                const newItems = [];
+                
+                const currentFeedIds = new Set(this.feedData.map(item => item.id));
+                const processedItems = [];
+
+                for (const entry of entries) { // Use a for loop to await promises
+                    const id = entry.querySelector('id')?.textContent || '';
+                    const originalTitle = entry.querySelector('title')?.textContent || 'No title';
+                    const link = entry.querySelector('link')?.getAttribute('href') || '#';
+                    const published = entry.querySelector('published')?.textContent || '';
+                    const summary = entry.querySelector('media\\:group media\\:description, group description')?.textContent ||
+                                    entry.querySelector('summary')?.textContent || 'No description available';
+                    
+                    const videoId = this.extractVideoId(link);
+                    const thumbnail = videoId ? `https://cors.kawiesh.top/https://i2.ytimg.com/vi/${videoId}/hqdefault.jpg` : null;
+
+                    // Translate the title
+                    let translatedTitle = await this.translateTitle(originalTitle);
+
+                    const isNew = !this.knownItems.has(id) && currentFeedIds.size > 0;
+                    this.knownItems.add(id);
+                    
+                    if (isNew) {
+                        newItems.push(id);
+                        this.newItemsCount++;
+                        this.logMessage(`Found new post: "${originalTitle}"`);
+                    }
+                    
+                    const item = {
+                        id,
+                        title: translatedTitle, // Use the translated title
+                        originalTitle: originalTitle, // Store the original for reference
+                        link,
+                        published: this.parseDateTime(published),
+                        summary: this.cleanSummary(summary),
+                        thumbnail,
+                        isNew
+                    };
+                    
+                    if (!currentFeedIds.has(id)) {
+                        processedItems.unshift(item);
+                    }
+                }
+                
+                this.feedData.unshift(...processedItems);
+                this.feedData.sort((a, b) => new Date(b.published.full) - new Date(a.published.full));
+                
+                if (newItems.length > 0) {
+                    this.logMessage(`${newItems.length} new items found.`);
+                    this.updateTitle();
+                    setTimeout(() => {
+                        newItems.forEach(id => {
+                            const item = this.feedData.find(i => i.id === id);
+                            if (item) item.isNew = false;
+                        });
+                        this.renderFeed();
+                    }, 5000);
+                }
+                
+                this.renderFeed();
+                this.updateTotalPosts();
+            }
+
+            extractVideoId(url) {
+                const regex = /(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+                const match = url.match(regex);
+                return match ? match[1] : null;
+            }
+
+            parseDateTime(dateString) {
+                const date = new Date(dateString);
+                const dateFormatted = date.toLocaleDateString('en-GB', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric'
+                });
+                const timeFormatted = date.toLocaleTimeString('en-GB', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: false
+                });
+                
+                return {
+                    date: dateFormatted,
+                    time: timeFormatted,
+                    full: date
+                };
+            }
+
+            cleanSummary(summary) {
+                const cleanText = summary.replace(/<[^>]*>/g, '').trim();
+                return cleanText.length > 200 ? cleanText.substring(0, 200) + '...' : cleanText;
+            }
+
+            updateTitle() {
+                if (this.newItemsCount > 0) {
+                    document.title = `(${this.newItemsCount}) New Posts - ${this.originalTitle}`;
+                } else {
+                    document.title = this.originalTitle;
+                }
+            }
+
+            updateStatus(status) {
+                document.getElementById('status').textContent = status;
+                const indicator = document.querySelector('.status-indicator');
+                if (status === 'Connected') {
+                    indicator.style.background = 'var(--secondary-color)';
+                } else if (status === 'Error') {
+                    indicator.style.background = 'var(--error-color)';
+                } else {
+                    indicator.style.background = 'var(--primary-color)';
+                }
+            }
+
+            updateLastUpdateTime() {
+                const now = new Date();
+                const timeString = now.toLocaleString('en-GB', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                });
+                document.getElementById('lastUpdate').textContent = timeString;
+            }
+
+            updateTotalPosts() {
+                document.getElementById('totalPosts').textContent = this.feedData.length;
+                document.getElementById('newPosts').textContent = this.newItemsCount;
+            }
+
+            renderFeed() {
+                const feedContent = document.getElementById('feedContent');
+                
+                if (this.feedData.length === 0) {
+                    feedContent.innerHTML = '<div class="loading">No posts found</div>';
+                    return;
+                }
+                
+                const html = this.feedData.map(item => `
+                    <div class="feed-item ${item.isNew ? 'new' : ''}">
+                        <div class="feed-item-content">
+                            ${item.thumbnail ? `<img src="${item.thumbnail}" alt="${this.escapeHtml(item.title)}" class="feed-thumbnail" onerror="this.style.display='none'">` : ''}
+                            <div class="feed-content">
+                                <div class="feed-title">${this.escapeHtml(item.title)}</div>
+                                <div class="feed-date">
+                                    <div class="date-item">📅 ${item.published.date}</div>
+                                    <div class="date-item">🕐 ${item.published.time}</div>
+                                </div>
+                                <div class="feed-description">${this.escapeHtml(item.summary)}</div>
+                                <div class="actions">
+                                    <a href="${item.link}" class="action-button" target="_blank" onclick="event.stopPropagation()">
+                                        🎬 Watch Video
+                                    </a>
+                                    <button class="action-button copy" onclick="app.copyToClipboard('${this.escapeHtml(item.title)}', '${item.published.date}', '${item.published.time}', '${item.link}', event)">
+                                        📋 Copy Info
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+                
+                feedContent.innerHTML = html;
+            }
+
+            showError(message) {
+                const feedContent = document.getElementById('feedContent');
+                feedContent.innerHTML = `
+                    <div class="error">
+                        <h3>⚠️ Error Loading Feed</h3>
+                        <p>${message}</p>
+                        <p>Retrying in 60 seconds...</p>
+                    </div>
+                `;
+            }
+
+            escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+
+            copyToClipboard(title, date, time, url, event) {
+                event.stopPropagation(); // Prevent the main card click event
+                const textToCopy = `Title: ${title}\nDate: 📅 ${date}\nTime: 🕐 ${time}\nURL: ${url}`;
+                navigator.clipboard.writeText(textToCopy).then(() => {
+                    alert('Video info copied to clipboard!');
+                }).catch(err => {
+                    console.error('Failed to copy text: ', err);
+                });
+            }
+
+            setupThemeSwitch() {
+                const themeSwitch = document.getElementById('themeSwitch');
+                const themeIcon = document.getElementById('themeIcon');
+                themeSwitch.addEventListener('click', () => {
+                    if (document.body.classList.contains('light-theme')) {
+                        document.body.classList.replace('light-theme', 'dark-theme');
+                        themeIcon.textContent = '☀️';
+                        localStorage.setItem('theme', 'dark');
+                    } else {
+                        document.body.classList.replace('dark-theme', 'light-theme');
+                        themeIcon.textContent = '🌙';
+                        localStorage.setItem('theme', 'light');
+                    }
+                });
+
+                // Apply saved theme or system preference on load
+                const savedTheme = localStorage.getItem('theme');
+                if (savedTheme) {
+                    document.body.classList.remove('light-theme', 'dark-theme');
+                    document.body.classList.add(`${savedTheme}-theme`);
+                    themeIcon.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+                } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    document.body.classList.add('dark-theme');
+                    themeIcon.textContent = '☀️';
+                } else {
+                    document.body.classList.add('light-theme');
+                    themeIcon.textContent = '🌙';
+                }
+            }
+        }
+
+        let app;
+        document.addEventListener('DOMContentLoaded', () => {
+            app = new RSSFeedReader();
+        });
+
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) {
+                setTimeout(() => {
+                    document.title = document.title.replace(/^\(\d+\) New Posts - /, '');
+                }, 1000);
+            }
+        });
+    </script>
+</body>
+</html>
