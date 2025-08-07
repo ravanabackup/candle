@@ -5,6 +5,108 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RSS Feed Reader</title>
     <style>
+        :root {
+            --background-dark: #121212;
+            --surface-dark: #1f1f1f;
+            --surface-variant-dark: #2c2c2c;
+            --primary-dark: #bb86fc;
+            --secondary-dark: #03dac6;
+            --text-dark: #e0e0e0;
+            --text-secondary-dark: #b0b0b0;
+            --error-dark: #cf6679;
+
+            --background-light: #f5f5f5;
+            --surface-light: #ffffff;
+            --surface-variant-light: #e0e0e0;
+            --primary-light: #6200ee;
+            --secondary-light: #03dac5;
+            --text-light: #1f1f1f;
+            --text-secondary-light: #666666;
+            --error-light: #b00020;
+
+            --shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            --border-radius: 12px;
+            --transition-duration: 0.3s;
+        }
+
+        @media (prefers-color-scheme: light) {
+            :root {
+                --background-color: var(--background-light);
+                --surface-color: var(--surface-light);
+                --surface-variant-color: var(--surface-variant-light);
+                --primary-color: var(--primary-light);
+                --secondary-color: var(--secondary-light);
+                --text-color: var(--text-light);
+                --text-secondary-color: var(--text-secondary-light);
+                --error-color: var(--error-light);
+            }
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --background-color: var(--background-dark);
+                --surface-color: var(--surface-dark);
+                --surface-variant-color: var(--surface-variant-dark);
+                --primary-color: var(--primary-dark);
+                --secondary-color: var(--secondary-dark);
+                --text-color: var(--text-dark);
+                --text-secondary-color: var(--text-secondary-dark);
+                --error-color: var(--error-dark);
+            }
+        }
+        
+        /* Material You Expressive Palette */
+        :root {
+            /* Expressive Tonal Palette */
+            --md-sys-color-primary-light: #6750A4;
+            --md-sys-color-on-primary-light: #FFFFFF;
+            --md-sys-color-primary-container-light: #EADDFF;
+            --md-sys-color-on-primary-container-light: #21005D;
+            --md-sys-color-secondary-light: #625B71;
+            --md-sys-color-on-secondary-light: #FFFFFF;
+            --md-sys-color-tertiary-light: #7D5260;
+            --md-sys-color-on-tertiary-light: #FFFFFF;
+            --md-sys-color-surface-light: #FFFBFE;
+            --md-sys-color-on-surface-light: #1C1B1F;
+            --md-sys-color-error-light: #B3261E;
+            --md-sys-color-error-container-light: #F9DEDC;
+
+            --md-sys-color-primary-dark: #D0BCFF;
+            --md-sys-color-on-primary-dark: #381E72;
+            --md-sys-color-primary-container-dark: #4F378B;
+            --md-sys-color-on-primary-container-dark: #EADDFF;
+            --md-sys-color-secondary-dark: #CCC2DC;
+            --md-sys-color-on-secondary-dark: #332D41;
+            --md-sys-color-tertiary-dark: #EFB8C8;
+            --md-sys-color-on-tertiary-dark: #492532;
+            --md-sys-color-surface-dark: #1C1B1F;
+            --md-sys-color-on-surface-dark: #E6E1E5;
+            --md-sys-color-error-dark: #F2B8B5;
+            --md-sys-color-error-container-dark: #8C1D18;
+        }
+
+        body.light-theme {
+            --background-color: var(--md-sys-color-surface-light);
+            --surface-color: var(--md-sys-color-surface-light);
+            --surface-variant-color: var(--md-sys-color-primary-container-light);
+            --primary-color: var(--md-sys-color-primary-light);
+            --secondary-color: var(--md-sys-color-secondary-light);
+            --text-color: var(--md-sys-color-on-surface-light);
+            --text-secondary-color: var(--md-sys-color-on-primary-container-light);
+            --error-color: var(--md-sys-color-error-light);
+        }
+
+        body.dark-theme {
+            --background-color: var(--md-sys-color-surface-dark);
+            --surface-color: var(--md-sys-color-surface-dark);
+            --surface-variant-color: var(--md-sys-color-primary-container-dark);
+            --primary-color: var(--md-sys-color-primary-dark);
+            --secondary-color: var(--md-sys-color-secondary-dark);
+            --text-color: var(--md-sys-color-on-surface-dark);
+            --text-secondary-color: var(--md-sys-color-on-primary-container-dark);
+            --error-color: var(--md-sys-color-error-dark);
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -12,11 +114,12 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #1e1e1e, #2d2d2d);
-            color: #e0e0e0;
+            font-family: 'Google Sans', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
             min-height: 100vh;
             padding: 20px;
+            transition: background-color var(--transition-duration), color var(--transition-duration);
         }
 
         .container {
@@ -28,18 +131,17 @@
             text-align: center;
             margin-bottom: 30px;
             padding: 20px;
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background-color: var(--surface-color);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            transition: background-color var(--transition-duration), box-shadow var(--transition-duration);
         }
 
         .header h1 {
             font-size: 2.5rem;
-            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            color: var(--primary-color);
             margin-bottom: 10px;
+            transition: color var(--transition-duration);
         }
 
         .status {
@@ -56,16 +158,18 @@
             align-items: center;
             gap: 8px;
             padding: 10px 15px;
-            background: rgba(255, 255, 255, 0.05);
+            background-color: var(--surface-variant-color);
+            color: var(--text-secondary-color);
             border-radius: 25px;
             font-size: 0.9rem;
+            transition: background-color var(--transition-duration), color var(--transition-duration);
         }
 
         .status-indicator {
             width: 12px;
             height: 12px;
             border-radius: 50%;
-            background: #4ecdc4;
+            background: var(--secondary-color);
             animation: pulse 2s infinite;
         }
 
@@ -75,34 +179,41 @@
         }
 
         .feed-container {
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 15px;
+            background-color: var(--surface-color);
+            border-radius: var(--border-radius);
             padding: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: var(--shadow);
+            transition: background-color var(--transition-duration), box-shadow var(--transition-duration);
         }
 
         .feed-item {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 12px;
+            background-color: var(--surface-variant-color);
+            border-radius: var(--border-radius);
             padding: 20px;
             margin-bottom: 15px;
-            border-left: 4px solid #4ecdc4;
-            transition: all 0.3s ease;
-            cursor: pointer;
+            border-left: 4px solid var(--primary-color);
+            transition: all var(--transition-duration) ease;
             display: flex;
             gap: 20px;
             align-items: flex-start;
+            position: relative;
         }
 
         .feed-item:hover {
-            background: rgba(255, 255, 255, 0.08);
+            background-color: color-mix(in srgb, var(--surface-variant-color) 80%, var(--primary-color));
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .feed-item-content {
+            cursor: default;
+            flex: 1;
+            display: flex;
+            gap: 20px;
         }
 
         .feed-item.new {
-            border-left-color: #ff6b6b;
-            background: rgba(255, 107, 107, 0.1);
+            border-left-color: var(--secondary-color);
             animation: newItem 0.5s ease;
         }
 
@@ -123,11 +234,6 @@
             border-radius: 8px;
             object-fit: cover;
             flex-shrink: 0;
-            transition: transform 0.3s ease;
-        }
-
-        .feed-thumbnail:hover {
-            transform: scale(1.05);
         }
 
         .feed-content {
@@ -139,12 +245,12 @@
             font-size: 1.3rem;
             font-weight: 600;
             margin-bottom: 8px;
-            color: #fff;
+            color: var(--text-color);
             line-height: 1.4;
         }
 
         .feed-date {
-            color: #4ecdc4;
+            color: var(--text-secondary-color);
             font-size: 0.85rem;
             margin-bottom: 10px;
             font-weight: 500;
@@ -159,49 +265,63 @@
         }
 
         .feed-description {
-            color: #b0b0b0;
+            color: var(--text-secondary-color);
             line-height: 1.5;
             margin-bottom: 15px;
         }
 
-        .feed-link {
-            display: inline-block;
+        .actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .action-button {
+            display: inline-flex;
+            align-items: center;
             padding: 8px 16px;
-            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
-            color: white;
+            background-color: var(--primary-color);
+            color: var(--md-sys-color-on-primary-dark); /* Use on-primary for contrast */
             text-decoration: none;
             border-radius: 20px;
             font-size: 0.85rem;
             font-weight: 500;
-            transition: all 0.3s ease;
+            transition: all var(--transition-duration) ease;
+            border: none;
+            cursor: pointer;
         }
 
-        .feed-link:hover {
+        .action-button:hover {
             transform: scale(1.05);
-            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+            opacity: 0.9;
         }
 
+        .action-button.copy {
+            background-color: var(--secondary-color);
+            color: var(--md-sys-color-on-secondary-dark); /* Use on-secondary for contrast */
+        }
+        
         .loading {
             text-align: center;
             padding: 40px;
             font-size: 1.1rem;
-            color: #4ecdc4;
+            color: var(--primary-color);
         }
 
         .error {
             text-align: center;
             padding: 40px;
-            color: #ff6b6b;
-            background: rgba(255, 107, 107, 0.1);
-            border-radius: 10px;
+            color: var(--error-color);
+            background-color: var(--error-container-light);
+            border-radius: var(--border-radius);
             margin-bottom: 20px;
         }
 
         .spinner {
             width: 40px;
             height: 40px;
-            border: 4px solid rgba(78, 205, 196, 0.3);
-            border-top: 4px solid #4ecdc4;
+            border: 4px solid color-mix(in srgb, var(--primary-color) 30%, transparent);
+            border-top: 4px solid var(--primary-color);
             border-radius: 50%;
             animation: spin 1s linear infinite;
             margin: 0 auto 20px;
@@ -210,6 +330,29 @@
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
+        }
+
+        .theme-switch {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            background-color: var(--primary-color);
+            color: var(--md-sys-color-on-primary-dark);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: var(--shadow);
+            transition: background-color var(--transition-duration), transform var(--transition-duration);
+            z-index: 100;
+        }
+
+        .theme-switch:hover {
+            transform: scale(1.1);
         }
 
         @media (max-width: 768px) {
@@ -226,7 +369,7 @@
                 justify-content: center;
             }
 
-            .feed-item {
+            .feed-item-content {
                 flex-direction: column;
                 gap: 15px;
             }
@@ -245,7 +388,11 @@
         }
     </style>
 </head>
-<body>
+<body class="dark-theme">
+    <div class="theme-switch" id="themeSwitch">
+        <span id="themeIcon">☀️</span>
+    </div>
+
     <div class="container">
         <div class="header">
             <h1>🎥 YouTube RSS Feed Reader</h1>
@@ -291,8 +438,8 @@
 
             init() {
                 this.fetchFeed();
-                // Update every minute (60000ms)
-                this.updateInterval = setInterval(() => this.fetchFeed(), 60000);
+                this.updateInterval = setInterval(() => this.fetchFeed(), 60000); // Update every minute
+                this.setupThemeSwitch();
             }
 
             async fetchFeed() {
@@ -323,22 +470,23 @@
                 const entries = xmlDoc.querySelectorAll('entry');
                 const newItems = [];
                 
+                const currentFeedIds = new Set(this.feedData.map(item => item.id));
+
                 entries.forEach(entry => {
                     const id = entry.querySelector('id')?.textContent || '';
                     const title = entry.querySelector('title')?.textContent || 'No title';
                     const link = entry.querySelector('link')?.getAttribute('href') || '#';
                     const published = entry.querySelector('published')?.textContent || '';
-                    const summary = entry.querySelector('media\\:group media\\:description, group description')?.textContent || 
-                                   entry.querySelector('summary')?.textContent || 'No description available';
+                    const summary = entry.querySelector('media\\:group media\\:description, group description')?.textContent ||
+                                    entry.querySelector('summary')?.textContent || 'No description available';
                     
-                    // Extract video ID from YouTube URL for thumbnail
                     const videoId = this.extractVideoId(link);
                     const thumbnail = videoId ? `https://cors.kawiesh.top/https://i2.ytimg.com/vi/${videoId}/hqdefault.jpg` : null;
                     
-                    const isNew = !this.knownItems.has(id);
+                    const isNew = !this.knownItems.has(id) && currentFeedIds.size > 0;
                     this.knownItems.add(id);
                     
-                    if (isNew && this.feedData.length > 0) {
+                    if (isNew) {
                         newItems.push(id);
                         this.newItemsCount++;
                     }
@@ -353,24 +501,22 @@
                         isNew
                     };
                     
-                    // Only add if not already in feedData
-                    if (!this.feedData.find(existing => existing.id === id)) {
+                    if (!currentFeedIds.has(id)) {
                         this.feedData.unshift(item);
                     }
                 });
                 
-                // Sort by date (newest first)
                 this.feedData.sort((a, b) => new Date(b.published.full) - new Date(a.published.full));
                 
                 if (newItems.length > 0) {
                     this.updateTitle();
-                    // Mark new items for highlighting
                     setTimeout(() => {
                         newItems.forEach(id => {
                             const item = this.feedData.find(i => i.id === id);
                             if (item) item.isNew = false;
                         });
-                    }, 5000); // Remove "new" highlight after 5 seconds
+                        this.renderFeed();
+                    }, 5000);
                 }
                 
                 this.renderFeed();
@@ -378,7 +524,6 @@
             }
 
             extractVideoId(url) {
-                // Extract video ID from YouTube URL
                 const regex = /(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
                 const match = url.match(regex);
                 return match ? match[1] : null;
@@ -406,7 +551,6 @@
             }
 
             cleanSummary(summary) {
-                // Remove HTML tags and limit length
                 const cleanText = summary.replace(/<[^>]*>/g, '').trim();
                 return cleanText.length > 200 ? cleanText.substring(0, 200) + '...' : cleanText;
             }
@@ -423,11 +567,11 @@
                 document.getElementById('status').textContent = status;
                 const indicator = document.querySelector('.status-indicator');
                 if (status === 'Connected') {
-                    indicator.style.background = '#4ecdc4';
+                    indicator.style.background = 'var(--secondary-color)';
                 } else if (status === 'Error') {
-                    indicator.style.background = '#ff6b6b';
+                    indicator.style.background = 'var(--error-color)';
                 } else {
-                    indicator.style.background = '#ffa500';
+                    indicator.style.background = 'var(--primary-color)';
                 }
             }
 
@@ -458,18 +602,25 @@
                 }
                 
                 const html = this.feedData.map(item => `
-                    <div class="feed-item ${item.isNew ? 'new' : ''}" onclick="window.open('${item.link}', '_blank')">
-                        ${item.thumbnail ? `<img src="${item.thumbnail}" alt="${this.escapeHtml(item.title)}" class="feed-thumbnail" onerror="this.style.display='none'">` : ''}
-                        <div class="feed-content">
-                            <div class="feed-title">${this.escapeHtml(item.title)}</div>
-                            <div class="feed-date">
-                                <div class="date-item">📅 ${item.published.date}</div>
-                                <div class="date-item">🕐 ${item.published.time}</div>
+                    <div class="feed-item ${item.isNew ? 'new' : ''}">
+                        <div class="feed-item-content">
+                            ${item.thumbnail ? `<img src="${item.thumbnail}" alt="${this.escapeHtml(item.title)}" class="feed-thumbnail" onerror="this.style.display='none'">` : ''}
+                            <div class="feed-content">
+                                <div class="feed-title">${this.escapeHtml(item.title)}</div>
+                                <div class="feed-date">
+                                    <div class="date-item">📅 ${item.published.date}</div>
+                                    <div class="date-item">🕐 ${item.published.time}</div>
+                                </div>
+                                <div class="feed-description">${this.escapeHtml(item.summary)}</div>
+                                <div class="actions">
+                                    <a href="${item.link}" class="action-button" target="_blank" onclick="event.stopPropagation()">
+                                        🎬 Watch Video
+                                    </a>
+                                    <button class="action-button copy" onclick="app.copyToClipboard('${this.escapeHtml(item.title)}', '${item.published.date}', '${item.published.time}', '${item.link}', event)">
+                                        📋 Copy Info
+                                    </button>
+                                </div>
                             </div>
-                            <div class="feed-description">${this.escapeHtml(item.summary)}</div>
-                            <a href="${item.link}" class="feed-link" target="_blank" onclick="event.stopPropagation()">
-                                🎬 Watch Video
-                            </a>
                         </div>
                     </div>
                 `).join('');
@@ -493,17 +644,55 @@
                 div.textContent = text;
                 return div.innerHTML;
             }
+
+            copyToClipboard(title, date, time, url, event) {
+                event.stopPropagation(); // Prevent the main card click event
+                const textToCopy = `Title: ${title}\nDate: 📅 ${date}\nTime: 🕐 ${time}\nURL: ${url}`;
+                navigator.clipboard.writeText(textToCopy).then(() => {
+                    alert('Video info copied to clipboard!');
+                }).catch(err => {
+                    console.error('Failed to copy text: ', err);
+                });
+            }
+
+            setupThemeSwitch() {
+                const themeSwitch = document.getElementById('themeSwitch');
+                const themeIcon = document.getElementById('themeIcon');
+                themeSwitch.addEventListener('click', () => {
+                    if (document.body.classList.contains('light-theme')) {
+                        document.body.classList.replace('light-theme', 'dark-theme');
+                        themeIcon.textContent = '☀️';
+                        localStorage.setItem('theme', 'dark');
+                    } else {
+                        document.body.classList.replace('dark-theme', 'light-theme');
+                        themeIcon.textContent = '🌙';
+                        localStorage.setItem('theme', 'light');
+                    }
+                });
+
+                // Apply saved theme or system preference on load
+                const savedTheme = localStorage.getItem('theme');
+                if (savedTheme) {
+                    document.body.classList.remove('light-theme', 'dark-theme');
+                    document.body.classList.add(`${savedTheme}-theme`);
+                    themeIcon.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+                } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    document.body.classList.add('dark-theme');
+                    themeIcon.textContent = '☀️';
+                } else {
+                    document.body.classList.add('light-theme');
+                    themeIcon.textContent = '🌙';
+                }
+            }
         }
 
-        // Initialize the RSS feed reader when the page loads
+        let app;
         document.addEventListener('DOMContentLoaded', () => {
-            new RSSFeedReader();
+            app = new RSSFeedReader();
         });
 
-        // Handle page visibility changes to update title
         document.addEventListener('visibilitychange', () => {
             if (!document.hidden) {
-                // Reset new items count when user views the page
                 setTimeout(() => {
                     document.title = document.title.replace(/^\(\d+\) New Posts - /, '');
                 }, 1000);
