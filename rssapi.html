@@ -482,7 +482,7 @@
             transition: all 0.4s ease-in-out;
             animation: slideIn 0.3s ease-out;
         }
-        
+
         .message-modal-content {
             background-color: var(--surface-color);
             padding: 30px;
@@ -511,7 +511,6 @@
             cursor: pointer;
             transition: all 0.3s ease-in-out;
         }
-
         .message-modal-content button:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
@@ -709,7 +708,7 @@
             constructor() {
                 // The URL for the YouTube RSS feed.
                 this.feedUrl = 'https://cors.kawiesh.top/https://www.youtube.com/feeds/videos.xml?channel_id=UCbg8V1kty3s1kcCch2VHwEw';
-                
+
                 // Your YouTube Data API key. You must replace this with your actual key.
                 this.YT_API_KEY = 'AIzaSyAzDe7gqM5P_cGwxreEVtzAbrk-5BubrcM';
 
@@ -882,6 +881,10 @@
                     this.logMessage('Feed processed. Rendering UI.');
                     this.updateStatus('Connected');
                     this.updateLastUpdateTime();
+
+                    // This is the fix: call renderFeed() after all data is fetched and processed
+                    this.renderFeed();
+
                     this.logMessage('UI updated successfully.');
 
                 } catch (error) {
@@ -917,7 +920,7 @@
                     return text;
                 }
             }
-            
+
             // Fetches live stream details using the YouTube Data API
             async getLiveStatus() {
                 if (!this.YT_API_KEY || this.YT_API_KEY === 'YOUR_YOUTUBE_API_KEY_HERE') {
@@ -1007,7 +1010,7 @@
                         newItems.push(id);
                         newItemsDetected = true;
                     }
-                    
+
                     const hasStats = parseInt(views) > 0;
                     const item = {
                         id,
@@ -1157,7 +1160,6 @@
 
                 const html = filteredData.map(item => {
                     const displayTitle = this.isTranslationEnabled && item.translatedTitle ? item.translatedTitle : item.originalTitle;
-                    
                     let dateDisplay = '';
                     let communityStatsHtml = '';
                     let postClass = item.isNew ? 'new' : '';
@@ -1346,7 +1348,7 @@
                         localStorage.setItem('theme', 'light');
                     }
                 });
-                
+
                 // Set initial theme based on local storage or system preference
                 const savedTheme = localStorage.getItem('theme');
                 if (savedTheme) {
@@ -1359,7 +1361,6 @@
                 }
             }
         }
-
         // Initialize the app
         document.addEventListener('DOMContentLoaded', () => {
             window.app = new RSSFeedReader();
