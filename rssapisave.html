@@ -34,7 +34,6 @@
             --md-sys-color-error-dark: #F2B8B5;
             --md-sys-color-error-container-dark: #8C1D18;
         }
-
         /* Default (Light) Theme */
         body.light-theme {
             --background-color: var(--md-sys-color-surface-light);
@@ -48,7 +47,6 @@
             --no-stats-bg: #FFEBEE;
             --no-stats-border: #F8BBD0;
         }
-
         /* Dark Theme */
         body.dark-theme {
             --background-color: var(--md-sys-color-surface-dark);
@@ -62,13 +60,11 @@
             --no-stats-bg: #2C2020;
             --no-stats-border: #8C1D18;
         }
-
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-
         body {
             font-family: 'Google Sans', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: var(--background-color);
@@ -77,12 +73,10 @@
             padding: 20px;
             transition: background-color 0.4s ease-in-out, color 0.4s ease-in-out;
         }
-
         .container {
             max-width: 1200px;
             margin: 0 auto;
         }
-
         .header {
             text-align: center;
             margin-bottom: 30px;
@@ -92,14 +86,12 @@
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
             transition: all 0.4s ease-in-out;
         }
-
         .header h1 {
             font-size: 2.5rem;
             color: var(--primary-color);
             margin-bottom: 10px;
             transition: color 0.4s ease-in-out;
         }
-
         .status {
             display: flex;
             justify-content: space-between;
@@ -108,7 +100,6 @@
             gap: 15px;
             margin-bottom: 20px;
         }
-
         .status-item {
             display: flex;
             align-items: center;
@@ -120,7 +111,6 @@
             font-size: 0.9rem;
             transition: all 0.4s ease-in-out;
         }
-
         .status-indicator {
             width: 12px;
             height: 12px;
@@ -129,22 +119,18 @@
             animation: none;
             transition: background-color 0.4s ease-in-out;
         }
-
         .status-indicator.loading {
             background-color: #ff9800;
             animation: pulse 2s infinite;
         }
-
         .status-indicator.connected {
             background-color: #4caf50;
             animation: none;
         }
-
         .status-indicator.error {
             background-color: #f44336;
             animation: none;
         }
-
         @keyframes pulse {
             0%, 100% {
                 opacity: 1;
@@ -153,14 +139,12 @@
                 opacity: 0.5;
             }
         }
-
         .filter-controls {
             display: flex;
             justify-content: center;
             gap: 10px;
             margin-top: 15px;
         }
-
         .filter-button {
             padding: 10px 20px;
             border-radius: 20px;
@@ -171,19 +155,16 @@
             background-color: transparent;
             transition: all 0.3s ease-in-out;
         }
-
         .filter-button.active {
             background-color: var(--primary-color);
             color: var(--md-sys-color-on-primary-dark);
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
             transform: translateY(-2px);
         }
-
         .filter-button:hover:not(.active) {
             background-color: color-mix(in srgb, var(--primary-color) 20%, transparent);
             transform: translateY(-1px);
         }
-
         .feed-container {
             background-color: var(--surface-color);
             border-radius: 20px;
@@ -191,13 +172,11 @@
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
             transition: all 0.4s ease-in-out;
         }
-
         #debugLog h4 {
             margin-bottom: 10px;
             color: var(--primary-color);
             font-size: 1.2rem;
         }
-
         #debugLog pre {
             white-space: pre-wrap;
             word-wrap: break-word;
@@ -209,7 +188,6 @@
             color: var(--text-secondary-color);
             transition: all 0.4s ease-in-out;
         }
-
         .feed-item {
             background-color: var(--surface-variant-color);
             border-radius: 16px;
@@ -223,7 +201,6 @@
             position: relative;
             animation: fadeIn 0.5s ease-in-out;
         }
-
         @keyframes fadeIn {
             from {
                 opacity: 0;
@@ -234,29 +211,24 @@
                 transform: translateY(0);
             }
         }
-
         .feed-item.no-stats-post {
             background-color: var(--no-stats-bg);
             border-left-color: var(--no-stats-border);
         }
-
         .feed-item:hover {
             transform: scale(1.01);
             box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
         }
-
         .feed-item-content {
             cursor: default;
             flex: 1;
             display: flex;
             gap: 20px;
         }
-
         .feed-item.new {
             border-left-color: var(--secondary-color);
             animation: newItem 0.5s ease;
         }
-
         @keyframes newItem {
             from {
                 opacity: 0;
@@ -267,7 +239,6 @@
                 transform: translateY(0);
             }
         }
-
         .feed-thumbnail-container {
             position: relative;
             width: 200px;
@@ -275,7 +246,6 @@
             flex-shrink: 0;
             cursor: pointer;
         }
-
         .feed-thumbnail {
             width: 100%;
             height: 100%;
@@ -283,11 +253,9 @@
             object-fit: cover;
             transition: transform 0.3s ease-in-out;
         }
-
         .feed-item:hover .feed-thumbnail {
             transform: scale(1.05);
         }
-
         .play-icon {
             position: absolute;
             top: 50%;
@@ -303,19 +271,16 @@
             transition: all 0.3s ease-in-out;
             opacity: 0.9;
         }
-
         .feed-item:hover .play-icon {
             transform: translate(-50%, -50%) scale(1.1);
             opacity: 1;
         }
-
         .play-icon::after {
             content: '';
             border-style: solid;
             border-width: 15px 0 15px 25px;
             border-color: transparent transparent transparent #fff;
         }
-
         .iframe-container {
             width: 200px;
             height: 112px;
@@ -324,18 +289,15 @@
             position: relative;
             flex-shrink: 0;
         }
-
         .iframe-container iframe {
             width: 100%;
             height: 100%;
             border: none;
         }
-
         .feed-content {
             flex: 1;
             min-width: 0;
         }
-
         .feed-title {
             font-size: 1.3rem;
             font-weight: 600;
@@ -344,7 +306,6 @@
             line-height: 1.4;
             transition: color 0.4s ease-in-out;
         }
-
         .feed-date {
             color: var(--text-secondary-color);
             font-size: 0.85rem;
@@ -354,26 +315,22 @@
             gap: 15px;
             transition: color 0.4s ease-in-out;
         }
-
         .date-item {
             display: flex;
             align-items: center;
             gap: 5px;
         }
-
         .feed-description {
             color: var(--text-secondary-color);
             line-height: 1.5;
             margin-bottom: 15px;
             transition: color 0.4s ease-in-out;
         }
-
         .actions {
             display: flex;
             gap: 10px;
             align-items: center;
         }
-
         .action-button {
             display: inline-flex;
             align-items: center;
@@ -388,23 +345,19 @@
             border: none;
             cursor: pointer;
         }
-
         .action-button:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
         }
-
         .action-button.copy {
             background-color: var(--secondary-color);
             color: var(--md-sys-color-on-secondary-dark);
         }
-
         .action-button.advanced {
             background-color: transparent;
             color: var(--primary-color);
             border: 2px solid var(--primary-color);
         }
-
         .loading {
             text-align: center;
             padding: 40px;
@@ -412,7 +365,6 @@
             color: var(--primary-color);
             transition: all 0.4s ease-in-out;
         }
-
         .error {
             text-align: center;
             padding: 40px;
@@ -422,7 +374,6 @@
             margin-bottom: 20px;
             transition: all 0.4s ease-in-out;
         }
-
         .spinner {
             width: 40px;
             height: 40px;
@@ -432,7 +383,6 @@
             animation: spin 1s linear infinite;
             margin: 0 auto 20px;
         }
-
         @keyframes spin {
             0% {
                 transform: rotate(0deg);
@@ -441,7 +391,6 @@
                 transform: rotate(360deg);
             }
         }
-
         .theme-switch {
             position: fixed;
             bottom: 20px;
@@ -460,12 +409,10 @@
             transition: all 0.3s ease-in-out;
             z-index: 100;
         }
-
         .theme-switch:hover {
             transform: scale(1.1);
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
         }
-
         /* Modal Styles */
         .modal {
             display: none;
@@ -482,7 +429,6 @@
             backdrop-filter: blur(5px);
             transition: all 0.4s ease-in-out;
         }
-
         .modal-content {
             background-color: var(--surface-color);
             margin: auto;
@@ -495,7 +441,6 @@
             transition: all 0.4s ease-in-out;
             animation: slideIn 0.3s ease-out;
         }
-
         .message-modal-content {
             background-color: var(--surface-color);
             padding: 30px;
@@ -504,7 +449,6 @@
             text-align: center;
             animation: fadeInScale 0.3s ease-out;
         }
-
         @keyframes fadeInScale {
             from {
                 opacity: 0;
@@ -515,12 +459,10 @@
                 transform: scale(1);
             }
         }
-
         .message-modal-content p {
             margin-bottom: 20px;
             font-size: 1.1rem;
         }
-
         .message-modal-content button {
             padding: 10px 20px;
             background-color: var(--primary-color);
@@ -530,12 +472,10 @@
             cursor: pointer;
             transition: all 0.3s ease-in-out;
         }
-
         .message-modal-content button:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
         }
-
         @keyframes slideIn {
             from {
                 opacity: 0;
@@ -546,7 +486,6 @@
                 transform: translateY(0);
             }
         }
-
         .close-button {
             color: var(--text-secondary-color);
             position: absolute;
@@ -557,17 +496,14 @@
             cursor: pointer;
             transition: color 0.3s ease-in-out;
         }
-
         .close-button:hover {
             color: var(--text-color);
         }
-
         .modal-content h3 {
             margin-bottom: 20px;
             color: var(--primary-color);
             transition: color 0.4s ease-in-out;
         }
-
         .modal-option {
             display: flex;
             justify-content: space-between;
@@ -576,11 +512,9 @@
             border-bottom: 1px solid var(--surface-variant-color);
             transition: border-bottom-color 0.4s ease-in-out;
         }
-
         .modal-option:last-child {
             border-bottom: none;
         }
-
         /* Toggle Switch Styles */
         .switch {
             position: relative;
@@ -588,13 +522,11 @@
             width: 50px;
             height: 28px;
         }
-
         .switch input {
             opacity: 0;
             width: 0;
             height: 0;
         }
-
         .slider {
             position: absolute;
             cursor: pointer;
@@ -606,7 +538,6 @@
             transition: 0.4s;
             border-radius: 34px;
         }
-
         .slider:before {
             position: absolute;
             content: "";
@@ -618,16 +549,13 @@
             transition: 0.4s;
             border-radius: 50%;
         }
-
         input:checked + .slider {
             background-color: var(--primary-color);
         }
-
         input:checked + .slider:before {
             transform: translateX(22px);
             background-color: var(--md-sys-color-on-primary-dark);
         }
-
         @media (max-width: 768px) {
             .header h1 {
                 font-size: 2rem;
@@ -660,7 +588,6 @@
     <div class="theme-switch" id="themeSwitch">
         <span id="themeIcon">☀️</span>
     </div>
-
     <div class="container">
         <div class="header">
             <h1>🎥 YouTube RSS Feed Reader</h1>
@@ -686,7 +613,6 @@
                 <button class="filter-button" data-filter="unreleased">Unreleased</button>
             </div>
         </div>
-
         <div class="feed-container">
             <div id="feedContent">
                 <div class="loading">
@@ -700,7 +626,6 @@
             </div>
         </div>
     </div>
-
     <div id="settingsModal" class="modal">
         <div class="modal-content">
             <span class="close-button" id="closeModalButton">&times;</span>
@@ -708,7 +633,7 @@
             <div class="modal-option">
                 <span>Debug Mode</span>
                 <label class="switch">
-                    <input type="checkbox" id="debugSwitch" checked>
+                    <input type="checkbox" id="debugSwitch">
                     <span class="slider"></span>
                 </label>
             </div>
@@ -719,24 +644,32 @@
                     <span class="slider"></span>
                 </label>
             </div>
+            <div class="modal-option">
+                <span>Notification Sound</span>
+                <label class="switch">
+                    <input type="checkbox" id="notificationSoundSwitch">
+                    <span class="slider"></span>
+                </label>
+            </div>
         </div>
     </div>
-
     <div id="messageModal" class="modal">
         <div class="message-modal-content">
             <p id="messageText"></p>
             <button id="closeMessageModalButton">OK</button>
         </div>
     </div>
-
+    <audio id="notificationSound" src="https://cdn.pixabay.com/download/audio/2023/07/02/audio_df1442bd50.mp3?filename=single-church-bell-156463.mp3" preload="auto"></audio>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             class RSSFeedReader {
                 constructor() {
-                    this.feedUrl = 'https://cors.kawiesh.top/https://www.youtube.com/feeds/videos.xml?channel_id=UCbg8V1kty3s1kcCch2VHwEw';
+                    this.channelId = 'UCbg8V1kty3s1kcCch2VHwEw';
+                    this.feedUrl = `https://cors.kawiesh.top/https://www.youtube.com/feeds/videos.xml?channel_id=${this.channelId}`;
                     this.YT_API_KEY = 'AIzaSyAzDe7gqM5P_cGwxreEVtzAbrk-5BubrcM';
                     this.feedData = [];
                     this.knownItemsKey = 'rss-known-items';
+                    this.notificationSoundKey = 'notification-sound-enabled';
                     this.knownItems = this.loadKnownItems();
                     this.newItemsCount = 0;
                     this.originalTitle = document.title;
@@ -752,12 +685,16 @@
                     this.logContentElement = document.getElementById('logContent');
                     this.debugSwitch = document.getElementById('debugSwitch');
                     this.translationSwitch = document.getElementById('translationSwitch');
+                    this.notificationSoundSwitch = document.getElementById('notificationSoundSwitch');
+                    this.notificationSound = document.getElementById('notificationSound');
                     this.messageModal = document.getElementById('messageModal');
                     this.messageText = document.getElementById('messageText');
                     this.closeMessageModalButton = document.getElementById('closeMessageModalButton');
 
                     this.isDebugging = this.debugSwitch.checked;
                     this.isTranslationEnabled = this.translationSwitch.checked;
+                    this.isNotificationSoundEnabled = this.loadNotificationSoundSetting();
+
                     this.init();
                 }
 
@@ -782,6 +719,18 @@
 
                 saveKnownItems() {
                     localStorage.setItem(this.knownItemsKey, JSON.stringify(Array.from(this.knownItems)));
+                }
+
+                loadNotificationSoundSetting() {
+                    const setting = localStorage.getItem(this.notificationSoundKey);
+                    // Default to true if no setting is found
+                    const isEnabled = setting !== null ? JSON.parse(setting) : true;
+                    this.notificationSoundSwitch.checked = isEnabled;
+                    return isEnabled;
+                }
+
+                saveNotificationSoundSetting(isEnabled) {
+                    localStorage.setItem(this.notificationSoundKey, JSON.stringify(isEnabled));
                 }
 
                 setupModal() {
@@ -814,6 +763,12 @@
                         }
                         this.logMessage(`Translation toggled ${this.isTranslationEnabled ? 'on' : 'off'}.`);
                         this.renderFeed();
+                    });
+
+                    this.notificationSoundSwitch.addEventListener('change', () => {
+                        this.isNotificationSoundEnabled = this.notificationSoundSwitch.checked;
+                        this.saveNotificationSoundSetting(this.isNotificationSoundEnabled);
+                        this.logMessage(`Notification sound toggled ${this.isNotificationSoundEnabled ? 'on' : 'off'}.`);
                     });
                 }
 
@@ -850,29 +805,35 @@
                     this.logMessage('Starting feed fetch...');
                     this.updateStatus('Fetching...');
                     try {
-                        const response = await fetch(this.feedUrl);
-                        if (!response.ok) {
-                            this.logMessage(`HTTP error! Status: ${response.status}`);
-                            throw new Error(`HTTP error! status: ${response.status}`);
+                        // Fetch both the RSS feed and upcoming streams from the YouTube API
+                        const [rssResponse, upcomingResponse] = await Promise.all([
+                            fetch(this.feedUrl),
+                            this.fetchUpcomingStreams()
+                        ]);
+
+                        if (!rssResponse.ok) {
+                            this.logMessage(`HTTP error fetching RSS! Status: ${rssResponse.status}`);
+                            throw new Error(`HTTP error fetching RSS! status: ${rssResponse.status}`);
                         }
 
-                        this.logMessage('Response received, parsing XML...');
-                        const xmlText = await response.text();
+                        this.logMessage('RSS feed response received, parsing XML...');
+                        const xmlText = await rssResponse.text();
                         const parser = new DOMParser();
                         const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
                         this.logMessage('XML parsed successfully.');
 
-                        const newVideoIds = await this.processFeed(xmlDoc);
+                        const newVideoIds = await this.processFeed(xmlDoc, upcomingResponse.items);
 
                         if (newVideoIds.length > 0) {
                             this.logMessage(`Found ${newVideoIds.length} new items. Fetching live status...`);
                             await this.updateLiveStatusForNewItems(newVideoIds);
+                            this.playNotificationSound();
                         } else {
                             this.logMessage('No new items detected. Skipping YouTube Data API call.');
                         }
 
                         // Also check a few recent posts to see if a scheduled stream has gone live
-                        const recentUnchecked = this.feedData.slice(0, 5).filter(item => item.liveStreamingDetails && item.liveStreamingDetails.scheduledStartTime && !item.liveStreamingDetails.actualStartTime);
+                        const recentUnchecked = this.feedData.filter(item => item.liveStreamingDetails && item.liveStreamingDetails.scheduledStartTime && !item.liveStreamingDetails.actualStartTime);
                         if (recentUnchecked.length > 0) {
                             this.logMessage(`Checking live status for ${recentUnchecked.length} recently scheduled streams.`);
                             await this.updateLiveStatusForNewItems(recentUnchecked.map(item => item.videoId));
@@ -893,6 +854,38 @@
                         this.logMessage(`Error: ${error.message}`);
                         this.showError(`Failed to load RSS feed: ${error.message}`);
                         this.updateStatus('Error');
+                    }
+                }
+                
+                async fetchUpcomingStreams() {
+                    if (!this.YT_API_KEY || this.YT_API_KEY === 'YOUR_YOUTUBE_API_KEY_HERE') {
+                        this.logMessage('YouTube API key not configured. Skipping upcoming streams check.');
+                        return { items: [] };
+                    }
+                    this.logMessage('Fetching upcoming live streams from YouTube API...');
+                    const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${this.channelId}&eventType=upcoming&type=video&key=${this.YT_API_KEY}`;
+                    try {
+                        const response = await fetch(url);
+                        if (!response.ok) {
+                            this.logMessage(`YouTube API error! Status: ${response.status}`);
+                            throw new Error(`YouTube API error! status: ${response.status}`);
+                        }
+                        const data = await response.json();
+                        this.logMessage(`Found ${data.items.length} upcoming streams via API.`);
+                        return data;
+                    } catch (error) {
+                        console.error('Error fetching upcoming streams:', error);
+                        this.logMessage(`Error fetching upcoming streams: ${error.message}`);
+                        return { items: [] };
+                    }
+                }
+
+                playNotificationSound() {
+                    if (this.isNotificationSoundEnabled) {
+                        this.notificationSound.play().catch(e => {
+                            console.error("Failed to play notification sound:", e);
+                            this.logMessage("Error playing notification sound. User interaction may be required.");
+                        });
                     }
                 }
 
@@ -936,13 +929,14 @@
                     }
                 }
 
-                async processFeed(xmlDoc) {
+                async processFeed(xmlDoc, upcomingItems) {
                     const entries = xmlDoc.querySelectorAll('entry');
                     const newVideoIds = [];
                     const uniqueItems = new Map();
                     let newItemsDetected = false;
                     let existingItems = this.feedData;
                     
+                    // Process RSS feed entries
                     for (const entry of entries) {
                         const id = entry.querySelector('id')?.textContent || '';
                         if (!id) continue;
@@ -998,6 +992,47 @@
                             liveStreamingDetails: null
                         };
                         uniqueItems.set(id, item);
+                    }
+
+                    // Process upcoming streams from YouTube API
+                    for (const item of upcomingItems) {
+                        const id = `yt:video:${item.id.videoId}`;
+                        if (!id || uniqueItems.has(id)) continue;
+
+                        const videoId = item.id.videoId;
+                        const thumbnail = `https://cors.kawiesh.top/https://i2.ytimg.com/vi/${videoId}/hqdefault.jpg`;
+                        const originalTitle = item.snippet.title;
+                        const summary = item.snippet.description;
+                        
+                        const isNew = !this.knownItems.has(id);
+                        if (isNew) {
+                            newVideoIds.push(videoId);
+                            newItemsDetected = true;
+                        }
+
+                        const upcomingItem = {
+                            id,
+                            videoId,
+                            title: originalTitle,
+                            originalTitle: originalTitle,
+                            translatedTitle: null,
+                            link: `https://www.youtube.com/watch?v=${videoId}`,
+                            published: this.parseDateTime(item.snippet.publishedAt),
+                            updated: this.parseDateTime(item.snippet.publishedAt),
+                            summary: this.cleanSummary(summary),
+                            thumbnail,
+                            community: {
+                                starRating: '0.00',
+                                ratingCount: '0',
+                                views: '0'
+                            },
+                            isNew,
+                            hasStats: false,
+                            liveStreamingDetails: {
+                                scheduledStartTime: item.snippet.publishedAt // Use publishedAt as a proxy for scheduled time
+                            }
+                        };
+                        uniqueItems.set(id, upcomingItem);
                     }
 
                     this.feedData = Array.from(uniqueItems.values());
