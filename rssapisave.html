@@ -659,7 +659,7 @@
             <button id="closeMessageModalButton">OK</button>
         </div>
     </div>
-    <audio id="notificationSound" src="https://cdn.pixabay.com/download/audio/2023/07/02/audio_df1442bd50.mp3?filename=single-church-bell-156463.mp3" preload="auto"></audio>
+    <audio id="notificationSound" src="https://raw.githubusercontent.com/ravanabackup/candle/refs/heads/main/ding.mp3" preload="auto"></audio>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             class RSSFeedReader {
@@ -805,12 +805,7 @@
                     this.logMessage('Starting feed fetch...');
                     this.updateStatus('Fetching...');
                     try {
-                        // Fetch both the RSS feed and upcoming streams from the YouTube API
-                        const [rssResponse, upcomingResponse] = await Promise.all([
-                            fetch(this.feedUrl),
-                            this.fetchUpcomingStreams()
-                        ]);
-
+                        const rssResponse = await fetch(this.feedUrl);
                         if (!rssResponse.ok) {
                             this.logMessage(`HTTP error fetching RSS! Status: ${rssResponse.status}`);
                             throw new Error(`HTTP error fetching RSS! status: ${rssResponse.status}`);
@@ -822,7 +817,8 @@
                         const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
                         this.logMessage('XML parsed successfully.');
 
-                        const newVideoIds = await this.processFeed(xmlDoc, upcomingResponse.items);
+                        const { newVideoIds, allVideos } = await this.processFeed(xmlDoc);
+                        this.feedData = allVideos;
 
                         if (newVideoIds.length > 0) {
                             this.logMessage(`Found ${newVideoIds.length} new items. Fetching live status...`);
@@ -929,7 +925,7 @@
                     }
                 }
 
-                async processFeed(xmlDoc, upcomingItems) {
+                async processFeed(xmlDoc) {
                     const entries = xmlDoc.querySelectorAll('entry');
                     const newVideoIds = [];
                     const uniqueItems = new Map();
@@ -969,7 +965,7 @@
                             newVideoIds.push(videoId);
                             newItemsDetected = true;
                         }
-
+                        
                         const hasStats = parseInt(views) > 0;
                         const item = {
                             id,
@@ -991,56 +987,24 @@
                             videoId,
                             liveStreamingDetails: null
                         };
+
+                        // Logic to treat a published video with no stats as an 'unreleased' scheduled stream
+                        if (!hasStats && new Date(published) > new Date()) {
+                            item.liveStreamingDetails = {
+                                scheduledStartTime: published,
+                                actualStartTime: null,
+                            };
+                        }
+
                         uniqueItems.set(id, item);
                     }
 
-                    // Process upcoming streams from YouTube API
-                    for (const item of upcomingItems) {
-                        const id = `yt:video:${item.id.videoId}`;
-                        if (!id || uniqueItems.has(id)) continue;
-
-                        const videoId = item.id.videoId;
-                        const thumbnail = `https://cors.kawiesh.top/https://i2.ytimg.com/vi/${videoId}/hqdefault.jpg`;
-                        const originalTitle = item.snippet.title;
-                        const summary = item.snippet.description;
-                        
-                        const isNew = !this.knownItems.has(id);
-                        if (isNew) {
-                            newVideoIds.push(videoId);
-                            newItemsDetected = true;
-                        }
-
-                        const upcomingItem = {
-                            id,
-                            videoId,
-                            title: originalTitle,
-                            originalTitle: originalTitle,
-                            translatedTitle: null,
-                            link: `https://www.youtube.com/watch?v=${videoId}`,
-                            published: this.parseDateTime(item.snippet.publishedAt),
-                            updated: this.parseDateTime(item.snippet.publishedAt),
-                            summary: this.cleanSummary(summary),
-                            thumbnail,
-                            community: {
-                                starRating: '0.00',
-                                ratingCount: '0',
-                                views: '0'
-                            },
-                            isNew,
-                            hasStats: false,
-                            liveStreamingDetails: {
-                                scheduledStartTime: item.snippet.publishedAt // Use publishedAt as a proxy for scheduled time
-                            }
-                        };
-                        uniqueItems.set(id, upcomingItem);
-                    }
-
-                    this.feedData = Array.from(uniqueItems.values());
-                    this.feedData.sort((a, b) => new Date(b.published.full) - new Date(a.published.full));
+                    const allVideos = Array.from(uniqueItems.values());
+                    allVideos.sort((a, b) => new Date(b.published.full) - new Date(a.published.full));
                     
                     // Merge live streaming details from memory for existing posts
                     const liveDetailsMap = new Map(existingItems.filter(i => i.liveStreamingDetails).map(i => [i.id, i.liveStreamingDetails]));
-                    this.feedData = this.feedData.map(item => {
+                    const finalFeedData = allVideos.map(item => {
                         if (liveDetailsMap.has(item.id)) {
                             item.liveStreamingDetails = liveDetailsMap.get(item.id);
                         }
@@ -1058,7 +1022,7 @@
                     }
 
                     this.updateTotalPosts();
-                    return newVideoIds;
+                    return { newVideoIds, allVideos: finalFeedData };
                 }
 
                 extractVideoId(url) {
