@@ -1,703 +1,747 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>YouTube RSS Feed Reader — Futuristic</title>
 <style>
-  /* ---------- Enhanced Futuristic Theme ---------- */
-  :root{
-    --bg-primary: #0a0a0f;
-    --bg-secondary: #111127;
-    --bg-tertiary: #1a1a2e;
-    --card-bg: rgba(255,255,255,0.03);
-    --glass-light: rgba(255,255,255,0.08);
-    --glass-medium: rgba(255,255,255,0.05);
-    --accent-primary: #00ff88;
-    --accent-secondary: #8b5cf6;
-    --accent-tertiary: #06b6d4;
-    --text-primary: #ffffff;
-    --text-secondary: #a8b2d1;
-    --text-muted: #6b7280;
-    --danger: #ef4444;
-    --warning: #f59e0b;
-    --success: #10b981;
-    --no-stats-bg: rgba(239, 68, 68, 0.1);
-    --border-subtle: rgba(255,255,255,0.1);
-    --shadow-lg: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
-    --shadow-xl: 0 35px 70px -15px rgba(0, 0, 0, 0.9);
-  }
+/* ---------- Enhanced Futuristic Theme ---------- */
+:root {
+  --bg-primary: #0a0a0f;
+  --bg-secondary: #111127;
+  --bg-tertiary: #1a1a2e;
+  --card-bg: rgba(255, 255, 255, 0.03);
+  --glass-light: rgba(255, 255, 255, 0.08);
+  --glass-medium: rgba(255, 255, 255, 0.05);
+  --accent-primary: #00ff88;
+  --accent-secondary: #8b5cf6;
+  --accent-tertiary: #06b6d4;
+  --text-primary: #ffffff;
+  --text-secondary: #a8b2d1;
+  --text-muted: #6b7280;
+  --danger: #ef4444;
+  --warning: #f59e0b;
+  --success: #10b981;
+  --no-stats-bg: rgba(239, 68, 68, 0.1);
+  --border-subtle: rgba(255, 255, 255, 0.1);
+  --shadow-lg: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+  --shadow-xl: 0 35px 70px -15px rgba(0, 0, 0, 0.9);
+}
 
-  /* Base Styles */
-  html, body {
-    height: 100%;
-    margin: 0;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background: 
-      radial-gradient(circle at 20% 20%, rgba(139, 92, 246, 0.15) 0%, transparent 50%),
-      radial-gradient(circle at 80% 80%, rgba(6, 182, 212, 0.15) 0%, transparent 50%),
-      radial-gradient(circle at 40% 40%, rgba(0, 255, 136, 0.08) 0%, transparent 50%),
-      linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 50%, var(--bg-tertiary) 100%);
-    color: var(--text-primary);
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    overflow-x: hidden;
-  }
+/* Base Styles */
+html, body {
+  height: 100%;
+  margin: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: radial-gradient(circle at 20% 20%, rgba(139, 92, 246, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(6, 182, 212, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 40% 40%, rgba(0, 255, 136, 0.08) 0%, transparent 50%),
+    linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 50%, var(--bg-tertiary) 100%);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
 
-  .wrap {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 2rem;
-    min-height: 100vh;
-  }
+.wrap {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem;
+  min-height: 100vh;
+}
 
-  /* Header Styles */
-  header {
-    display: flex;
-    align-items: center;
-    gap: 1.5rem;
-    margin-bottom: 2rem;
-    position: relative;
-  }
+/* Header Styles */
+header {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  position: relative;
+}
 
-  .title {
-    display: flex;
-    flex-direction: column;
-    position: relative;
-  }
+.title {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
 
-  h1 {
-    margin: 0;
-    font-size: 2.5rem;
-    font-weight: 800;
-    background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 50%, var(--accent-tertiary) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    letter-spacing: -0.025em;
-    position: relative;
-  }
+h1 {
+  margin: 0;
+  font-size: 2.5rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 50%, var(--accent-tertiary) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: -0.025em;
+  position: relative;
+}
 
-  h1::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 50%, var(--accent-tertiary) 100%);
-    filter: blur(20px);
-    opacity: 0.3;
-    z-index: -1;
-    animation: glow 3s ease-in-out infinite alternate;
-  }
+h1::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 50%, var(--accent-tertiary) 100%);
+  filter: blur(20px);
+  opacity: 0.3;
+  z-index: -1;
+  animation: glow 3s ease-in-out infinite alternate;
+}
 
-  @keyframes glow {
-    from { opacity: 0.2; transform: scale(0.95); }
-    to { opacity: 0.4; transform: scale(1.05); }
+@keyframes glow {
+  from {
+    opacity: 0.2;
+    transform: scale(0.95);
   }
-
-  p.sub {
-    margin: 0.5rem 0 0 0;
-    color: var(--text-secondary);
-    font-size: 0.875rem;
-    font-weight: 500;
-    opacity: 0.8;
-  }
-
-  /* Status Card */
-  .status-card {
-    margin-top: 2rem;
-    padding: 1.5rem;
-    border-radius: 1.5rem;
-    background: 
-      linear-gradient(135deg, var(--glass-light) 0%, var(--glass-medium) 100%),
-      var(--card-bg);
-    backdrop-filter: blur(20px);
-    border: 1px solid var(--border-subtle);
-    box-shadow: var(--shadow-lg);
-    display: flex;
-    gap: 1rem;
-    align-items: center;
-    flex-wrap: wrap;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .status-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, var(--accent-primary), transparent);
-    animation: shimmer 3s infinite;
-  }
-
-  @keyframes shimmer {
-    0% { left: -100%; }
-    100% { left: 100%; }
-  }
-
-  .status-item {
-    background: var(--glass-medium);
-    padding: 0.75rem 1rem;
-    border-radius: 2rem;
-    color: var(--text-secondary);
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255,255,255,0.05);
-    transition: all 0.3s ease;
-  }
-
-  .status-item:hover {
-    background: var(--glass-light);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(0,0,0,0.3);
-  }
-
-  .status-ind {
-    width: 0.75rem;
-    height: 0.75rem;
-    border-radius: 50%;
-    background: var(--text-muted);
-    position: relative;
-  }
-
-  .status-ind.loading {
-    background: var(--warning);
-    animation: pulse 2s infinite;
-  }
-
-  .status-ind.loading::after {
-    content: '';
-    position: absolute;
-    inset: -4px;
-    border: 2px solid var(--warning);
-    border-radius: 50%;
-    animation: ripple 2s infinite;
-  }
-
-  .status-ind.connected {
-    background: var(--success);
-    box-shadow: 0 0 10px var(--success);
-  }
-
-  .status-ind.error {
-    background: var(--danger);
-    animation: shake 0.5s infinite;
-  }
-
-  @keyframes pulse {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.5; transform: scale(1.1); }
-  }
-
-  @keyframes ripple {
-    0% { opacity: 1; transform: scale(1); }
-    100% { opacity: 0; transform: scale(1.8); }
-  }
-
-  @keyframes shake {
-    0%, 100% { transform: translateX(0); }
-    25% { transform: translateX(-2px); }
-    75% { transform: translateX(2px); }
-  }
-
-  /* Filter Buttons */
-  .filters {
-    margin-top: 1.5rem;
-    display: flex;
-    gap: 0.75rem;
-    flex-wrap: wrap;
-  }
-
-  .filter-btn {
-    border-radius: 2rem;
-    padding: 0.75rem 1.5rem;
-    border: 1px solid var(--border-subtle);
-    background: var(--card-bg);
-    color: var(--text-secondary);
-    cursor: pointer;
-    font-weight: 600;
-    font-size: 0.875rem;
-    transition: all 0.3s ease;
-    backdrop-filter: blur(10px);
-    position: relative;
-    overflow: hidden;
-  }
-
-  .filter-btn::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-    opacity: 0;
-    transition: opacity 0.3s ease;
-  }
-
-  .filter-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(0,0,0,0.3);
-  }
-
-  .filter-btn.active {
-    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-    color: var(--bg-primary);
-    border-color: transparent;
-    box-shadow: 0 8px 25px rgba(0,255,136,0.3);
-    transform: translateY(-3px);
-  }
-
-  .filter-btn.active::before {
-    opacity: 1;
-  }
-
-  /* Feed Container */
-  .feed-container {
-    margin-top: 2rem;
-    background: 
-      linear-gradient(135deg, var(--glass-light) 0%, var(--glass-medium) 100%),
-      var(--card-bg);
-    padding: 2rem;
-    border-radius: 1.5rem;
-    box-shadow: var(--shadow-xl);
-    backdrop-filter: blur(20px);
-    border: 1px solid var(--border-subtle);
-    position: relative;
-    overflow: hidden;
-  }
-
-  .feed-container::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: conic-gradient(from 0deg, transparent, var(--accent-primary), transparent, var(--accent-secondary), transparent);
-    animation: rotate 20s linear infinite;
-    opacity: 0.05;
-  }
-
-  @keyframes rotate {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-  }
-
-  .feed-list {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-    position: relative;
-    z-index: 1;
-  }
-
-  /* Feed Items */
-  .feed-item {
-    display: flex;
-    gap: 1.5rem;
-    align-items: flex-start;
-    padding: 1.5rem;
-    border-radius: 1rem;
-    background: 
-      linear-gradient(135deg, var(--glass-light) 0%, var(--card-bg) 100%);
-    border-left: 4px solid var(--accent-secondary);
-    backdrop-filter: blur(15px);
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    position: relative;
-    overflow: hidden;
-    border: 1px solid rgba(255,255,255,0.05);
-  }
-
-  .feed-item::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-    opacity: 0;
-    transition: opacity 0.3s ease;
-  }
-
-  .feed-item:hover {
-    transform: translateY(-8px) scale(1.02);
-    box-shadow: 
-      var(--shadow-xl),
-      0 0 40px rgba(0,255,136,0.2);
-    border-left-color: var(--accent-primary);
-  }
-
-  .feed-item:hover::before {
-    opacity: 0.03;
-  }
-
-  .feed-item.no-stats-post {
-    background: 
-      linear-gradient(135deg, var(--no-stats-bg), rgba(239, 68, 68, 0.05));
-    border-left-color: var(--danger);
-  }
-
-  .feed-item.new {
-    animation: slideInUp 0.6s ease-out;
-    border-left-color: var(--accent-primary);
-    box-shadow: 0 0 30px rgba(0,255,136,0.3);
-  }
-
-  @keyframes slideInUp {
-    from {
-      opacity: 0;
-      transform: translateY(30px) scale(0.9);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0) scale(1);
-    }
-  }
-
-  /* Thumbnail */
-  .thumb {
-    width: 280px;
-    height: 158px;
-    border-radius: 0.75rem;
-    overflow: hidden;
-    flex-shrink: 0;
-    position: relative;
-    background: linear-gradient(135deg, var(--glass-medium), var(--card-bg));
-    cursor: pointer;
-    transition: all 0.3s ease;
-    border: 1px solid rgba(255,255,255,0.1);
-  }
-
-  .thumb:hover {
+  to {
+    opacity: 0.4;
     transform: scale(1.05);
-    box-shadow: 0 15px 35px rgba(0,0,0,0.4);
   }
+}
 
-  .thumb img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-    transition: all 0.3s ease;
+p.sub {
+  margin: 0.5rem 0 0 0;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  opacity: 0.8;
+}
+
+/* Status Card */
+.status-card {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  border-radius: 1.5rem;
+  background: linear-gradient(135deg, var(--glass-light) 0%, var(--glass-medium) 100%), var(--card-bg);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  flex-wrap: wrap;
+  position: relative;
+  overflow: hidden;
+}
+
+.status-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent-primary), transparent);
+  animation: shimmer 3s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    left: -100%;
   }
+  100% {
+    left: 100%;
+  }
+}
 
-  .thumb:hover img {
+.status-item {
+  background: var(--glass-medium);
+  padding: 0.75rem 1rem;
+  border-radius: 2rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: all 0.3s ease;
+}
+
+.status-item:hover {
+  background: var(--glass-light);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+.status-ind {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 50%;
+  background: var(--text-muted);
+  position: relative;
+}
+
+.status-ind.loading {
+  background: var(--warning);
+  animation: pulse 2s infinite;
+}
+
+.status-ind.loading::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border: 2px solid var(--warning);
+  border-radius: 50%;
+  animation: ripple 2s infinite;
+}
+
+.status-ind.connected {
+  background: var(--success);
+  box-shadow: 0 0 10px var(--success);
+}
+
+.status-ind.error {
+  background: var(--danger);
+  animation: shake 0.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
     transform: scale(1.1);
   }
+}
 
-  .play {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(0,0,0,0.3);
-    opacity: 0;
-    transition: all 0.3s ease;
+@keyframes ripple {
+  0% {
+    opacity: 1;
+    transform: scale(1);
   }
+  100% {
+    opacity: 0;
+    transform: scale(1.8);
+  }
+}
 
-  .thumb:hover .play {
+@keyframes shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-2px);
+  }
+  75% {
+    transform: translateX(2px);
+  }
+}
+
+/* Filter Buttons */
+.filters {
+  margin-top: 1.5rem;
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.filter-btn {
+  border-radius: 2rem;
+  padding: 0.75rem 1.5rem;
+  border: 1px solid var(--border-subtle);
+  background: var(--card-bg);
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.875rem;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  position: relative;
+  overflow: hidden;
+}
+
+.filter-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.filter-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+.filter-btn.active {
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+  color: var(--bg-primary);
+  border-color: transparent;
+  box-shadow: 0 8px 25px rgba(0, 255, 136, 0.3);
+  transform: translateY(-3px);
+}
+
+.filter-btn.active::before {
+  opacity: 1;
+}
+
+/* Feed Container */
+.feed-container {
+  margin-top: 2rem;
+  background: linear-gradient(135deg, var(--glass-light) 0%, var(--glass-medium) 100%), var(--card-bg);
+  padding: 2rem;
+  border-radius: 1.5rem;
+  box-shadow: var(--shadow-xl);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border-subtle);
+  position: relative;
+  overflow: hidden;
+}
+
+.feed-container::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: conic-gradient(from 0deg, transparent, var(--accent-primary), transparent, var(--accent-secondary), transparent);
+  animation: rotate 20s linear infinite;
+  opacity: 0.05;
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.feed-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  position: relative;
+  z-index: 1;
+}
+
+/* Feed Items */
+.feed-item {
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-start;
+  padding: 1.5rem;
+  border-radius: 1rem;
+  background: linear-gradient(135deg, var(--glass-light) 0%, var(--card-bg) 100%);
+  border-left: 4px solid var(--accent-secondary);
+  backdrop-filter: blur(15px);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.feed-item::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.feed-item:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: var(--shadow-xl), 0 0 40px rgba(0, 255, 136, 0.2);
+  border-left-color: var(--accent-primary);
+}
+
+.feed-item:hover::before {
+  opacity: 0.03;
+}
+
+.feed-item.no-stats-post {
+  background: linear-gradient(135deg, var(--no-stats-bg), rgba(239, 68, 68, 0.05));
+  border-left-color: var(--danger);
+}
+
+.feed-item.new {
+  animation: slideInUp 0.6s ease-out;
+  border-left-color: var(--accent-primary);
+  box-shadow: 0 0 30px rgba(0, 255, 136, 0.3);
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.new-badge {
+  position: absolute;
+  top: -12px;
+  right: -12px;
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+  color: var(--bg-primary);
+  font-weight: 800;
+  padding: 18px 12px 6px 18px;
+  transform: rotate(45deg);
+  font-size: 0.8rem;
+  transform-origin: 100% 100%;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* Thumbnail */
+.thumb {
+  width: 280px;
+  height: 158px;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  flex-shrink: 0;
+  position: relative;
+  background: linear-gradient(135deg, var(--glass-medium), var(--card-bg));
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.thumb:hover {
+  transform: scale(1.05);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+}
+
+.thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: all 0.3s ease;
+}
+
+.thumb:hover img {
+  transform: scale(1.1);
+}
+
+.play {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.3);
+  opacity: 0;
+  transition: all 0.3s ease;
+}
+
+.thumb:hover .play {
+  opacity: 1;
+}
+
+.play::after {
+  content: '';
+  border-style: solid;
+  border-width: 20px 0 20px 30px;
+  border-color: transparent transparent transparent rgba(255, 255, 255, 0.9);
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+}
+
+/* Content */
+.content {
+  flex: 1;
+  min-width: 0;
+  position: relative;
+}
+
+.title-line {
+  font-weight: 700;
+  font-size: 1.25rem;
+  color: var(--text-primary);
+  margin-bottom: 0.75rem;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.meta {
+  color: var(--text-secondary);
+  font-weight: 500;
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.desc {
+  color: var(--text-muted);
+  margin-bottom: 1.25rem;
+  line-height: 1.6;
+  font-size: 0.9rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.btn {
+  padding: 0.75rem 1.5rem;
+  border-radius: 2rem;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.875rem;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: inherit;
+  filter: blur(10px);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.btn:hover::before {
+  opacity: 0.5;
+}
+
+.btn.watch {
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+  color: var(--bg-primary);
+  box-shadow: 0 4px 15px rgba(0, 255, 136, 0.3);
+}
+
+.btn.watch:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 255, 136, 0.4);
+}
+
+.btn.copy {
+  background: transparent;
+  border: 2px solid var(--border-subtle);
+  color: var(--text-secondary);
+  backdrop-filter: blur(10px);
+}
+
+.btn.copy:hover {
+  background: var(--glass-medium);
+  border-color: var(--accent-tertiary);
+  color: var(--accent-tertiary);
+  transform: translateY(-2px);
+}
+
+/* Modal */
+.modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(10px);
+  z-index: 1000;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
     opacity: 1;
   }
+}
 
-  .play::after {
-    content: '';
-    border-style: solid;
-    border-width: 20px 0 20px 30px;
-    border-color: transparent transparent transparent rgba(255,255,255,0.9);
-    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
-  }
+.modal .box {
+  background: linear-gradient(135deg, var(--glass-light) 0%, var(--card-bg) 100%);
+  backdrop-filter: blur(20px);
+  padding: 2rem;
+  border-radius: 1.5rem;
+  width: 90%;
+  max-width: 500px;
+  color: var(--text-primary);
+  box-shadow: var(--shadow-xl);
+  border: 1px solid var(--border-subtle);
+  position: relative;
+  animation: slideIn 0.3s ease;
+}
 
-  /* Content */
-  .content {
-    flex: 1;
-    min-width: 0;
-    position: relative;
-  }
-
-  .title-line {
-    font-weight: 700;
-    font-size: 1.25rem;
-    color: var(--text-primary);
-    margin-bottom: 0.75rem;
-    line-height: 1.3;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-
-  .meta {
-    color: var(--text-secondary);
-    font-weight: 500;
-    font-size: 0.875rem;
-    margin-bottom: 1rem;
-    display: flex;
-    gap: 1rem;
-    flex-wrap: wrap;
-    align-items: center;
-  }
-
-  .desc {
-    color: var(--text-muted);
-    margin-bottom: 1.25rem;
-    line-height: 1.6;
-    font-size: 0.9rem;
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-
-  .actions {
-    display: flex;
-    gap: 0.75rem;
-    flex-wrap: wrap;
-  }
-
-  .btn {
-    padding: 0.75rem 1.5rem;
-    border-radius: 2rem;
-    border: none;
-    cursor: pointer;
-    font-weight: 600;
-    font-size: 0.875rem;
-    transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-
-  .btn::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: inherit;
-    filter: blur(10px);
+@keyframes slideIn {
+  from {
     opacity: 0;
-    transition: opacity 0.3s ease;
+    transform: scale(0.9) translateY(-20px);
   }
-
-  .btn:hover::before {
-    opacity: 0.5;
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
   }
+}
 
-  .btn.watch {
-    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-    color: var(--bg-primary);
-    box-shadow: 0 4px 15px rgba(0,255,136,0.3);
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.close-x {
+  position: absolute;
+  right: 1.5rem;
+  top: 1.5rem;
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: 1.5rem;
+  transition: all 0.3s ease;
+  border: none;
+  background: none;
+}
+
+.close-x:hover {
+  color: var(--danger);
+  transform: scale(1.1);
+}
+
+/* Debug Box */
+#debug {
+  margin-top: 1.5rem;
+  padding: 1.5rem;
+  border-radius: 1rem;
+  background: linear-gradient(135deg, var(--glass-medium), var(--card-bg));
+  backdrop-filter: blur(15px);
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-subtle);
+}
+
+.timers {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.timer-chip {
+  background: var(--glass-medium);
+  padding: 0.5rem 1rem;
+  border-radius: 2rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Translation Progress */
+.progress-track {
+  height: 0.5rem;
+  background: var(--card-bg);
+  border-radius: 2rem;
+  overflow: hidden;
+  position: relative;
+}
+
+.progress-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+  transition: width 0.3s ease;
+  position: relative;
+}
+
+.progress-fill::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  animation: progressShine 2s infinite;
+}
+
+@keyframes progressShine {
+  0% {
+    transform: translateX(-100%);
   }
-
-  .btn.watch:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(0,255,136,0.4);
+  100% {
+    transform: translateX(100%);
   }
+}
 
-  .btn.copy {
-    background: transparent;
-    border: 2px solid var(--border-subtle);
-    color: var(--text-secondary);
-    backdrop-filter: blur(10px);
+/* Loading Animation */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
   }
-
-  .btn.copy:hover {
-    background: var(--glass-medium);
-    border-color: var(--accent-tertiary);
-    color: var(--accent-tertiary);
-    transform: translateY(-2px);
+  to {
+    transform: rotate(360deg);
   }
+}
 
-  /* Modal */
-  .modal {
-    display: none;
-    position: fixed;
-    inset: 0;
-    align-items: center;
-    justify-content: center;
-    background: rgba(0,0,0,0.7);
-    backdrop-filter: blur(10px);
-    z-index: 1000;
-    animation: fadeIn 0.3s ease;
-  }
-
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-
-  .modal .box {
-    background: 
-      linear-gradient(135deg, var(--glass-light) 0%, var(--card-bg) 100%);
-    backdrop-filter: blur(20px);
-    padding: 2rem;
-    border-radius: 1.5rem;
-    width: 90%;
-    max-width: 500px;
-    color: var(--text-primary);
-    box-shadow: var(--shadow-xl);
-    border: 1px solid var(--border-subtle);
-    position: relative;
-    animation: slideIn 0.3s ease;
-  }
-
-  @keyframes slideIn {
-    from { opacity: 0; transform: scale(0.9) translateY(-20px); }
-    to { opacity: 1; transform: scale(1) translateY(0); }
-  }
-
-  .row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1rem 0;
-    border-bottom: 1px solid rgba(255,255,255,0.1);
-  }
-
-  .close-x {
-    position: absolute;
-    right: 1.5rem;
-    top: 1.5rem;
-    cursor: pointer;
-    color: var(--text-muted);
-    font-size: 1.5rem;
-    transition: all 0.3s ease;
-    border: none;
-    background: none;
-  }
-
-  .close-x:hover {
-    color: var(--danger);
-    transform: scale(1.1);
-  }
-
-  /* Debug Box */
-  #debug {
-    margin-top: 1.5rem;
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .wrap {
     padding: 1.5rem;
-    border-radius: 1rem;
-    background: 
-      linear-gradient(135deg, var(--glass-medium), var(--card-bg));
-    backdrop-filter: blur(15px);
-    font-family: 'JetBrains Mono', 'Fira Code', monospace;
-    color: var(--text-secondary);
-    border: 1px solid var(--border-subtle);
   }
+  h1 {
+    font-size: 2rem;
+  }
+  .thumb {
+    width: 240px;
+    height: 135px;
+  }
+}
 
-  .timers {
-    display: flex;
-    gap: 1rem;
-    align-items: center;
-    margin-bottom: 1rem;
-    flex-wrap: wrap;
+@media (max-width: 768px) {
+  .feed-item {
+    flex-direction: column;
   }
+  .thumb {
+    width: 100%;
+    height: 200px;
+  }
+  .status-card {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .status-item {
+    justify-content: center;
+  }
+  h1 {
+    font-size: 1.75rem;
+  }
+}
 
-  .timer-chip {
-    background: var(--glass-medium);
-    padding: 0.5rem 1rem;
-    border-radius: 2rem;
-    font-weight: 600;
-    color: var(--text-secondary);
-    font-size: 0.75rem;
-    border: 1px solid rgba(255,255,255,0.05);
+@media (max-width: 480px) {
+  .wrap {
+    padding: 1rem;
   }
-
-  /* Translation Progress */
-  .progress-track {
-    height: 0.5rem;
-    background: var(--card-bg);
-    border-radius: 2rem;
-    overflow: hidden;
-    position: relative;
+  .feed-container {
+    padding: 1rem;
   }
-
-  .progress-fill {
-    height: 100%;
-    width: 0%;
-    background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
-    transition: width 0.3s ease;
-    position: relative;
+  .feed-item {
+    padding: 1rem;
   }
-
-  .progress-fill::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-    animation: progressShine 2s infinite;
+  h1 {
+    font-size: 1.5rem;
   }
-
-  @keyframes progressShine {
-    0% { transform: translateX(-100%); }
-    100% { transform: translateX(100%); }
-  }
-
-  /* Loading Animation */
-  @keyframes spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-  }
-
-  /* Responsive Design */
-  @media (max-width: 1024px) {
-    .wrap {
-      padding: 1.5rem;
-    }
-    
-    h1 {
-      font-size: 2rem;
-    }
-    
-    .thumb {
-      width: 240px;
-      height: 135px;
-    }
-  }
-
-  @media (max-width: 768px) {
-    .feed-item {
-      flex-direction: column;
-    }
-    
-    .thumb {
-      width: 100%;
-      height: 200px;
-    }
-    
-    .status-card {
-      flex-direction: column;
-      align-items: stretch;
-    }
-    
-    .status-item {
-      justify-content: center;
-    }
-    
-    h1 {
-      font-size: 1.75rem;
-    }
-  }
-
-  @media (max-width: 480px) {
-    .wrap {
-      padding: 1rem;
-    }
-    
-    .feed-container {
-      padding: 1rem;
-    }
-    
-    .feed-item {
-      padding: 1rem;
-    }
-    
-    h1 {
-      font-size: 1.5rem;
-    }
-  }
+}
 </style>
 </head>
 <body>
@@ -724,7 +768,8 @@
     <div class="filters">
       <button class="filter-btn active" data-filter="all">All (0)</button>
       <button class="filter-btn" data-filter="released">Released (0)</button>
-      <button class="filter-btn" data-filter="unreleased">Unreleased (0)</button>
+      <button class="filter-btn" data-filter="scheduled">Scheduled (0)</button>
+      <button class="filter-btn" data-filter="live">Live (0)</button>
     </div>
 
     <div class="feed-container" id="feedContainer">
@@ -736,7 +781,6 @@
       </div>
     </div>
 
-    <!-- Debug area (visible by default) -->
     <div id="debug" aria-hidden="false">
       <div class="timers">
         <div class="timer-chip">Next feed check: <span id="feedTimer">--:--</span></div>
@@ -747,7 +791,6 @@
     </div>
   </div>
 
-  <!-- Settings modal -->
   <div id="modal" class="modal" aria-hidden="true">
     <div class="box" role="dialog" aria-modal="true">
       <div style="display:flex;align-items:center;justify-content:space-between">
@@ -782,34 +825,33 @@
    - Save as HTML and open in browser
    - Replace YT_API_KEY with your key if you want live details
    ############################## */
-
 class RSSFeedReader {
   constructor(config = {}) {
     // config
     this.channelFeedBase = config.feedBase || 'https://www.youtube.com/feeds/videos.xml?channel_id=UCbg8V1kty3s1kcCch2VHwEw';
-    // CORS fallbacks (order of preference)
     this.feedCandidates = [
       this.channelFeedBase,
       'https://cors.kawiesh.top/' + this.channelFeedBase,
       'https://corsproxy.io/?' + encodeURIComponent(this.channelFeedBase),
       'https://api.allorigins.win/raw?url=' + encodeURIComponent(this.channelFeedBase)
     ];
-    this.YT_API_KEY = config.YT_API_KEY || 'AIzaSyAzDe7gqM5P_cGwxreEVtzAbrk-5BubrcM'; // replace if available
-    this.pollIntervalMs = config.pollIntervalMs || 60000; // 60s
-    this.forceStatusIntervalMs = config.forceStatusIntervalMs || 5 * 60 * 1000; // 5 min
+    this.YT_API_KEY = config.YT_API_KEY || 'AIzaSyAzDe7gqM5P_cGwxreEVtzAbrk-5BubrcM';
+    this.pollIntervalMs = config.pollIntervalMs || 60000;
+    this.forceStatusIntervalMs = config.forceStatusIntervalMs || 5 * 60 * 1000;
 
     // state
     this.knownItemsKey = 'rss-known-items-v1';
     this.knownItems = this.loadKnownItems();
-    this.feedMap = new Map(); // id -> item
+    this.feedMap = new Map();
     this.isDebugging = true;
     this.isTranslationEnabled = false;
     this.translationInProgress = false;
 
     // timers & next times
     this.nextFeedFetchAt = Date.now() + this.pollIntervalMs;
-    // keep nextYTApiAt defined so debug never shows --:--
     this.nextYTApiAt = Date.now() + this.forceStatusIntervalMs;
+    this.lastFetchedEtag = localStorage.getItem('rss-etag') || '';
+    this.lastFetchedModified = localStorage.getItem('rss-last-modified') || '';
 
     // DOM refs
     this.feedListEl = document.getElementById('feedList');
@@ -823,7 +865,6 @@ class RSSFeedReader {
     this.lastUpdateEl = document.getElementById('lastUpdate');
     this.totalPostsEl = document.getElementById('totalPosts');
     this.newPostsEl = document.getElementById('newPosts');
-
     this.translationFillEl = document.getElementById('translationFill');
     this.translationCountEl = document.getElementById('translationCount');
     this.translationProgressBox = document.getElementById('translationProgressBox');
@@ -841,7 +882,7 @@ class RSSFeedReader {
 
     // start
     this.logMessage('App initializing...');
-    this.fetchFeed(); // initial
+    this.fetchFeed();
     this.fetchInterval = setInterval(() => this.fetchFeed(), this.pollIntervalMs);
     this.debugInterval = setInterval(() => this.updateDebugTimers(), 1000);
   }
@@ -862,23 +903,22 @@ class RSSFeedReader {
 
   /* ---------- UI wiring ---------- */
   setupUI() {
-    // modal
     document.getElementById('openSettings').addEventListener('click', () => this.openModal());
     document.getElementById('closeModal').addEventListener('click', () => this.closeModal());
     document.getElementById('closeModalBtn').addEventListener('click', () => this.closeModal());
-    // debug toggle
+
     document.getElementById('debugSwitch').addEventListener('change', (e) => {
       this.isDebugging = e.target.checked;
       this.debugLogEl.parentElement.style.display = this.isDebugging ? '' : 'none';
     });
-    // translation toggle
+
     document.getElementById('translationSwitch').addEventListener('change', async (e) => {
       this.isTranslationEnabled = e.target.checked;
       this.logMessage('Translation toggled ' + (this.isTranslationEnabled ? 'ON' : 'OFF'));
       if (this.isTranslationEnabled) await this.translateAllTitles();
-      else this.renderAllItems(); // revert to original titles
+      else this.renderAllItems();
     });
-    // theme toggle (simple: invert accent)
+
     document.getElementById('themeToggle').addEventListener('click', () => {
       const root = document.documentElement;
       if (root.style.getPropertyValue('--accent-primary') === '#00ff88') {
@@ -894,14 +934,12 @@ class RSSFeedReader {
       }
     });
 
-    // filter buttons
     document.querySelectorAll('.filter-btn').forEach(btn => btn.addEventListener('click', (e) => {
       document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       this.applyFilter();
     }));
 
-    // debug visibility
     document.getElementById('debug').style.display = '';
   }
 
@@ -917,11 +955,9 @@ class RSSFeedReader {
   }
 
   updateDebugTimers() {
-    // feed timer
     const now = Date.now();
     const feedLeft = Math.max(0, this.nextFeedFetchAt - now);
     this.feedTimerEl.textContent = this.msToMMSS(feedLeft);
-    // yt timer
     const ytLeft = Math.max(0, this.nextYTApiAt - now);
     this.ytTimerEl.textContent = this.msToMMSS(ytLeft);
   }
@@ -929,27 +965,48 @@ class RSSFeedReader {
     const s = Math.floor(ms / 1000);
     const m = Math.floor(s / 60);
     const sec = s % 60;
-    return `${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+    return `${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
   }
 
-  /* ---------- robust fetch with CORS fallbacks ---------- */
+  /* ---------- robust fetch with CORS fallbacks & ETag/Last-Modified caching ---------- */
   async tryFetchWithFallbacks() {
     let lastError = null;
+    const headers = {};
+    if (this.lastFetchedEtag) headers['If-None-Match'] = this.lastFetchedEtag;
+    if (this.lastFetchedModified) headers['If-Modified-Since'] = this.lastFetchedModified;
+
     for (const candidate of this.feedCandidates) {
       try {
         this.logMessage(`Attempting fetch: ${candidate}`);
         this.lastCandidateEl.textContent = candidate;
-        const r = await fetch(candidate, { cache: 'no-store' });
+        const r = await fetch(candidate, {
+          cache: 'no-store',
+          headers: headers
+        });
+
+        if (r.status === 304) {
+          this.logMessage('Server responded with 304 Not Modified. Using cached version.');
+          return { text: null, candidate: 'Cached', isCached: true };
+        }
+
         if (!r.ok) {
           throw new Error('HTTP ' + r.status);
         }
+
         const text = await r.text();
         if (!text || text.indexOf('<feed') === -1) {
           this.logMessage('Response did not contain feed XML; skipping candidate.');
           lastError = new Error('No feed XML in response');
           continue;
         }
-        return { text, candidate };
+        
+        // Save new headers
+        const etag = r.headers.get('ETag');
+        const lastModified = r.headers.get('Last-Modified');
+        if (etag) { this.lastFetchedEtag = etag; localStorage.setItem('rss-etag', etag); }
+        if (lastModified) { this.lastFetchedModified = lastModified; localStorage.setItem('rss-last-modified', lastModified); }
+
+        return { text, candidate, isCached: false };
       } catch (err) {
         lastError = err;
         this.logMessage(`Candidate failed: ${err.message}`);
@@ -963,23 +1020,27 @@ class RSSFeedReader {
     try {
       this.logMessage('Starting feed fetch...');
       this.setStatus('Fetching...', 'loading');
-      // schedule next feed check display
       this.nextFeedFetchAt = Date.now() + this.pollIntervalMs;
 
-      const { text: xmlText, candidate } = await this.tryFetchWithFallbacks();
+      const { text: xmlText, candidate, isCached } = await this.tryFetchWithFallbacks();
+
+      if (isCached) {
+        this.setStatus('Connected', 'connected');
+        this.updateLastUpdateTime();
+        return; // No need to re-parse or update UI
+      }
+
       this.logMessage('Feed XML received from: ' + candidate);
       this.lastCandidateEl.textContent = candidate;
       const parser = new DOMParser();
       const xml = parser.parseFromString(xmlText, 'text/xml');
 
       const { items, idsInFeed } = this.parseFeedXml(xml);
-
-      // diff existing
+      
       const newIds = idsInFeed.filter(id => !this.feedMap.has(id));
       const removedIds = Array.from(this.feedMap.keys()).filter(id => !idsInFeed.includes(id));
       this.logMessage(`Parsed ${items.length} items (new:${newIds.length} removed:${removedIds.length})`);
 
-      // remove deleted items from DOM & storage
       removedIds.forEach(id => {
         this.feedMap.delete(id);
         this.removeItemFromDOM(id);
@@ -987,7 +1048,6 @@ class RSSFeedReader {
       });
       this.saveKnownItems();
 
-      // add or merge items
       const newlyAdded = [];
       for (const it of items) {
         const prev = this.feedMap.get(it.id);
@@ -995,30 +1055,27 @@ class RSSFeedReader {
           this.feedMap.set(it.id, it);
           newlyAdded.push(it);
         } else {
-          // merge carefully to preserve liveStreamingDetails/translation/community if not replaced
           const merged = Object.assign({}, prev, it);
           merged.liveStreamingDetails = (it.liveStreamingDetails !== null && it.liveStreamingDetails !== undefined) ? it.liveStreamingDetails : (prev.liveStreamingDetails || null);
           merged.translatedTitle = prev.translatedTitle || it.translatedTitle || null;
           const itViews = it.community && it.community.views ? parseInt(it.community.views) : 0;
           merged.community = (!it.community || itViews === 0) ? (prev.community || it.community) : it.community;
           this.feedMap.set(it.id, merged);
-          // update DOM only for meaningful changes
           const changed = (prev.title !== merged.title) || (prev.summary !== merged.summary) || (JSON.stringify(prev.liveStreamingDetails) !== JSON.stringify(merged.liveStreamingDetails)) || (prev.translatedTitle !== merged.translatedTitle);
           if (changed) this.updateItemInDOM(merged);
         }
       }
 
-      // insert newly added into DOM
       if (newlyAdded.length > 0) {
         this.logMessage(`${newlyAdded.length} new items found.`);
-        newlyAdded.forEach(it => { this.knownItems.add(it.id); this.insertItemToDOM(it, true); });
+        newlyAdded.forEach(it => { this.knownItems.add(it.id); });
         this.saveKnownItems();
 
-        // call YT API only for new ones (get accurate live details)
+        this.renderAllItems(); // Re-render to show new items at the top
+
         const newVideoIds = newlyAdded.map(i => i.videoId).filter(Boolean);
         if (newVideoIds.length > 0) {
           await this.getLiveStatusForVideoIds(newVideoIds);
-          // set next allowed YT API time (cooldown)
           this.nextYTApiAt = Date.now() + this.forceStatusIntervalMs;
         }
         this.playDing();
@@ -1026,7 +1083,6 @@ class RSSFeedReader {
         this.logMessage('No new items this fetch.');
       }
 
-      // if feed empty, schedule forced YT checks every 5min
       if (this.feedMap.size === 0) {
         this.logMessage('Feed empty — scheduling forced YT status checks every 5 minutes.');
         this.scheduleForceStatusChecks();
@@ -1034,13 +1090,11 @@ class RSSFeedReader {
         this.clearForceStatusChecks();
       }
 
-      // update UI stats
       this.updateTotals();
       this.setStatus('Connected', 'connected');
       this.updateLastUpdateTime();
-      this.applyFilter(); // apply current filter to updated DOM
+      this.applyFilter();
 
-      // if translation is enabled and there are untranslated titles, start translating
       if (this.isTranslationEnabled) {
         await this.translateAllTitles();
       }
@@ -1102,14 +1156,13 @@ class RSSFeedReader {
       });
     }
 
-    // sort newest first
     items.sort((a, b) => new Date(b.published.full) - new Date(a.published.full));
     return { items, idsInFeed };
   }
 
   /* ---------- YouTube API (only when needed) ---------- */
   async getLiveStatusForVideoIds(videoIdList = []) {
-    if (!this.YT_API_KEY || this.YT_API_KEY === 'YOUR_YOUTUBE_API_KEY_HERE') {
+    if (!this.YT_API_KEY || this.YT_API_KEY === 'AIzaSyA7j_nUEdvaNeFpJx5tBj4-VzlOpKXTkCg') {
       this.logMessage('YouTube API key not configured — skipping live status checks.');
       return;
     }
@@ -1146,7 +1199,6 @@ class RSSFeedReader {
           }
         }
       }
-      // update cooldown timer for YT API (5 minutes)
       this.nextYTApiAt = Date.now() + this.forceStatusIntervalMs;
     } catch (err) {
       console.error('YT API error', err);
@@ -1184,6 +1236,7 @@ class RSSFeedReader {
     let postClass = item.isNew ? ' new' : '';
     let copyDate = item.published?.date || '';
     let copyTime = item.published?.time || '';
+    let newBadgeHtml = item.isNew ? `<div class="new-badge">NEW</div>` : '';
 
     if (item.liveStreamingDetails) {
       const l = item.liveStreamingDetails;
@@ -1194,12 +1247,14 @@ class RSSFeedReader {
       } else if (l.scheduledStartTime && !l.actualStartTime) {
         const sched = this.parseDateTime(l.scheduledStartTime);
         dateDisplay = `⏰ Scheduled: ${sched.date} ${sched.time}`;
-        copyDate = sched.date; copyTime = sched.time;
+        copyDate = sched.date;
+        copyTime = sched.time;
         postClass += ' no-stats-post';
       } else if (l.actualStartTime) {
         const started = this.parseDateTime(l.actualStartTime);
         dateDisplay = `📅 Published: ${started.date} ${started.time}`;
-        copyDate = started.date; copyTime = started.time;
+        copyDate = started.date;
+        copyTime = started.time;
         if (item.updated) dateDisplay += ` | 🔄 Updated: ${item.updated.date} ${item.updated.time}`;
         const formattedViews = new Intl.NumberFormat('en-IN').format(item.community.views || 0);
         const starRating = '⭐'.repeat(Math.round(parseFloat(item.community.starRating || 0)));
@@ -1221,9 +1276,9 @@ class RSSFeedReader {
     const descriptionHtml = item.hasStats ? `<div class="desc">${this.escapeHtml(item.summary)}</div>` : '';
     const thumbHtml = item.thumbnail ? `<div class="thumb" data-video-id="${this.escapeHtml(item.videoId || '')}" data-item-id="${this.escapeHtml(item.id)}"><img src="${this.escapeHtml(item.thumbnail)}" alt="${this.escapeHtml(displayTitle)}"><div class="play"></div></div>` : '';
 
-    // Note: using data-item-id for copy button to find item
     return `
       <div class="feed-item ${postClass}" data-item-id="${this.escapeHtml(item.id)}" data-video-id="${this.escapeHtml(item.videoId || '')}">
+        ${newBadgeHtml}
         ${thumbHtml}
         <div class="content">
           <div class="title-line">${this.escapeHtml(displayTitle)}</div>
@@ -1245,12 +1300,9 @@ class RSSFeedReader {
     const node = wrapper.firstElementChild;
     if (!node) return;
     const list = this.getOrCreateList();
-    // remove loading box if present
     if (this.loadingBox) { this.loadingBox.remove(); this.loadingBox = null; }
     if (prepend) list.insertBefore(node, list.firstChild);
     else list.appendChild(node);
-
-    // attach handlers
     this.attachHandlers(node);
   }
 
@@ -1271,7 +1323,6 @@ class RSSFeedReader {
   }
 
   attachHandlers(root) {
-    // thumbnail click -> embed iframe
     const thumb = root.querySelector('.thumb');
     if (thumb) {
       thumb.addEventListener('click', (ev) => {
@@ -1283,7 +1334,6 @@ class RSSFeedReader {
         ev.stopPropagation();
       });
     }
-    // copy button
     const copyBtn = root.querySelector('.btn.copy');
     if (copyBtn) {
       copyBtn.addEventListener('click', (e) => {
@@ -1299,7 +1349,8 @@ class RSSFeedReader {
     wrapper.style.minWidth = '280px';
     wrapper.style.height = '158px';
     const iframe = document.createElement('iframe');
-    iframe.width = "280"; iframe.height = "158";
+    iframe.width = "280";
+    iframe.height = "158";
     iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
     iframe.frameBorder = "0";
     iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture";
@@ -1314,16 +1365,15 @@ class RSSFeedReader {
     if (!item) return;
     const title = this.isTranslationEnabled && item.translatedTitle ? item.translatedTitle : item.originalTitle;
     const isLiveNow = item.liveStreamingDetails && item.liveStreamingDetails.actualStartTime && !item.liveStreamingDetails.actualEndTime;
-    // choose time: if live actualStartTime exists, use that; otherwise published
     let date = item.published?.date || '';
     let time = item.published?.time || '';
     if (item.liveStreamingDetails && item.liveStreamingDetails.actualStartTime) {
       const dt = this.parseDateTime(item.liveStreamingDetails.actualStartTime);
-      date = dt.date; time = dt.time;
+      date = dt.date;
+      time = dt.time;
     }
     let text;
     if (isLiveNow) {
-      // EXACT format requested
       text = `Title: ${title}\n🔴 Live Now\n\nDate: ${date} ${time}\nURL: ${item.link}`;
     } else {
       text = `Title: ${title}\n\nDate: ${date} ${time}\nURL: ${item.link}`;
@@ -1336,19 +1386,28 @@ class RSSFeedReader {
     ta.value = s;
     document.body.appendChild(ta);
     ta.select();
-    try { document.execCommand('copy'); } catch (e) { this.logMessage('Copy failed: ' + e.message); }
+    try {
+      document.execCommand('copy');
+    } catch (e) {
+      this.logMessage('Copy failed: ' + e.message);
+    }
     ta.remove();
   }
 
   showMessage(text) {
-    // quick ephemeral modal-like message using debug log style
     this.logMessage('UI: ' + text);
-    // also use small on-screen message
-    const prev = document.getElementById('flashMsg'); if (prev) prev.remove();
-    const el = document.createElement('div'); el.id = 'flashMsg';
-    el.style.position = 'fixed'; el.style.right = '18px'; el.style.bottom = '18px';
-    el.style.background = 'linear-gradient(90deg,var(--accent-secondary),var(--accent-primary))'; el.style.color = 'var(--bg-primary)';
-    el.style.padding = '10px 14px'; el.style.borderRadius = '10px'; el.style.fontWeight = '800';
+    const prev = document.getElementById('flashMsg');
+    if (prev) prev.remove();
+    const el = document.createElement('div');
+    el.id = 'flashMsg';
+    el.style.position = 'fixed';
+    el.style.right = '18px';
+    el.style.bottom = '18px';
+    el.style.background = 'linear-gradient(90deg,var(--accent-secondary),var(--accent-primary))';
+    el.style.color = 'var(--bg-primary)';
+    el.style.padding = '10px 14px';
+    el.style.borderRadius = '10px';
+    el.style.fontWeight = '800';
     el.textContent = text;
     document.body.appendChild(el);
     setTimeout(() => el.remove(), 1800);
@@ -1364,7 +1423,6 @@ class RSSFeedReader {
   parseDateTime(dateString) {
     if (!dateString) return { date: '', time: '', full: null };
     const d = new Date(dateString);
-    // enforce Asia/Kolkata display
     const options = { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true, timeZone: 'Asia/Kolkata' };
     const fmt = new Intl.DateTimeFormat('en-GB', options);
     const parts = fmt.formatToParts(d);
@@ -1380,7 +1438,6 @@ class RSSFeedReader {
   /* ---------- translate titles (ml -> en) with progress UI ---------- */
   async translateTitle(text) {
     if (!text || text.trim() === '') return 'No title';
-    // quick ascii check skip
     if (/^[\x00-\x7F]+$/.test(text)) return text;
     try {
       const resp = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=ml&tl=en&dt=t&q=${encodeURIComponent(text)}`);
@@ -1421,7 +1478,6 @@ class RSSFeedReader {
       this.translationCountEl.textContent = `${done}/${total}`;
       this.translationFillEl.style.width = `${Math.round((done / total) * 100)}%`;
     }
-    // hide after short delay
     setTimeout(() => { this.translationProgressBox.style.display = 'none'; }, 600);
     this.translationInProgress = false;
     this.logMessage('Translation pass finished/stopped.');
@@ -1439,7 +1495,6 @@ class RSSFeedReader {
         g.gain.setValueAtTime(0, ctx.currentTime);
         o.connect(g);
         g.connect(ctx.destination);
-        // small envelope
         g.gain.linearRampToValueAtTime(0.22, ctx.currentTime + 0.01);
         o.frequency.exponentialRampToValueAtTime(1320, ctx.currentTime + 0.12);
         g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.9);
@@ -1458,12 +1513,13 @@ class RSSFeedReader {
   updateTotals() {
     const total = this.feedMap.size;
     const released = Array.from(this.feedMap.values()).filter(item => !item.liveStreamingDetails || (item.liveStreamingDetails && item.liveStreamingDetails.actualEndTime)).length;
-    const unreleased = Array.from(this.feedMap.values()).filter(item => item.liveStreamingDetails && !item.liveStreamingDetails.actualEndTime).length;
+    const scheduled = Array.from(this.feedMap.values()).filter(item => item.liveStreamingDetails && item.liveStreamingDetails.scheduledStartTime && !item.liveStreamingDetails.actualStartTime).length;
+    const live = Array.from(this.feedMap.values()).filter(item => item.liveStreamingDetails && item.liveStreamingDetails.actualStartTime && !item.liveStreamingDetails.actualEndTime).length;
     document.querySelector('[data-filter="all"]').textContent = `All (${total})`;
     document.querySelector('[data-filter="released"]').textContent = `Released (${released})`;
-    document.querySelector('[data-filter="unreleased"]').textContent = `Unreleased (${unreleased})`;
+    document.querySelector('[data-filter="scheduled"]').textContent = `Scheduled (${scheduled})`;
+    document.querySelector('[data-filter="live"]').textContent = `Live (${live})`;
     this.totalPostsEl.textContent = total;
-    // new posts count
     const newCount = Array.from(this.feedMap.values()).filter(i => i.isNew).length;
     this.newPostsEl.textContent = newCount;
   }
@@ -1496,19 +1552,20 @@ class RSSFeedReader {
 
   /* ---------- rendering helpers ---------- */
   renderAllItems() {
-    // re-render entire list (used when toggling translation off)
     const list = this.getOrCreateList();
     list.innerHTML = '';
-    for (const item of Array.from(this.feedMap.values()).sort((a,b)=> new Date(b.published.full) - new Date(a.published.full))) {
+    const sortedItems = Array.from(this.feedMap.values()).sort((a, b) => new Date(b.published.full) - new Date(a.published.full));
+    for (const item of sortedItems) {
       const node = this.createNodeFromHtml(this.makeItemHtml(item));
       this.attachHandlers(node);
       list.appendChild(node);
     }
     this.updateTotals();
+    this.applyFilter();
   }
   createNodeFromHtml(html) {
-    const wrapper = document.createElement('div'); 
-    wrapper.innerHTML = html; 
+    const wrapper = document.createElement('div');
+    wrapper.innerHTML = html;
     return wrapper.firstElementChild;
   }
 
@@ -1516,13 +1573,13 @@ class RSSFeedReader {
   applyFilter() {
     const active = document.querySelector('.filter-btn.active')?.dataset.filter || 'all';
     for (const node of document.querySelectorAll('.feed-item')) {
-      const vid = node.dataset.videoId;
       const id = node.dataset.itemId;
       const item = this.feedMap.get(id);
       if (!item) continue;
       let show = true;
       if (active === 'released') show = !item.liveStreamingDetails || (item.liveStreamingDetails && item.liveStreamingDetails.actualEndTime);
-      else if (active === 'unreleased') show = item.liveStreamingDetails && !item.liveStreamingDetails.actualEndTime;
+      else if (active === 'scheduled') show = item.liveStreamingDetails && item.liveStreamingDetails.scheduledStartTime && !item.liveStreamingDetails.actualStartTime;
+      else if (active === 'live') show = item.liveStreamingDetails && item.liveStreamingDetails.actualStartTime && !item.liveStreamingDetails.actualEndTime;
       node.style.display = show ? '' : 'none';
     }
   }
@@ -1531,39 +1588,31 @@ class RSSFeedReader {
 /* ===========================
    Boot the RSSFeedReader with logic glue
    =========================== */
-
 (function boot() {
   const app = new RSSFeedReader({
-    feedBase: 'https://www.youtube.com/feeds/videos.xml?channel_id=UCbg8V1kty3s1kcCch2VHwEw',
-    YT_API_KEY: 'AIzaSyAzDe7gqM5P_cGwxreEVtzAbrk-5BubrcM', // replace with your key to enable accurate live details
-    pollIntervalMs: 60000,
-    forceStatusIntervalMs: 5 * 60 * 1000
-  });
+  feedBase: 'https://www.youtube.com/feeds/videos.xml?channel_id=UCbg8V1kty3s1kcCch2VHwEw',
+  YT_API_KEY: 'AIzaSyAzDe7gqM5P_cGwxreEVtzAbrk-5BubrcM', // <--- Replace this with your key
+  pollIntervalMs: 60000,
+  forceStatusIntervalMs: 5 * 60 * 1000
+});
 
-  // Expose app globally for console debugging
   window.app = app;
 
-  // Ensure debug timers update and never show --:--
   function tickDebugTimers() {
-    // feed timer
     const now = Date.now();
     app.feedTimerEl.textContent = app.msToMMSS(Math.max(0, app.nextFeedFetchAt - now));
-    // next YT
     app.ytTimerEl.textContent = app.msToMMSS(Math.max(0, app.nextYTApiAt - now));
   }
   setInterval(tickDebugTimers, 1000);
 
-  // Small safety: if app.fetchInterval fails for any reason, show error in debug console
   window.addEventListener('error', (e) => {
     app.logMessage('Global error: ' + (e && e.message ? e.message : e));
   });
 
-  // Add some interactive enhancements
   document.addEventListener('DOMContentLoaded', () => {
-    // Add keyboard shortcuts
     document.addEventListener('keydown', (e) => {
       if (e.ctrlKey || e.metaKey) {
-        switch(e.key) {
+        switch (e.key) {
           case 'r':
             e.preventDefault();
             app.fetchFeed();
@@ -1580,10 +1629,8 @@ class RSSFeedReader {
       }
     });
 
-    // Add smooth scroll behavior
     document.documentElement.style.scrollBehavior = 'smooth';
 
-    // Add intersection observer for fade-in animations
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
@@ -1593,7 +1640,6 @@ class RSSFeedReader {
       });
     }, { threshold: 0.1 });
 
-    // Observe existing items and future items
     const observeNewItems = () => {
       document.querySelectorAll('.feed-item:not(.observed)').forEach(item => {
         item.style.opacity = '0';
@@ -1604,10 +1650,8 @@ class RSSFeedReader {
       });
     };
 
-    // Initial observation
     setTimeout(observeNewItems, 100);
 
-    // Observe new items when they're added
     const feedList = document.getElementById('feedList');
     if (feedList) {
       const feedObserver = new MutationObserver(observeNewItems);
@@ -1615,48 +1659,35 @@ class RSSFeedReader {
     }
   });
 
-  // Add custom CSS for additional effects
   const style = document.createElement('style');
   style.textContent = `
-    /* Additional custom effects */
     .feed-item.observed {
       opacity: 0;
       transform: translateY(20px);
       transition: opacity 0.6s ease, transform 0.6s ease;
     }
-    
-    /* Custom scrollbar */
     ::-webkit-scrollbar {
       width: 8px;
     }
-    
     ::-webkit-scrollbar-track {
       background: var(--card-bg);
       border-radius: 4px;
     }
-    
     ::-webkit-scrollbar-thumb {
       background: linear-gradient(var(--accent-primary), var(--accent-secondary));
       border-radius: 4px;
     }
-    
     ::-webkit-scrollbar-thumb:hover {
       background: linear-gradient(var(--accent-secondary), var(--accent-tertiary));
     }
-    
-    /* Selection styles */
     ::selection {
       background: var(--accent-primary);
       color: var(--bg-primary);
     }
-    
-    /* Focus styles */
     button:focus, input:focus {
       outline: 2px solid var(--accent-primary);
       outline-offset: 2px;
     }
-    
-    /* Tooltip for keyboard shortcuts */
     .status-item[title]:hover::after {
       content: attr(title);
       position: absolute;
@@ -1675,10 +1706,7 @@ class RSSFeedReader {
   `;
   document.head.appendChild(style);
 
-  // Add tooltips for keyboard shortcuts
   document.getElementById('openSettings').setAttribute('title', 'Ctrl/Cmd + , to open');
-  
-  // End boot
 })();
 </script>
 </body>
