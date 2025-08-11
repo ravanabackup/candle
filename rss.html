@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1263,7 +1264,7 @@
                 const views = community?.getElementsByTagNameNS('http://search.yahoo.com/mrss/', 'statistics')[0]?.getAttribute('views') || '0';
 
                 const videoId = this.extractVideoId(link);
-                const thumbnail = videoId ? `https://i2.ytimg.com/vi/${videoId}/hqdefault.jpg` : null;
+                const thumbnail = videoId ? `https://cors.kawiesh.top/https://i2.ytimg.com/vi/${videoId}/hqdefault.jpg` : null;
                 const isNew = !knownItems.has(id);
                 const hasStats = parseInt(views) > 0;
 
