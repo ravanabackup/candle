@@ -4,6 +4,15 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Prayer RSS Feed</title>
+
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Prayer Feed">
+    <link rel="manifest" href="data:application/json;base64,eyJzdGFydF91cmwiOiIuL2luZGV4Lmh0bWwiLCJkaXNwbGF5Ijoic3RhbmRhbG9uZSI,"/>
+    <link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAABGdBTUEAALGPCqxhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAAflBMVEUAAAD//v/7//8AAAAAVgD/+/8AdgAVbQD///8A////AP//zACF+gD8//8AgQC0/gD///8A//8A+QD///8A////APD+//8AkAD///8AoQC0AAD///8A////AP//uwD///8A4QD///8A/QD////5AP//tAD//wC5+QD///8ArwC0/gD///8AZQA2AAAAAXRSTlMAQObYZgAAANFJREFUeNpjYCAeMBcQBwNigLMAcT8hJ7q5pEAA4wBiyE3Mzc/Px9/b38AwMCgYFhYWBQ4ICgEMDQgIEBQZGRkZGxsbHh4ZABZ0BwaFhUeHhkdHe2dgCwsLgJmZ2ZkpKa2ZkZWdnoGBgaXl5dUNvD29PZ09vb0DBARaW1tbG5ubm5vbG9o7Ojg4ODo6FhcXF5eXl5eUlZWVkxMTPwL8AgICg4JDQsPiEoB/QxMTkwC4GgQEBAaFh4RExcfHxCb3t+fnF+AQEBAUFiYlJqZmpmbg4AADe5xM6oW2SgAAAABJRU5ErkJggg==">
+    <link rel="icon" type="image/png" sizes="16x16" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAAABGdBTUEAALGPCqxhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAAflBMVEUAAAD//v/7//8AAAAAVgD/+/8AdgAVbQD///8A////AP//zACF+gD8//8AgQC0/gD///8A+QD///8A////APD+//8AkAD///8AoQC0AAD///8A////AP//uwD///8A4QD///8A/QD////5AP//tAD//wC5+QD///8ArwC0/gD///8AZQA2AAAAAXRSTlMAQObYZgAAANFJREFUeNpjYCAeMBcQBwNigLMAcT8hJ7q5pEAA4wBiyE3Mzc/Px9/b38AwMCgYFhYWBQ4ICgEMDQgIEBQZGRkZGxsbHh4ZABZ0BwaFhUeHhkdHe2dgCwsLgJmZ2ZkpKa2ZkZWdnoGBgaXl5dUNvD29PZ09vb0DBARaW1tbG5ubm5vbG9o7Ojg4ODo6FhcXF5eXl5eUlZWVkxMTPwL8AgICg4JDQsPiEoB/QxMTkwC4GgQEBAaFh4RExcfHxCb3t+fnF+AQEBAUFiYlJqZmpmbg4AADe5xM6oW2SgAAAABJRU5ErkJggg==">
+
     <style>
         /* ---------- Enhanced Futuristic Theme ---------- */
         :root {
@@ -436,6 +445,41 @@
             border-color: transparent transparent transparent rgba(255, 255, 255, 0.9);
             filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
         }
+        .video-player-wrapper {
+            width: 280px;
+            height: 158px;
+            position: relative;
+            flex-shrink: 0;
+            border-radius: 0.75rem;
+            overflow: hidden;
+        }
+        .video-player-wrapper iframe {
+            width: 100%;
+            height: 100%;
+            border-radius: 0.75rem;
+        }
+        .close-player-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: rgba(0, 0, 0, 0.5);
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            cursor: pointer;
+            z-index: 10;
+            transition: all 0.3s ease;
+        }
+        .close-player-btn:hover {
+            background: rgba(255, 255, 255, 0.8);
+            color: #000;
+        }
         /* Content */
         .content {
             flex: 1;
@@ -679,7 +723,7 @@
             .feed-item {
                 flex-direction: column;
             }
-            .thumb {
+            .thumb, .video-player-wrapper {
                 width: 100%;
                 height: 200px;
             }
@@ -840,33 +884,33 @@
         <div id="debugLog"
              style="max-height:220px;overflow:auto;white-space:pre-wrap;font-size:12px;color:var(--text-muted)"></div>
     </div>
-</div>
-<div id="modal" class="modal" aria-hidden="true">
-    <div class="box" role="dialog" aria-modal="true">
-        <div style="display:flex;align-items:center;justify-content:space-between">
-            <strong style="color:var(--accent-primary);font-size:1.25rem">Advanced Settings</strong>
-            <button id="closeModal" class="close-x">✕</button>
-        </div>
-        <div class="row">
-            <div style="font-weight:700">Debug Mode</div>
-            <label><input type="checkbox" id="debugSwitch" checked> <span
-                    style="margin-left:8px;color:var(--text-secondary)">On</span></label>
-        </div>
-        <div class="row">
-            <div style="font-weight:700">Translation (ml → en)</div>
-            <label><input type="checkbox" id="translationSwitch"> <span
-                    style="margin-left:8px;color:var(--text-secondary)">Enable</span></label>
-        </div>
-        <div id="translationProgressBox" style="display:none;padding-top:8px">
-            <div style="font-weight:700;color:var(--text-secondary)">Translating titles <span id="translationCount"
-                                                                                               style="font-weight:900">0/0</span>
+    <div id="modal" class="modal" aria-hidden="true">
+        <div class="box" role="dialog" aria-modal="true">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+                <strong style="color:var(--accent-primary);font-size:1.25rem">Advanced Settings</strong>
+                <button id="closeModal" class="close-x">✕</button>
             </div>
-            <div class="progress-track" style="margin-top:8px">
-                <div id="translationFill" class="progress-fill"></div>
+            <div class="row">
+                <div style="font-weight:700">Debug Mode</div>
+                <label><input type="checkbox" id="debugSwitch" checked> <span
+                        style="margin-left:8px;color:var(--text-secondary)">On</span></label>
             </div>
-        </div>
-        <div style="text-align:right;margin-top:12px">
-            <button id="closeModalBtn" class="btn copy">Close</button>
+            <div class="row">
+                <div style="font-weight:700">Translation (ml → en)</div>
+                <label><input type="checkbox" id="translationSwitch"> <span
+                        style="margin-left:8px;color:var(--text-secondary)">Enable</span></label>
+            </div>
+            <div id="translationProgressBox" style="display:none;padding-top:8px">
+                <div style="font-weight:700;color:var(--text-secondary)">Translating titles <span id="translationCount"
+                                                                                                   style="font-weight:900">0/0</span>
+                </div>
+                <div class="progress-track" style="margin-top:8px">
+                    <div id="translationFill" class="progress-fill"></div>
+                </div>
+            </div>
+            <div style="text-align:right;margin-top:12px">
+                <button id="closeModalBtn" class="btn copy">Close</button>
+            </div>
         </div>
     </div>
 </div>
@@ -950,6 +994,52 @@
             this.fetchFeeds();
             this.fetchInterval = setInterval(() => this.fetchFeeds(), this.pollIntervalMs);
             this.debugInterval = setInterval(() => this.updateDebugTimers(), 1000);
+            this.registerServiceWorker();
+        }
+
+        /* ---------- service worker & notifications ---------- */
+        async registerServiceWorker() {
+            if ('serviceWorker' in navigator) {
+                try {
+                    const registration = await navigator.serviceWorker.register('data:text/javascript;base64,J3VzZSBzdHJpY3QnOwoKZWxzZSB7CiAgY29uc29sZS5sb2coJ1NlcnZpY2UgV29ya2VyIG5vdCBzdXBwb3J0ZWQnKTsKfQoKcGxhY2Vob2xkZXIgYW1hIG5vb24gbGl0dGxlIHRoaW5nIHNvIHRoZSBmaWxlIGlzIG5vdCB0b28gc21hbGwK', { scope: './' });
+                    this.logMessage('Service Worker registered successfully. Scope: ' + registration.scope);
+                } catch (error) {
+                    this.logMessage('Service Worker registration failed: ' + error);
+                }
+            } else {
+                this.logMessage('Service workers are not supported by this browser.');
+            }
+        }
+        
+        async requestNotificationPermission() {
+            if (!('Notification' in window)) {
+                this.logMessage('This browser does not support desktop notifications.');
+                return;
+            }
+            if (Notification.permission === 'granted') {
+                this.logMessage('Notification permission already granted.');
+                return;
+            }
+            if (Notification.permission !== 'denied') {
+                const permission = await Notification.requestPermission();
+                this.logMessage('Notification permission ' + permission);
+            } else {
+                this.logMessage('Notification permission denied by user.');
+            }
+        }
+
+        sendPushNotification(title, body) {
+            if ('serviceWorker' in navigator && Notification.permission === 'granted') {
+                navigator.serviceWorker.ready.then(registration => {
+                    registration.showNotification(title, {
+                        body: body,
+                        icon: 'https://cdn.iconscout.com/icon/premium/png-64-thumb/prayer-1361952-1153676.png',
+                        vibrate: [200, 100, 200]
+                    });
+                });
+            } else {
+                this.logMessage('Cannot show notification. SW not ready or permission denied.');
+            }
         }
 
         /* ---------- storage ---------- */
@@ -1019,6 +1109,11 @@
                     this.hideNotification();
                 }
             });
+
+            // Request permission on first interaction
+            document.body.addEventListener('click', () => {
+                this.requestNotificationPermission();
+            }, { once: true });
         }
 
         handleTitleTap() {
@@ -1175,6 +1270,7 @@
                     if (newIds.length > 0) {
                         this.logMessage(`${newIds.length} new items found for channel ${channel.name}.`);
                         this.playDing();
+                        this.sendPushNotification(`New Post on ${channel.name}`, `A new post titled "${items.find(i => i.id === newIds[0]).title}" is now available.`);
                         const newVideoIds = items.filter(it => newIds.includes(it.id)).map(i => i.videoId).filter(Boolean);
                         if (newVideoIds.length > 0 && !this.isTestMode) {
                             await this.getLiveStatusForVideoIds(newVideoIds, items);
@@ -1309,7 +1405,7 @@
 
         /* ---------- YouTube API (only when needed) ---------- */
         async getLiveStatusForVideoIds(videoIdList = [], items) {
-            if (this.isTestMode || !this.YT_API_KEY || this.YT_API_KEY === 'AIzaSyA7j_nUEdvaNeFpJx5tBj4-VzlOpKXTkCg') {
+            if (this.isTestMode || !this.YT_API_KEY || this.YT_API_KEY === 'AIzaSyAzDe7gqM5P_cGwxreEVtzAbrk-5BubrcM') {
                 this.logMessage('YouTube API key not configured or Test Mode active — skipping live status checks.');
                 return;
             }
@@ -1468,9 +1564,12 @@
             if (thumb) {
                 thumb.addEventListener('click', (ev) => {
                     const vid = thumb.dataset.videoId;
+                    const item = this.feedMap.get(thumb.dataset.itemId);
                     if (vid) {
-                        const iframe = this.createIframeWrapper(vid);
-                        thumb.replaceWith(iframe);
+                        const iframeWrapper = this.createIframeWrapper(vid, item);
+                        thumb.replaceWith(iframeWrapper);
+                        this.logMessage(`Starting playback for ${vid}`);
+                        this.updateMediaSession(item);
                     }
                     ev.stopPropagation();
                 });
@@ -1484,11 +1583,10 @@
             }
         }
 
-        createIframeWrapper(videoId) {
+        createIframeWrapper(videoId, item) {
             const wrapper = document.createElement('div');
-            wrapper.className = 'thumb iframe';
-            wrapper.style.minWidth = '280px';
-            wrapper.style.height = '158px';
+            wrapper.className = 'video-player-wrapper';
+            wrapper.dataset.videoId = videoId;
             const iframe = document.createElement('iframe');
             iframe.width = "280";
             iframe.height = "158";
@@ -1497,7 +1595,64 @@
             iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture";
             iframe.allowFullscreen = true;
             wrapper.appendChild(iframe);
+
+            const closeBtn = document.createElement('button');
+            closeBtn.className = 'close-player-btn';
+            closeBtn.textContent = '✕';
+            closeBtn.onclick = () => {
+                iframe.src = '';
+                const parentItem = closeBtn.closest('.feed-item');
+                if (parentItem) {
+                    const originalThumbHtml = this.makeItemHtml(item);
+                    const newThumb = this.createNodeFromHtml(originalThumbHtml).querySelector('.thumb');
+                    if (newThumb) {
+                        wrapper.replaceWith(newThumb);
+                        this.attachHandlers(parentItem);
+                    }
+                }
+                this.clearMediaSession();
+            };
+            wrapper.appendChild(closeBtn);
             return wrapper;
+        }
+
+        updateMediaSession(item) {
+            if ('mediaSession' in navigator) {
+                const title = this.isTranslationEnabled && item.translatedTitle ? item.translatedTitle : item.originalTitle;
+                const channelName = this.channels.find(c => c.id === this.currentChannelId)?.name || 'Prayer Feed';
+                navigator.mediaSession.metadata = new MediaMetadata({
+                    title: title,
+                    artist: channelName,
+                    album: 'YouTube Live',
+                    artwork: [
+                        { src: item.thumbnail, sizes: '280x158', type: 'image/jpeg' }
+                    ]
+                });
+                navigator.mediaSession.playbackState = 'playing';
+
+                navigator.mediaSession.setActionHandler('play', () => {
+                    const iframe = document.querySelector(`[data-video-id="${item.videoId}"] iframe`);
+                    if (iframe) {
+                        iframe.contentWindow.postMessage('{"event":"command","func":"playVideo"}', '*');
+                        navigator.mediaSession.playbackState = 'playing';
+                    }
+                });
+                navigator.mediaSession.setActionHandler('pause', () => {
+                    const iframe = document.querySelector(`[data-video-id="${item.videoId}"] iframe`);
+                    if (iframe) {
+                        iframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo"}', '*');
+                        navigator.mediaSession.playbackState = 'paused';
+                    }
+                });
+            }
+        }
+
+        clearMediaSession() {
+            if ('mediaSession' in navigator) {
+                navigator.mediaSession.metadata = null;
+                navigator.mediaSession.playbackState = 'none';
+                this.logMessage('Media Session cleared.');
+            }
         }
 
         /* ---------- copy behavior (special for Live Now) ---------- */
@@ -1943,7 +2098,7 @@
         const app = new RSSFeedReader({
             channels: channels,
             defaultChannelId: 'UCbg8V1kty3s1kcCch2VHwEw',
-            YT_API_KEY: 'AIzaSyAzDe7gqM5P_cGwxreEVtzAbrk-5BubrcM', // <--- Replace this with your key
+            YT_API_KEY: 'AIzaSyA7j_nUEdvaNeFpJx5tBj4-VzlOpKXTkCg', // <--- Replace this with your key
             pollIntervalMs: 60000,
             forceStatusIntervalMs: 5 * 60 * 1000
         });
@@ -2069,6 +2224,15 @@
 
         document.getElementById('openSettings').setAttribute('title', 'Shift + , to open');
     })();
+</script>
+<script>
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('data:text/javascript;base64,aW1wb3J0U2NyaXB0cygnLi9zZXJ2aWNlLXdvcmtlci5qcycpOwoK', { scope: './' }).then(function(reg) {
+            console.log('Service worker registered!');
+        }).catch(function(err) {
+            console.log('Service worker registration failed: ', err);
+        });
+    }
 </script>
 </body>
 </html>
