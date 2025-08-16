@@ -1,0 +1,403 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>YouTube Channel Live Monitor — IST times</title>
+<style>
+/* Material You & Dark Mode CSS */
+:root {
+  /* Light Theme */
+  --primary-color: #2563eb;
+  --primary-container: #dbeaff;
+  --on-primary-container: #001a41;
+  --background-color: #f7f8fb;
+  --surface-color: #fff;
+  --on-surface: #111;
+  --on-surface-variant: #475569;
+  --border-color: #ccd;
+  --error-color: #b91c1c;
+  --scheduled-background: #fff7ed;
+  --scheduled-text: #9a3412;
+  --live-background: #f0fdf4;
+  --live-text: #166534;
+  --published-background: #e3f2fd;
+  --published-text: #0d47a1;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Dark Theme */
+    --primary-color: #a8c7ff;
+    --primary-container: #0047b3;
+    --on-primary-container: #e0eaff;
+    --background-color: #1a1c1e;
+    --surface-color: #26282b;
+    --on-surface: #e3e2e6;
+    --on-surface-variant: #b8c6d3;
+    --border-color: #44474b;
+    --error-color: #ffb4a9;
+    --scheduled-background: #4a3412;
+    --scheduled-text: #ffd8a1;
+    --live-background: #1c5222;
+    --live-text: #a9ffb6;
+    --published-background: #11365b;
+    --published-text: #bbdefb;
+  }
+}
+
+/* Base Styles */
+body {
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  margin: 18px;
+  background: var(--background-color);
+  color: var(--on-surface);
+}
+header { display:flex; align-items:center; gap:12px; }
+h1 { margin:0; font-size:20px; }
+.controls { margin-top:12px; display:flex; gap:8px; flex-wrap:wrap; align-items:center }
+input[type="text"], input[type="number"], select {
+  padding:6px 8px; border-radius:6px; border:1px solid var(--border-color);
+  background:var(--surface-color); color:var(--on-surface);
+}
+button {
+  padding:8px 10px; border-radius:6px; border:0;
+  background:var(--primary-color); color:white; cursor:pointer;
+}
+button.secondary { background:var(--on-surface-variant); }
+#status { margin-left:auto; font-size:13px; color:var(--on-surface-variant); }
+table {
+  width:100%; border-collapse:collapse; margin-top:12px;
+  background:var(--surface-color); border-radius:8px; overflow:hidden;
+  box-shadow:0 1px 3px rgba(0,0,0,0.06);
+}
+th, td {
+  padding:10px 12px; text-align:left; border-bottom:1px solid var(--border-color);
+  font-size:14px; vertical-align:top;
+}
+th {
+  background:var(--primary-container); font-weight:600; font-size:13px;
+  color:var(--on-primary-container);
+}
+tr.scheduled td { background: var(--scheduled-background); }
+tr.live td { background: var(--live-background); }
+tr.published td { background: var(--published-background); }
+.small { font-size:12px; color:var(--on-surface-variant); }
+.muted { color:var(--on-surface-variant); }
+.thumb { width:160px; max-width:160px; }
+.meta { display:flex; gap:8px; align-items:center; }
+.badge { padding:4px 6px; border-radius:6px; font-weight:600; font-size:12px; }
+.badge.scheduled { background:var(--scheduled-background); color:var(--scheduled-text); }
+.badge.live { background:var(--live-background); color:var(--live-text); }
+.badge.published { background:var(--published-background); color:var(--published-text); }
+footer { margin-top:14px; font-size:13px; color:var(--on-surface-variant); }
+.error { color:var(--error-color); }
+</style>
+</head>
+<body>
+<header>
+  <h1>YouTube Channel Live Monitor — IST</h1>
+  <div id="status">Not checked yet</div>
+</header>
+
+<div class="controls">
+  <label>Channel ID
+    <input id="channelId" type="text" value="UCbg8V1kty3s1kcCch2VHwEw" />
+  </label>
+
+  <label>Refresh (sec)
+    <input id="intervalSec" type="number" min="10" value="60" />
+  </label>
+
+  <label>Fetch method
+    <select id="fetchMethod">
+      <option value="api">YouTube Data API (recommended)</option>
+      <option value="rss">RSS feed + CORS proxy (fallback)</option>
+    </select>
+  </label>
+
+  <label id="apiKeyLabel">API Key
+    <input id="apiKey" type="text" placeholder="Paste API key here (optional for RSS)" />
+  </label>
+
+  <button id="startBtn">Start</button>
+  <button id="stopBtn" class="secondary" disabled>Stop</button>
+
+  <div style="margin-left:8px" class="small muted">
+    Tips: Use Data API for reliability. If using RSS, set a CORS proxy (see notes below).
+  </div>
+</div>
+
+<table id="results">
+  <thead>
+    <tr>
+      <th>Thumbnail & Title</th>
+      <th>Published (IST)</th>
+      <th>UTC Published</th>
+      <th>Status</th>
+      <th>Views / Ratings</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td colspan="5" class="muted small">No data yet — press Start</td></tr>
+  </tbody>
+</table>
+
+<footer>
+  <strong>How it works:</strong> The script fetches the channel videos (Data API or RSS), parses their `published` timestamp, converts to IST (UTC+5:30) and marks a video <em>scheduled</em> if the published time is in the future relative to current system time. <br>
+  <strong>Important CORS note:</strong> Direct browser requests to `https://www.youtube.com/feeds/videos.xml` are often blocked by CORS. Use the YouTube Data API (preferred) or run a small proxy (CORS proxy or server endpoint) if you want to fetch RSS directly. See inline comments in the script for alternatives.
+</footer>
+
+<script>
+/*
+  Live Monitor script
+  - Two fetching strategies:
+    1) YouTube Data API v3 (recommended): requires API key.
+      Endpoint: https://www.googleapis.com/youtube/v3/search?channelId=...&part=snippet&order=date&type=video&maxResults=50&key=API_KEY
+      Then optionally call videos?part=statistics for view counts.
+    2) RSS feed: https://www.youtube.com/feeds/videos.xml?channel_id=... (may be blocked by CORS)
+      If blocked, use a CORS proxy (e.g. your own server or a proxy service).
+*/
+
+const $ = id => document.getElementById(id);
+const resultsTbody = document.querySelector('#results tbody');
+const statusEl = $('status');
+let timer = null;
+
+// Hardcoded API key and CORS proxy URL
+const API_KEY = "AIzaSyA7j_nUEdvaNeFpJx5tBj4-VzlOpKXTkCg";
+const CORS_PROXY_URL = "https://cors.kawiesh.top/";
+
+function toISTString(isoStr) {
+  // parse ISO in UTC and convert to IST (UTC+5:30)
+  const date = new Date(isoStr);
+  // IST offset in minutes = +330
+  const istOffsetMinutes = 5 * 60 + 30;
+  const istDate = new Date(date.getTime() + istOffsetMinutes * 60 * 1000);
+  
+  const y = istDate.getFullYear();
+  const mm = String(istDate.getMonth() + 1).padStart(2,'0');
+  const dd = String(istDate.getDate()).padStart(2,'0');
+  let hh = istDate.getHours();
+  const mins = String(istDate.getMinutes()).padStart(2,'0');
+  const ss = String(istDate.getSeconds()).padStart(2,'0');
+  const ampm = hh >= 12 ? 'PM' : 'AM';
+  hh = hh % 12;
+  hh = hh ? hh : 12; // the hour '0' should be '12'
+  hh = String(hh).padStart(2, '0');
+
+  return `${y}-${mm}-${dd} ${hh}:${mins}:${ss} ${ampm} IST`;
+}
+
+function isoToLocal(isoStr) {
+  // for UTC display
+  const d = new Date(isoStr);
+  return d.toISOString().replace('T',' ').replace('Z',' UTC');
+}
+
+function markStatus(item) {
+  const now = new Date();
+  const pub = new Date(item.publishedAt);
+
+  if (pub.getTime() > now.getTime()) {
+    return 'scheduled';
+  } else if (item.liveStreamingDetails && item.liveStreamingDetails.actualStartTime) {
+    return 'live';
+  } else {
+    return 'published';
+  }
+}
+
+async function fetchViaAPI(channelId, apiKey) {
+  // 1) get list of videos (search)
+  const maxResults = 50;
+  const searchUrl = `https://www.googleapis.com/youtube/v3/search?channelId=${encodeURIComponent(channelId)}&part=snippet&order=date&type=video&maxResults=${maxResults}&key=${encodeURIComponent(apiKey)}`;
+  const sResp = await fetch(searchUrl);
+  if (!sResp.ok) throw new Error(`Search fetch failed: ${sResp.status} ${sResp.statusText}`);
+  const sJson = await sResp.json();
+  
+  // Collect videoIds
+  const ids = sJson.items.map(it => it.id.videoId).filter(Boolean);
+  
+  // 2) get statistics (views) and liveStreamingDetails
+  const parts = 'snippet,statistics,liveStreamingDetails';
+  const videosUrl = `https://www.googleapis.com/youtube/v3/videos?part=${parts}&id=${ids.join(',')}&key=${encodeURIComponent(apiKey)}`;
+  const vResp = await fetch(videosUrl);
+  if (!vResp.ok) throw new Error(`Videos fetch failed: ${vResp.status} ${vResp.statusText}`);
+  const vJson = await vResp.json();
+  
+  // Map to unified format
+  return vJson.items.map(item => {
+    const snippet = item.snippet || {};
+    const stats = item.statistics || {};
+    const liveDetails = item.liveStreamingDetails || null;
+    return {
+      videoId: item.id,
+      title: snippet.title || '',
+      publishedAt: snippet.publishedAt,
+      thumbnail: (snippet.thumbnails && (snippet.thumbnails.medium || snippet.thumbnails.default || snippet.thumbnails.high)).url || '',
+      description: snippet.description || '',
+      views: stats.viewCount || '0',
+      liveStreamingDetails: liveDetails
+    };
+  });
+}
+
+async function fetchViaRSS(channelId, corsProxy=null) {
+  // RSS feed URL
+  const feedUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${encodeURIComponent(channelId)}`;
+  const url = corsProxy ? `${corsProxy}${feedUrl}` : feedUrl;
+  const resp = await fetch(url);
+  if (!resp.ok) throw new Error(`RSS fetch failed: ${resp.status} ${resp.statusText}`);
+  const text = await resp.text();
+  // parse XML
+  const parser = new DOMParser();
+  const xml = parser.parseFromString(text, "application/xml");
+  const entries = Array.from(xml.querySelectorAll('entry'));
+  // Map entries
+  return entries.map(e => {
+    const vid = e.querySelector('yt\\:videoId, videoId')?.textContent || '';
+    const title = e.querySelector('title')?.textContent || '';
+    const published = e.querySelector('published')?.textContent || '';
+    const thumb = e.querySelector('media\\:thumbnail, thumbnail')?.getAttribute('url') || '';
+    const views = e.querySelector('media\\:statistics')?.getAttribute('views') || null;
+    return {
+      videoId: vid,
+      title: title,
+      publishedAt: published,
+      thumbnail: thumb,
+      views: views
+    };
+  });
+}
+
+function renderRows(items) {
+  if (!items || items.length === 0) {
+    resultsTbody.innerHTML = `<tr><td colspan="5" class="muted small">No videos found.</td></tr>`;
+    return;
+  }
+
+  // Sort by publishedAt desc
+  items.sort((a,b) => new Date(b.publishedAt) - new Date(a.publishedAt));
+
+  let liveCount = 0;
+  let scheduledCount = 0;
+  let publishedCount = 0;
+
+  resultsTbody.innerHTML = '';
+  for (const it of items) {
+    const status = markStatus(it);
+    
+    if (status === 'live') {
+      liveCount++;
+    } else if (status === 'scheduled') {
+      scheduledCount++;
+    } else {
+      publishedCount++;
+    }
+
+    const tr = document.createElement('tr');
+    tr.className = status;
+    const thumbHtml = `<div class="meta"><img class="thumb" src="${it.thumbnail}" alt="" /> <div><div style="font-weight:700">${escapeHtml(it.title)}</div><div class="small muted">${escapeHtml(it.videoId)}</div></div></div>`;
+    const ist = toISTString(it.publishedAt);
+    const utc = isoToLocal(it.publishedAt);
+    const badge = `<span class="badge ${status}">${status.charAt(0).toUpperCase() + status.slice(1)}</span>`;
+    const views = it.views != null ? `${it.views} views` : '--';
+    tr.innerHTML = `
+      <td>${thumbHtml}</td>
+      <td>${ist}</td>
+      <td class="small">${utc}</td>
+      <td>${badge}</td>
+      <td class="small">${views}</td>
+    `;
+    resultsTbody.appendChild(tr);
+  }
+
+  const now = new Date();
+  const statusCounts = `Scheduled (${scheduledCount}) / Live (${liveCount}) / Published (${publishedCount})`;
+  statusEl.textContent = `${statusCounts} — Last checked: ${now.toLocaleString()} (auto-refresh every ${$('intervalSec').value}s)`;
+}
+
+function escapeHtml(s) {
+  if (!s) return '';
+  return s.replace(/[&<>"']/g, (m) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+async function checkNow() {
+  const channelId = $('channelId').value.trim();
+  const method = $('fetchMethod').value;
+  let apiKey = $('apiKey').value.trim();
+  
+  if (!channelId) {
+    statusEl.textContent = "Please enter a channel ID.";
+    return;
+  }
+
+  if (method === 'api' && !apiKey) {
+    apiKey = API_KEY;
+    $('apiKey').value = apiKey;
+  } else if (method === 'rss' && !apiKey) {
+    apiKey = CORS_PROXY_URL;
+    $('apiKey').value = apiKey;
+  }
+
+  statusEl.textContent = "Fetching…";
+  try {
+    let items = [];
+    if (method === 'api') {
+      if (!apiKey) {
+        throw new Error('YouTube Data API method selected but API key is empty. Paste your API key in the API Key box.');
+      }
+      items = await fetchViaAPI(channelId, apiKey);
+    } else {
+      const proxy = apiKey || null;
+      items = await fetchViaRSS(channelId, proxy);
+    }
+    renderRows(items);
+  } catch (err) {
+    console.error(err);
+    statusEl.innerHTML = `<span class="error">Error: ${escapeHtml(err.message || String(err))}</span>`;
+    resultsTbody.innerHTML = `<tr><td colspan="5" class="muted small">Fetch failed — see status above. If using RSS, CORS may block direct requests. Consider using Data API key or a server proxy.</td></tr>`;
+  }
+}
+
+// Auto-refresh management
+function startAuto() {
+  checkNow();
+  const sec = Math.max(10, parseInt($('intervalSec').value || '60', 10));
+  timer = setInterval(checkNow, sec * 1000);
+  $('startBtn').disabled = true;
+  $('stopBtn').disabled = false;
+}
+
+function stopAuto() {
+  if (timer) clearInterval(timer);
+  timer = null;
+  $('startBtn').disabled = false;
+  $('stopBtn').disabled = true;
+  statusEl.textContent = 'Stopped';
+}
+
+// Wire up UI
+$('startBtn').addEventListener('click', startAuto);
+$('stopBtn').addEventListener('click', stopAuto);
+
+$('fetchMethod').addEventListener('change', () => {
+  const m = $('fetchMethod').value;
+  if (m === 'api') {
+    $('apiKeyLabel').style.display = 'inline-block';
+    $('apiKey').placeholder = 'Paste API key here';
+    $('apiKey').value = API_KEY;
+  } else {
+    $('apiKeyLabel').style.display = 'inline-block';
+    $('apiKey').placeholder = 'Optional: CORS proxy prefix (e.g. https://api.allorigins.win/raw?url=)';
+    $('apiKey').value = CORS_PROXY_URL;
+  }
+});
+
+// Initial state and setup
+$('fetchMethod').dispatchEvent(new Event('change'));
+statusEl.textContent = 'Ready — press Start';
+</script>
+</body>
+</html>
