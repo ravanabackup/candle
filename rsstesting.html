@@ -180,6 +180,7 @@
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.05);
             transition: all 0.3s ease;
+            cursor: pointer;
         }
         .status-item:hover {
             background: var(--glass-light);
@@ -479,7 +480,6 @@
         }
         .btn {
             padding: 0.75rem 1.5rem;
-            border-radius: 2rem;
             border: none;
             cursor: pointer;
             font-weight: 600;
@@ -508,6 +508,7 @@
             background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
             color: var(--bg-primary);
             box-shadow: 0 4px 15px rgba(0, 255, 136, 0.3);
+            border-radius: 2rem;
         }
         .btn.watch:hover {
             transform: translateY(-2px);
@@ -518,6 +519,7 @@
             border: 2px solid var(--border-subtle);
             color: var(--text-secondary);
             backdrop-filter: blur(10px);
+            border-radius: 2rem;
         }
         .btn.copy:hover {
             background: var(--glass-medium);
@@ -733,6 +735,46 @@
                 transform: translateX(0);
             }
         }
+        #flashMsg {
+            position: fixed;
+            right: 18px;
+            bottom: 18px;
+            background: linear-gradient(90deg,var(--accent-secondary),var(--accent-primary));
+            color: var(--bg-primary);
+            padding: 10px 14px;
+            border-radius: 10px;
+            font-weight: 800;
+            animation: slideInUp 0.3s ease-out;
+            z-index: 100;
+        }
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        #refreshBtn {
+            cursor: pointer;
+            border: none;
+            background: var(--glass-medium);
+            color: var(--text-secondary);
+            font-size: 1rem;
+            font-weight: 600;
+            padding: 0.75rem 1.5rem;
+            border-radius: 2rem;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-subtle);
+        }
+        #refreshBtn:hover {
+            background: var(--glass-light);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
     </style>
 </head>
 <body>
@@ -742,9 +784,12 @@
             <h1>Prayer Rss Feed</h1>
             <p class="sub">Realtime RSS viewer</p>
         </div>
-        <div class="channel-selector">
-            <label for="channelSelect" class="sr-only">Select Channel</label>
-            <select id="channelSelect"></select>
+        <div style="margin-right:auto;display:flex;gap:1.5rem;align-items:center;">
+            <div class="channel-selector">
+                <label for="channelSelect" class="sr-only">Select Channel</label>
+                <select id="channelSelect"></select>
+            </div>
+            <button id="refreshBtn" class="status-item" title="Manually refresh feed (Ctrl+R)">🔄 Refresh</button>
         </div>
     </header>
     <div class="notification" id="newPostNotification"></div>
@@ -764,8 +809,8 @@
         </div>
     </div>
     <div class="filters">
-        <button class="filter-btn active" data-filter="all">All (0)</button>
-        <button class="filter-btn" data-filter="new">New (0)</button>
+        <button class="filter-btn active" data-filter="new">New (0)</button>
+        <button class="filter-btn" data-filter="all">All (0)</button>
         <button class="filter-btn" data-filter="released">Released (0)</button>
         <button class="filter-btn" data-filter="scheduled">Scheduled (0)</button>
         <button class="filter-btn" data-filter="live">Live (0)</button>
@@ -914,6 +959,10 @@
             document.getElementById('openSettings').addEventListener('click', () => this.openModal());
             document.getElementById('closeModal').addEventListener('click', () => this.closeModal());
             document.getElementById('closeModalBtn').addEventListener('click', () => this.closeModal());
+            document.getElementById('refreshBtn').addEventListener('click', () => {
+                this.fetchFeeds();
+                this.showMessage('Manual refresh triggered!');
+            });
 
             document.getElementById('debugSwitch').addEventListener('change', (e) => {
                 this.isDebugging = e.target.checked;
@@ -1204,7 +1253,7 @@
 
         /* ---------- YouTube API (only when needed) ---------- */
         async getLiveStatusForVideoIds(videoIdList = [], items) {
-            if (!this.YT_API_KEY || this.YT_API_KEY === 'AIzaSyA7j_nUEdvaNeFpJx5tBj4-VzlOpKXTkCg') {
+            if (!this.YT_API_KEY || this.YT_API_KEY === 'AIzaSyAzDe7gqM5P_cGwxreEVtzAbrk-5BubrcM') {
                 this.logMessage('YouTube API key not configured — skipping live status checks.');
                 return;
             }
@@ -1743,7 +1792,7 @@
         const app = new RSSFeedReader({
             channels: channels,
             defaultChannelId: 'UCbg8V1kty3s1kcCch2VHwEw',
-            YT_API_KEY: 'AIzaSyAzDe7gqM5P_cGwxreEVtzAbrk-5BubrcM', // <--- Replace this with your key
+            YT_API_KEY: 'AIzaSyA7j_nUEdvaNeFpJx5tBj4-VzlOpKXTkCg', // <--- Replace this with your key
             pollIntervalMs: 60000,
             forceStatusIntervalMs: 5 * 60 * 1000
         });
