@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -673,6 +672,10 @@
             }
         }
         @media (max-width: 768px) {
+            .header-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
             .feed-item {
                 flex-direction: column;
             }
@@ -689,6 +692,9 @@
             }
             h1 {
                 font-size: 1.75rem;
+            }
+            .channel-selector {
+                margin-right: 0;
             }
         }
         @media (max-width: 480px) {
@@ -781,16 +787,16 @@
 <body>
 <div class="wrap">
     <header>
-        <div class="title">
-            <h1>Prayer Rss Feed</h1>
+        <div class="title" id="mainTitleContainer">
+            <h1 id="mainTitle">Prayer Rss Feed</h1>
             <p class="sub">Realtime RSS viewer</p>
         </div>
-        <div style="margin-right:auto;display:flex;gap:1.5rem;align-items:center;">
+        <div class="header-controls" style="margin-left:auto; display:flex; gap:1.5rem; align-items:center; flex-wrap:wrap;">
             <div class="channel-selector">
                 <label for="channelSelect" class="sr-only">Select Channel</label>
                 <select id="channelSelect"></select>
             </div>
-            <button id="refreshBtn" class="status-item" title="Manually refresh feed (Ctrl+R)">🔄 Refresh</button>
+            <button id="refreshBtn" class="status-item" aria-label="Manually refresh feed" title="Manually refresh feed (Shift+R)">🔄 Refresh</button>
         </div>
     </header>
     <div class="notification" id="newPostNotification"></div>
@@ -810,11 +816,11 @@
         </div>
     </div>
     <div class="filters">
-        <button class="filter-btn active" data-filter="new">New (0)</button>
-        <button class="filter-btn" data-filter="all">All (0)</button>
-        <button class="filter-btn" data-filter="released">Released (0)</button>
-        <button class="filter-btn" data-filter="scheduled">Scheduled (0)</button>
-        <button class="filter-btn" data-filter="live">Live (0)</button>
+        <button class="filter-btn" data-filter="new" style="display:none">New (0)</button>
+        <button class="filter-btn active" data-filter="all">All (0)</button>
+        <button class="filter-btn" data-filter="released" style="display:none">Released (0)</button>
+        <button class="filter-btn" data-filter="scheduled" style="display:none">Scheduled (0)</button>
+        <button class="filter-btn" data-filter="live" style="display:none">Live (0)</button>
     </div>
     <div class="feed-container" id="feedContainer">
         <div id="feedList" class="feed-list">
@@ -874,6 +880,7 @@
         constructor(config = {}) {
             // config
             this.channels = config.channels || [];
+            this.initialChannels = [...this.channels];
             this.currentChannelId = config.defaultChannelId || this.channels[0].id;
             this.YT_API_KEY = config.YT_API_KEY || 'AIzaSyAzDe7gqM5P_cGwxreEVtzAbrk-5BubrcM';
             this.pollIntervalMs = config.pollIntervalMs || 60000;
@@ -886,6 +893,11 @@
             this.isTranslationEnabled = false;
             this.translationInProgress = false;
             this.allChannelData = new Map();
+            this.isTestMode = false;
+            this.testModeInterval = null;
+            this.titleTapCount = 0;
+            this.titleTapTimer = null;
+            this.testModePosts = new Map();
 
             // timers & next times
             this.nextFeedFetchAt = Date.now() + this.pollIntervalMs;
@@ -894,6 +906,7 @@
             this.lastFetchedModified = localStorage.getItem('rss-last-modified-' + this.currentChannelId) || '';
 
             // DOM refs
+            this.mainTitleEl = document.getElementById('mainTitle');
             this.feedListEl = document.getElementById('feedList');
             this.loadingBox = document.getElementById('loadingBox');
             this.debugLogEl = document.getElementById('debugLog');
@@ -910,6 +923,14 @@
             this.translationProgressBox = document.getElementById('translationProgressBox');
             this.channelSelectEl = document.getElementById('channelSelect');
             this.notificationEl = document.getElementById('newPostNotification');
+            
+            this.filterBtns = {
+                'new': document.querySelector('[data-filter="new"]'),
+                'all': document.querySelector('[data-filter="all"]'),
+                'released': document.querySelector('[data-filter="released"]'),
+                'scheduled': document.querySelector('[data-filter="scheduled"]'),
+                'live': document.querySelector('[data-filter="live"]')
+            };
 
             // audio: use WebAudio (no external URLs)
             this.audioCtx = (window.AudioContext || window.webkitAudioContext) ? new (window.AudioContext || window.webkitAudioContext)() : null;
@@ -924,6 +945,7 @@
 
             // start
             this.logMessage('App initializing...');
+            this.updateChannelSelector(this.channels);
             this.loadChannelFeeds();
             this.fetchFeeds();
             this.fetchInterval = setInterval(() => this.fetchFeeds(), this.pollIntervalMs);
@@ -947,16 +969,6 @@
 
         /* ---------- UI wiring ---------- */
         setupUI() {
-            // Channel selector
-            this.channels.forEach(channel => {
-                const option = document.createElement('option');
-                option.value = channel.id;
-                option.textContent = channel.name;
-                this.channelSelectEl.appendChild(option);
-            });
-            this.channelSelectEl.value = this.currentChannelId;
-            this.channelSelectEl.addEventListener('change', (e) => this.switchChannel(e.target.value));
-
             document.getElementById('openSettings').addEventListener('click', () => this.openModal());
             document.getElementById('closeModal').addEventListener('click', () => this.closeModal());
             document.getElementById('closeModalBtn').addEventListener('click', () => this.closeModal());
@@ -964,10 +976,11 @@
                 this.fetchFeeds();
                 this.showMessage('Manual refresh triggered!');
             });
+            document.getElementById('mainTitleContainer').addEventListener('click', () => this.handleTitleTap());
 
             document.getElementById('debugSwitch').addEventListener('change', (e) => {
                 this.isDebugging = e.target.checked;
-                this.debugLogEl.parentElement.style.display = this.isDebugging ? '' : 'none';
+                document.getElementById('debug').style.display = this.isDebugging ? '' : 'none';
             });
 
             document.getElementById('translationSwitch').addEventListener('change', async (e) => {
@@ -1008,6 +1021,31 @@
             });
         }
 
+        handleTitleTap() {
+            this.titleTapCount++;
+            if (this.titleTapTimer) clearTimeout(this.titleTapTimer);
+            if (this.titleTapCount >= 5) {
+                this.toggleTestMode();
+                this.titleTapCount = 0;
+            } else {
+                this.titleTapTimer = setTimeout(() => {
+                    this.titleTapCount = 0;
+                }, 500); // Reset tap count after 500ms
+            }
+        }
+
+        updateChannelSelector(channels) {
+            this.channelSelectEl.innerHTML = '';
+            channels.forEach(channel => {
+                const option = document.createElement('option');
+                option.value = channel.id;
+                option.textContent = channel.name;
+                this.channelSelectEl.appendChild(option);
+            });
+            this.channelSelectEl.value = this.currentChannelId;
+            this.channelSelectEl.addEventListener('change', (e) => this.switchChannel(e.target.value));
+        }
+
         openModal() {
             document.getElementById('modal').style.display = 'flex';
         }
@@ -1027,9 +1065,9 @@
         updateDebugTimers() {
             const now = Date.now();
             const feedLeft = Math.max(0, this.nextFeedFetchAt - now);
-            this.feedTimerEl.textContent = this.msToMMSS(feedLeft);
+            this.feedTimerEl.textContent = this.isTestMode ? "Test Mode" : this.msToMMSS(feedLeft);
             const ytLeft = Math.max(0, this.nextYTApiAt - now);
-            this.ytTimerEl.textContent = this.msToMMSS(ytLeft);
+            this.ytTimerEl.textContent = this.isTestMode ? "Disabled" : this.msToMMSS(ytLeft);
         }
 
         msToMMSS(ms) {
@@ -1107,12 +1145,13 @@
                 this.setStatus('Fetching...', 'loading');
             }
 
-            for (const channel of this.channels) {
+            const channelsToFetch = this.isTestMode ? this.channels : this.initialChannels;
+
+            for (const channel of channelsToFetch) {
                 try {
                     const { text: xmlText, isCached } = await this.tryFetchWithFallbacks(channel.feedUrl, channel.id);
                     let items = [];
                     let idsInFeed = [];
-                    let newIds = [];
                     const knownItems = this.loadKnownItems(channel.id);
                     let itemsToProcess = [];
 
@@ -1127,15 +1166,17 @@
                         const parsedData = this.parseFeedXml(xml, knownItems);
                         items = parsedData.items;
                         idsInFeed = parsedData.idsInFeed;
-                        newIds = idsInFeed.filter(id => !knownItems.has(id));
                         itemsToProcess = items;
                     }
+
+                    const existingItemsForChannel = this.allChannelData.get(channel.id) || new Map();
+                    const newIds = idsInFeed.filter(id => !knownItems.has(id));
 
                     if (newIds.length > 0) {
                         this.logMessage(`${newIds.length} new items found for channel ${channel.name}.`);
                         this.playDing();
                         const newVideoIds = items.filter(it => newIds.includes(it.id)).map(i => i.videoId).filter(Boolean);
-                        if (newVideoIds.length > 0) {
+                        if (newVideoIds.length > 0 && !this.isTestMode) {
                             await this.getLiveStatusForVideoIds(newVideoIds, items);
                         }
                         this.updateKnownItems(items, knownItems, newIds, channel.id);
@@ -1144,19 +1185,29 @@
                         }
                     }
 
-                    // A second pass to update all known videos with live status if they don't have it
-                    if (itemsToProcess.length > 0) {
-                        const videosWithoutLiveStatus = itemsToProcess
-                            .filter(item => item.liveStreamingDetails === null)
-                            .map(item => item.videoId)
-                            .filter(Boolean);
-                        if (videosWithoutLiveStatus.length > 0) {
-                            await this.getLiveStatusForVideoIds(videosWithoutLiveStatus, itemsToProcess);
+                    const newMap = new Map();
+                    for(const item of itemsToProcess) {
+                        let existingItem = existingItemsForChannel.get(item.id);
+                        if(existingItem) {
+                            if (item.liveStreamingDetails) {
+                                existingItem.liveStreamingDetails = item.liveStreamingDetails;
+                            }
+                            newMap.set(item.id, existingItem);
+                        } else {
+                            newMap.set(item.id, item);
                         }
                     }
+                    this.allChannelData.set(channel.id, newMap);
 
-                    this.allChannelData.set(channel.id, new Map(itemsToProcess.map(item => [item.id, item])));
-
+                    const allCurrentItems = Array.from(this.allChannelData.get(channel.id).values());
+                    const videosWithoutLiveStatus = allCurrentItems
+                        .filter(item => item.liveStreamingDetails === null)
+                        .map(item => item.videoId)
+                        .filter(Boolean);
+                    if (videosWithoutLiveStatus.length > 0 && !this.isTestMode) {
+                        await this.getLiveStatusForVideoIds(videosWithoutLiveStatus, allCurrentItems);
+                    }
+                    
                     if (channel.id === this.currentChannelId) {
                         this.updateCurrentFeedFromAllChannelData();
                     }
@@ -1177,11 +1228,15 @@
         }
 
         updateCurrentFeedFromAllChannelData() {
-            this.feedMap = this.allChannelData.get(this.currentChannelId) || new Map();
+            if (this.isTestMode) {
+                this.feedMap = this.testModePosts;
+            } else {
+                this.feedMap = this.allChannelData.get(this.currentChannelId) || new Map();
+            }
             this.renderAllItems();
             this.updateTotals();
             this.applyFilter();
-            if (this.feedMap.size === 0) {
+            if (this.feedMap.size === 0 && !this.isTestMode) {
                 this.logMessage('Feed empty — scheduling forced YT status checks every 5 minutes.');
                 this.scheduleForceStatusChecks();
             } else {
@@ -1242,9 +1297,9 @@
                     summary: this.cleanSummary(summary),
                     thumbnail,
                     community: { starRating, ratingCount, views },
+                    videoId,
                     isNew,
                     hasStats,
-                    videoId,
                     liveStreamingDetails: null
                 });
             }
@@ -1254,8 +1309,8 @@
 
         /* ---------- YouTube API (only when needed) ---------- */
         async getLiveStatusForVideoIds(videoIdList = [], items) {
-            if (!this.YT_API_KEY || this.YT_API_KEY === 'AIzaSyAzDe7gqM5P_cGwxreEVtzAbrk-5BubrcM') {
-                this.logMessage('YouTube API key not configured — skipping live status checks.');
+            if (this.isTestMode || !this.YT_API_KEY || this.YT_API_KEY === 'AIzaSyA7j_nUEdvaNeFpJx5tBj4-VzlOpKXTkCg') {
+                this.logMessage('YouTube API key not configured or Test Mode active — skipping live status checks.');
                 return;
             }
             if (!videoIdList || videoIdList.length === 0) {
@@ -1330,7 +1385,6 @@
             let newBadgeHtml = item.isNew ? `<div class="new-badge">NEW</div>` : '';
             let communityCopyText = '';
 
-            // Improved logic to check for live and scheduled videos
             const isLive = item.liveStreamingDetails && item.liveStreamingDetails.actualStartTime && !item.liveStreamingDetails.actualEndTime;
             const isScheduled = item.liveStreamingDetails && item.liveStreamingDetails.scheduledStartTime && !item.liveStreamingDetails.actualStartTime;
             const isReleased = !item.liveStreamingDetails || (!item.liveStreamingDetails.actualStartTime && !item.liveStreamingDetails.scheduledStartTime) || (item.liveStreamingDetails.actualEndTime);
@@ -1451,7 +1505,7 @@
             const item = this.feedMap.get(id);
             if (!item) return;
             const title = this.isTranslationEnabled && item.translatedTitle ? item.translatedTitle : item.originalTitle;
-            const communityCopyText = item.hasStats ? `\n\n📈 ⭐${'⭐'.repeat(Math.round(parseFloat(item.community.starRating || 0)))} (${item.community.starRating} avg) • 👀 ${new Intl.NumberFormat('en-IN').format(item.community.views)}` : '';
+            const communityCopyText = item.hasStats ? `\n\n📈 ⭐⭐⭐⭐⭐ (${item.community.starRating} avg) • 👀 ${new Intl.NumberFormat('en-IN').format(item.community.views)}` : '';
 
             let text;
             if (item.liveStreamingDetails && item.liveStreamingDetails.actualStartTime && !item.liveStreamingDetails.actualEndTime) {
@@ -1630,13 +1684,19 @@
             const live = Array.from(this.feedMap.values()).filter(item => item.liveStreamingDetails && item.liveStreamingDetails.actualStartTime && !item.liveStreamingDetails.actualEndTime).length;
             const newCount = Array.from(this.feedMap.values()).filter(i => i.isNew).length;
 
-            document.querySelector('[data-filter="all"]').textContent = `All (${total})`;
-            document.querySelector('[data-filter="new"]').textContent = `New (${newCount})`;
-            document.querySelector('[data-filter="released"]').textContent = `Released (${released})`;
-            document.querySelector('[data-filter="scheduled"]').textContent = `Scheduled (${scheduled})`;
-            document.querySelector('[data-filter="live"]').textContent = `Live (${live})`;
+            this.filterBtns['all'].textContent = `All (${total})`;
+            this.filterBtns['new'].textContent = `New (${newCount})`;
+            this.filterBtns['released'].textContent = `Released (${released})`;
+            this.filterBtns['scheduled'].textContent = `Scheduled (${scheduled})`;
+            this.filterBtns['live'].textContent = `Live (${live})`;
+            
             this.totalPostsEl.textContent = total;
             this.newPostsEl.textContent = newCount;
+
+            this.filterBtns['new'].style.display = newCount > 0 ? 'inline-block' : 'none';
+            this.filterBtns['released'].style.display = released > 0 ? 'inline-block' : 'none';
+            this.filterBtns['scheduled'].style.display = scheduled > 0 ? 'inline-block' : 'none';
+            this.filterBtns['live'].style.display = live > 0 ? 'inline-block' : 'none';
         }
 
         setStatus(text, className) {
@@ -1698,7 +1758,7 @@
                     list.appendChild(box);
                     this.loadingBox = box;
                 } else {
-                    this.loadingBox.textContent = 'No posts found for this channel.';
+                    this.loadingBox.textContent = this.isTestMode ? 'Generating test posts...' : 'No posts found for this channel.';
                 }
             } else {
                 if (this.loadingBox) { this.loadingBox.remove(); this.loadingBox = null; }
@@ -1708,7 +1768,6 @@
                     list.appendChild(node);
                 }
             }
-
             this.updateTotals();
             this.applyFilter();
         }
@@ -1739,40 +1798,131 @@
         /* ---------- multiple channel logic ---------- */
         loadChannelFeeds() {
             this.currentChannelId = this.channelSelectEl.value;
-            const currentChannel = this.channels.find(c => c.id === this.currentChannelId);
-            if (!currentChannel) {
-                console.error("Default channel not found.");
-                return;
+            this.feedMap = this.allChannelData.get(this.currentChannelId) || new Map();
+            
+            if (this.isTestMode) {
+                this.feedMap = this.testModePosts;
             }
-            this.logMessage(`Switching to channel: ${currentChannel.name}`);
-            this.feedMap.clear();
 
-            const existingData = this.allChannelData.get(this.currentChannelId);
-            if (existingData) {
-                this.feedMap = existingData;
-                this.renderAllItems();
-            } else {
-                this.feedMap.clear();
-                this.renderAllItems();
-                const list = this.getOrCreateList();
-                if (!this.loadingBox) {
-                    const box = document.createElement('div');
-                    box.id = 'loadingBox';
-                    box.style.padding = '28px';
-                    box.style.textAlign = 'center';
-                    box.style.color = 'var(--text-muted)';
-                    box.innerHTML = `<div style="width:56px;height:56px;border-radius:50%;border:6px solid rgba(255,255,255,0.04);border-top-color:var(--accent-primary);margin:0 auto 12px;animation:spin 1s linear infinite"></div>Loading RSS feed...`;
-                    list.appendChild(box);
-                    this.loadingBox = box;
-                }
-            }
+            this.renderAllItems();
         }
 
         async switchChannel(channelId) {
             this.currentChannelId = channelId;
+            this.channelSelectEl.value = channelId; 
             this.loadChannelFeeds();
             this.setStatus('Fetching...', 'loading');
             await this.fetchFeeds();
+        }
+
+        /* ---------- TESTING MODE ---------- */
+        toggleTestMode() {
+            this.isTestMode = !this.isTestMode;
+            this.allChannelData.clear();
+            
+            if (this.isTestMode) {
+                this.logMessage('Entering TEST MODE. Real channels are hidden.');
+                this.mainTitleEl.textContent = 'Testing Mode';
+                this.channels = [
+                    { id: 'TEST-1', name: 'Test-1', feedUrl: 'https://www.youtube.com/feeds/videos.xml?channel_id=UC_aEa8K-EOJ3D6gOs7HcyNg' },
+                    { id: 'TEST-2', name: 'Test-2', feedUrl: 'https://www.youtube.com/feeds/videos.xml?channel_id=UC_aEa8K-EOJ3D6gOs7HcyNg' },
+                    { id: 'TEST-3', name: 'Test-3', feedUrl: 'https://www.youtube.com/feeds/videos.xml?channel_id=UC_aEa8K-EOJ3D6gOs7HcyNg' },
+                    { id: 'TEST-4', name: 'Test-4', feedUrl: 'https://www.youtube.com/feeds/videos.xml?channel_id=UC_aEa8K-EOJ3D6gOs7HcyNg' },
+                    { id: 'TEST-5', name: 'Test-5', feedUrl: 'https://www.youtube.com/feeds/videos.xml?channel_id=UC_aEa8K-EOJ3D6gOs7HcyNg' }
+                ];
+                this.currentChannelId = this.channels[0].id;
+                this.updateChannelSelector(this.channels);
+                this.generateTestPosts();
+                this.loadChannelFeeds();
+                this.startTestMode();
+            } else {
+                this.logMessage('Exiting TEST MODE. Restoring real channels.');
+                this.mainTitleEl.textContent = 'Prayer Rss Feed';
+                this.stopTestMode();
+                this.channels = [...this.initialChannels];
+                this.currentChannelId = this.initialChannels[0].id;
+                this.updateChannelSelector(this.channels);
+                this.loadChannelFeeds();
+                this.fetchFeeds();
+            }
+        }
+
+        generateTestPosts() {
+            this.testModePosts.clear();
+            const now = new Date();
+            const generatePost = (id, title, published, isNew, liveDetails = null) => {
+                const vidId = `test_vid_${id}`;
+                return {
+                    id: `yt:video:${vidId}`,
+                    title: title,
+                    originalTitle: title,
+                    translatedTitle: null,
+                    link: `https://www.youtube.com/watch?v=${vidId}`,
+                    published: this.parseDateTime(published.toISOString()),
+                    updated: this.parseDateTime(published.toISOString()),
+                    summary: `This is a test post for Test Mode with ID ${id}. This post is for demonstration purposes only.`,
+                    thumbnail: `https://i.ytimg.com/vi/${vidId}/hqdefault.jpg`,
+                    community: { starRating: '4.85', ratingCount: '12345', views: Math.floor(Math.random() * 500000) + 1000 },
+                    videoId: vidId,
+                    isNew: isNew,
+                    hasStats: true,
+                    liveStreamingDetails: liveDetails
+                };
+            };
+
+            // Live post (always new for testing)
+            const livePost = generatePost(
+                'live',
+                'Live Prayer Service - Test Stream',
+                now,
+                true,
+                { actualStartTime: now.toISOString(), scheduledStartTime: now.toISOString() }
+            );
+            this.testModePosts.set(livePost.id, livePost);
+
+            // Scheduled post
+            const scheduledTime = new Date(now.getTime() + 60 * 60 * 1000); // 1 hour from now
+            const scheduledPost = generatePost(
+                'scheduled',
+                'Scheduled: Daily Bible Reading - Test',
+                now,
+                true,
+                { scheduledStartTime: scheduledTime.toISOString() }
+            );
+            this.testModePosts.set(scheduledPost.id, scheduledPost);
+
+            // 15 released posts (some old, some new)
+            for (let i = 1; i <= 15; i++) {
+                const isNew = i <= 3; // First 3 posts are "new"
+                const daysAgo = i * 2;
+                const publishedDate = new Date(now.getTime() - daysAgo * 24 * 60 * 60 * 1000);
+                const post = generatePost(
+                    `released_${i}`,
+                    `Message for the Day - Part ${i}`,
+                    publishedDate,
+                    isNew
+                );
+                this.testModePosts.set(post.id, post);
+            }
+        }
+
+        startTestMode() {
+            this.clearAllIntervals();
+            this.updateCurrentFeedFromAllChannelData();
+            this.showMessage('Test Mode active. Generating posts...');
+            this.setStatus('Test Mode Active', 'connected');
+            this.updateLastUpdateTime();
+        }
+
+        stopTestMode() {
+            this.clearAllIntervals();
+            this.fetchInterval = setInterval(() => this.fetchFeeds(), this.pollIntervalMs);
+            this.clearForceStatusChecks();
+        }
+
+        clearAllIntervals() {
+            if(this.fetchInterval) clearInterval(this.fetchInterval);
+            if(this.testModeInterval) clearInterval(this.testModeInterval);
         }
     }
 
@@ -1793,7 +1943,7 @@
         const app = new RSSFeedReader({
             channels: channels,
             defaultChannelId: 'UCbg8V1kty3s1kcCch2VHwEw',
-            YT_API_KEY: 'AIzaSyA7j_nUEdvaNeFpJx5tBj4-VzlOpKXTkCg', // <--- Replace this with your key
+            YT_API_KEY: 'AIzaSyAzDe7gqM5P_cGwxreEVtzAbrk-5BubrcM', // <--- Replace this with your key
             pollIntervalMs: 60000,
             forceStatusIntervalMs: 5 * 60 * 1000
         });
@@ -1802,8 +1952,8 @@
 
         function tickDebugTimers() {
             const now = Date.now();
-            app.feedTimerEl.textContent = app.msToMMSS(Math.max(0, app.nextFeedFetchAt - now));
-            app.ytTimerEl.textContent = app.msToMMSS(Math.max(0, app.nextYTApiAt - now));
+            app.feedTimerEl.textContent = app.isTestMode ? "Test Mode" : app.msToMMSS(Math.max(0, app.nextFeedFetchAt - now));
+            app.ytTimerEl.textContent = app.isTestMode ? "Disabled" : app.msToMMSS(Math.max(0, app.nextYTApiAt - now));
         }
 
         setInterval(tickDebugTimers, 1000);
@@ -1814,16 +1964,24 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             document.addEventListener('keydown', (e) => {
-                if (e.ctrlKey || e.metaKey) {
-                    switch (e.key) {
+                if (e.shiftKey) {
+                    switch (e.key.toLowerCase()) {
                         case 'r':
                             e.preventDefault();
-                            app.fetchFeeds();
-                            app.showMessage('Manual refresh triggered!');
+                            if (app.isTestMode) {
+                                app.showMessage('Cannot manually refresh in Test Mode. It refreshes automatically.');
+                            } else {
+                                app.fetchFeeds();
+                                app.showMessage('Manual refresh triggered!');
+                            }
                             break;
                         case ',':
                             e.preventDefault();
                             app.openModal();
+                            break;
+                        case 't':
+                            e.preventDefault();
+                            app.toggleTestMode();
                             break;
                     }
                 }
@@ -1909,7 +2067,7 @@
   `;
         document.head.appendChild(style);
 
-        document.getElementById('openSettings').setAttribute('title', 'Ctrl/Cmd + , to open');
+        document.getElementById('openSettings').setAttribute('title', 'Shift + , to open');
     })();
 </script>
 </body>
