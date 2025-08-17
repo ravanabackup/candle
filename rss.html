@@ -1378,7 +1378,7 @@
                 const views = community?.getElementsByTagNameNS('http://search.yahoo.com/mrss/', 'statistics')[0]?.getAttribute('views') || '0';
 
                 const videoId = this.extractVideoId(link);
-                const thumbnail = videoId ? `https://cors.kawiesh.top/https://i2.ytimg.com/vi/${videoId}/hqdefault.jpg` : null;
+                const thumbnail = videoId ? `https://cors.kawiesh.top/https://i2.ytimg.com/vi/${videoId}/maxresdefault.jpg` : null;
                 const isNew = !knownItems.has(id);
                 const hasStats = parseInt(views) > 0;
 
@@ -2016,7 +2016,7 @@
                     published: this.parseDateTime(published.toISOString()),
                     updated: this.parseDateTime(published.toISOString()),
                     summary: `This is a test post for Test Mode with ID ${id}. This post is for demonstration purposes only.`,
-                    thumbnail: `https://i.ytimg.com/vi/${vidId}/hqdefault.jpg`,
+                    thumbnail: `https://i.ytimg.com/vi/${vidId}/maxresdefault.jpg`,
                     community: { starRating: '4.85', ratingCount: '12345', views: Math.floor(Math.random() * 500000) + 1000 },
                     videoId: vidId,
                     isNew: isNew,
