@@ -24,8 +24,25 @@
       -webkit-backdrop-filter: blur(16px) brightness(.7);
       text-shadow:0 4px 8px rgba(0,0,0,.6);
       transition:opacity .2s ease;
+      line-height: 1.4;
     }
-    /* Loader */
+    .verse-reference {
+      margin-top: 20px;
+      font-size: 0.8em;
+      font-style: italic;
+      opacity: 0.9;
+      border-top: 1px solid rgba(255,255,255,0.3);
+      padding-top: 15px;
+    }
+    #watermark {
+      position: absolute;
+      bottom: 10px;
+      right: 15px;
+      font-size: 12px;
+      opacity: 0.6;
+      color: #fff;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+    }
     #imageLoader{
       position:absolute;inset:0;display:none;place-items:center;background:rgba(0,0,0,.25);
     }
@@ -34,13 +51,14 @@
       border:4px solid rgba(255,255,255,.25);border-top-color:#fff;animation:spin 1s linear infinite;
     }
     @keyframes spin{to{transform:rotate(360deg)}}
-
-    textarea{
-      width:600px;max-width:95vw;height:150px;margin-top:20px;padding:15px;border-radius:12px;
-      border:1px solid #444;background:#1e1e1e;color:#fff;resize:vertical;font-size:16px;
+    textarea,input,select{
+      width:600px;max-width:95vw;margin-top:10px;padding:12px;border-radius:12px;
+      border:1px solid #444;background:#1e1e1e;color:#fff;font-size:16px;
     }
-    textarea:focus{outline:none;border-color:#8ab4f8;box-shadow:0 0 0 2px #8ab4f8}
-
+    textarea{height:120px;resize:vertical}
+    input:focus,textarea:focus,select:focus{outline:none;border-color:#8ab4f8;box-shadow:0 0 0 2px #8ab4f8}
+    #bibleModeBox{margin-top:20px;display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+    #bibleModeBox select,#bibleModeBox input{flex:1 1 30%}
     #buttons{margin-top:10px;display:none;justify-content:center;flex-wrap:wrap}
     button{
       margin:10px;padding:12px 24px;border:0;border-radius:20px;background:#3c4043;color:#fff;cursor:pointer;
@@ -49,22 +67,36 @@
     }
     button:hover{background:#5f6368;transform:translateY(-2px)}
     button:disabled{opacity:.6;cursor:not-allowed;transform:none}
-
     .status{margin-top:10px;padding:10px;border-radius:8px;font-size:14px;text-align:center;display:none}
     .success{background:rgba(76,175,80,.18);color:#4CAF50;border:1px solid #4CAF50}
     .error{background:rgba(244,67,54,.18);color:#F44336;border:1px solid #F44336}
+    #watermarkToggle{margin-top:15px;display:flex;align-items:center;gap:6px;font-size:14px;}
   </style>
 </head>
 <body>
   <h2>Bible Verse Quote Generator</h2>
 
   <textarea id="inputVerse" placeholder="Paste Bible verse here..."></textarea>
-  <button id="btnGenerate" onclick="generateVerse()">Generate</button>
+  <button id="btnGenerate" onclick="generateVerse()">Generate (Manual)</button>
+
+  <div id="bibleModeBox">
+    <select id="bookSelect"></select>
+    <input id="chapterInput" type="number" placeholder="Chapter" min="1">
+    <input id="verseStartInput" type="number" placeholder="Start Verse" min="1">
+    <input id="verseEndInput" type="number" placeholder="End Verse (optional)" min="1">
+    <button onclick="generateBibleVerse()">Generate (Bible Mode)</button>
+  </div>
+
+  <div id="watermarkToggle">
+    <input type="checkbox" id="wmCheck" checked>
+    <label for="wmCheck">Show Watermark</label>
+  </div>
 
   <div id="container">
     <img id="bgImage" crossOrigin="anonymous" src="" alt="Background">
     <div id="imageLoader"><div class="spinner" aria-label="loading"></div></div>
     <div id="verseText"></div>
+    <div id="watermark">fb.com/sajinmsimon</div>
   </div>
 
   <div id="buttons">
@@ -75,19 +107,40 @@
   </div>
 
   <div id="status" class="status"></div>
-
   <canvas id="canvas" style="display:none;"></canvas>
 
   <script>
-    // --- helpers ---
+    const bibleBooks = [
+      "Genesis","Exodus","Leviticus","Numbers","Deuteronomy","Joshua","Judges","Ruth",
+      "1 Samuel","2 Samuel","1 Kings","2 Kings","1 Chronicles","2 Chronicles","Ezra","Nehemiah","Esther","Job","Psalms",
+      "Proverbs","Ecclesiastes","Song of Solomon","Isaiah","Jeremiah","Lamentations","Ezekiel","Daniel","Hosea","Joel","Amos",
+      "Obadiah","Jonah","Micah","Nahum","Habakkuk","Zephaniah","Haggai","Zechariah","Malachi",
+      "Matthew","Mark","Luke","John","Acts","Romans","1 Corinthians","2 Corinthians","Galatians","Ephesians","Philippians","Colossians",
+      "1 Thessalonians","2 Thessalonians","1 Timothy","2 Timothy","Titus","Philemon","Hebrews","James","1 Peter","2 Peter",
+      "1 John","2 John","3 John","Jude","Revelation"
+    ];
     const $ = s => document.querySelector(s);
     const loader = $('#imageLoader');
-    const container = $('#container');
     const bgImage = $('#bgImage');
     const verseBox = $('#verseText');
     const statusEl = $('#status');
     const buttons = $('#buttons');
+    const watermark = $('#watermark');
     let busy = false;
+    let currentVerseText = '';
+    let currentReference = '';
+
+    const bookSelect = $('#bookSelect');
+    bibleBooks.forEach(b => {
+      const opt = document.createElement('option');
+      opt.value = b; opt.textContent = b;
+      bookSelect.appendChild(opt);
+    });
+
+    // Update watermark visibility
+    $('#wmCheck').addEventListener('change', function() {
+      watermark.style.display = this.checked ? 'block' : 'none';
+    });
 
     window.onload = refreshImage;
 
@@ -99,212 +152,335 @@
       showStatus._t = setTimeout(()=>statusEl.style.display='none', 2800);
     }
 
+    function getImageDimensions(textLength) {
+      if (textLength < 100) {
+        return { width: 800, height: 500 }; // Small image for short text
+      } else if (textLength < 300) {
+        return { width: 1000, height: 600 }; // Medium image
+      } else if (textLength < 600) {
+        return { width: 1200, height: 700 }; // Large image
+      } else {
+        return { width: 1400, height: 800 }; // Extra large for very long text
+      }
+    }
+
     function adjustFontSize(text){
       const len = text.length;
       if (len < 50) return 48;
       if (len < 120) return 36;
       if (len < 200) return 28;
-      return 24;
+      if (len < 400) return 24;
+      return 20; // Smaller font for very long text
     }
 
     function setBusy(on){
       busy = on;
       loader.style.display = on ? 'grid' : 'none';
-      $('#btnDownload')?.toggleAttribute('disabled', on);
-      $('#btnCopy')?.toggleAttribute('disabled', on);
-      $('#btnRefresh')?.toggleAttribute('disabled', on);
-      $('#btnGenerate')?.toggleAttribute('disabled', on);
+      ['#btnDownload','#btnCopy','#btnRefresh','#btnGenerate'].forEach(id=>{
+        $(id)?.toggleAttribute('disabled', on);
+      });
     }
 
     function generateVerse(){
       const verse = $('#inputVerse').value.trim();
       if(!verse){ showStatus('Please enter a Bible verse.','error'); return; }
-      // Preview text + size
-      verseBox.textContent = verse;
-      verseBox.style.fontSize = adjustFontSize(verse) + 'px';
+      
+      // Check if verse already has reference format (ends with — Book Chapter:Verse)
+      const referenceMatch = verse.match(/\n?—\s*(.+)$/);
+      if (referenceMatch) {
+        currentVerseText = verse.replace(/\n?—\s*(.+)$/, '').trim();
+        currentReference = referenceMatch[1];
+      } else {
+        currentVerseText = verse;
+        currentReference = '';
+      }
+      
+      updateVerseDisplay();
       buttons.style.display = 'flex';
+      
+      // Refresh image with new dimensions based on text length
+      refreshImage();
     }
 
-    function refreshImage(){
+    function updateVerseDisplay() {
+      if (currentReference) {
+        verseBox.innerHTML = `
+          <div style="font-size: ${adjustFontSize(currentVerseText)}px;">${currentVerseText}</div>
+          <div class="verse-reference">${currentReference}</div>
+        `;
+      } else {
+        verseBox.innerHTML = `<div style="font-size: ${adjustFontSize(currentVerseText)}px;">${currentVerseText}</div>`;
+      }
+    }
+
+    async function generateBibleVerse(){
+      const book = bookSelect.value;
+      const chap = $('#chapterInput').value.trim();
+      const verseStart = $('#verseStartInput').value.trim();
+      const verseEnd = $('#verseEndInput').value.trim();
+      
+      if(!book || !chap || !verseStart){ 
+        showStatus('Please fill book, chapter, and start verse fields','error'); 
+        return; 
+      }
+      
+      setBusy(true);
+      try{
+        let passage, reference;
+        
+        if (verseEnd && verseEnd !== verseStart) {
+          // Range of verses
+          passage = `${book} ${chap}:${verseStart}-${verseEnd}`;
+          reference = `${book} ${chap}:${verseStart}-${verseEnd}`;
+        } else {
+          // Single verse
+          passage = `${book} ${chap}:${verseStart}`;
+          reference = `${book} ${chap}:${verseStart}`;
+        }
+        
+        const url = `https://labs.bible.org/api/?passage=${encodeURIComponent(passage)}&type=text`;
+        const res = await fetch(url);
+        let text = await res.text();
+        text = text.replace(/<[^>]+>/g,"").trim();
+        
+        // Remove verse numbers from the beginning of lines
+        text = text.replace(/^\d+:\d+\s*/gm, "");
+        // Clean up extra whitespace
+        text = text.replace(/\s+/g, ' ').trim();
+        
+        currentVerseText = text;
+        currentReference = reference;
+        
+        const finalText = `${text}\n— ${reference}`;
+        $('#inputVerse').value = finalText;
+        
+        updateVerseDisplay();
+        buttons.style.display = 'flex';
+        showStatus('Verse(s) loaded!');
+        
+        // Refresh image with new dimensions based on text length
+        refreshImage();
+        
+      }catch(e){
+        console.error(e);
+        showStatus('Error fetching verse','error');
+      }finally{
+        setBusy(false);
+      }
+    }
+
+    async function refreshImage(retryCount = 0){
       if (busy) return;
       setBusy(true);
       const t = Date.now();
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
-      img.src = `https://picsum.photos/1000?blur&t=${t}`;
-      img.onload = () => { bgImage.src = img.src; setBusy(false); showStatus('Background image loaded!'); };
-      img.onerror = () => { setBusy(false); showStatus('Failed to load image.','error'); };
-      bgImage.style.opacity = '0';
-      img.decode?.().finally(()=>{ bgImage.style.opacity = '1'; });
+      
+      // Determine image size based on current text length
+      let dimensions = { width: 1000, height: 600 }; // default
+      if (currentVerseText) {
+        dimensions = getImageDimensions(currentVerseText.length);
+      }
+      
+      const tryLoadImage = (src, maxRetries = 5) => {
+        return new Promise((resolve, reject) => {
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
+          img.src = src;
+          
+          img.onload = () => resolve(img);
+          img.onerror = () => {
+            if (retryCount < maxRetries) {
+              console.log(`Retrying image load... attempt ${retryCount + 1}`);
+              setTimeout(() => {
+                refreshImage(retryCount + 1);
+              }, 1000);
+            } else {
+              reject(new Error('Failed to load image after retries'));
+            }
+          };
+        });
+      };
+
+      try {
+        // Try Picsum first with dynamic dimensions
+        const img = await tryLoadImage(`https://picsum.photos/${dimensions.width}/${dimensions.height}?blur=5`);
+        bgImage.src = img.src;
+        setBusy(false);
+        showStatus(`Background image loaded! (${dimensions.width}x${dimensions.height})`);
+      } catch (e) {
+        try {
+          // Fallback to Unsplash with dynamic dimensions
+          const fallbackImg = await tryLoadImage(`https://source.unsplash.com/random/${dimensions.width}x${dimensions.height}/?nature,sky,landscape&${t}`);
+          bgImage.src = fallbackImg.src;
+          setBusy(false);
+          showStatus(`Fallback image loaded! (${dimensions.width}x${dimensions.height})`);
+        } catch (e2) {
+          setBusy(false);
+          showStatus('Failed to load image after multiple attempts.','error');
+        }
+      }
     }
 
-    // Text wrapping (supports newlines)
-    function wrapText(ctx, text, maxWidth, lineHeight){
-      const paras = text.split(/\r\n|\r|\n/);
-      const lines = [];
-      for(const para of paras){
-        if(para.trim()===''){ lines.push(''); continue; }
-        const words = para.split(' ');
-        let line = '';
-        for(let i=0;i<words.length;i++){
-          const test = line + words[i] + ' ';
-          if(ctx.measureText(test).width > maxWidth && i>0){
-            lines.push(line.trim());
-            line = words[i] + ' ';
-          }else{
-            line = test;
+    async function drawToCanvas(){
+      const canvas = $('#canvas');
+      const ctx = canvas.getContext('2d');
+      
+      // Set canvas size based on text length
+      const dimensions = currentVerseText ? getImageDimensions(currentVerseText.length) : { width: 1000, height: 600 };
+      canvas.width = dimensions.width;
+      canvas.height = dimensions.height;
+      
+      // Draw background image
+      if (bgImage.src) {
+        ctx.drawImage(bgImage, 0, 0, canvas.width, canvas.height);
+      }
+      
+      // Apply blur effect overlay
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      // Draw verse text
+      if (currentVerseText) {
+        ctx.textAlign = 'center';
+        ctx.fillStyle = '#ffffff';
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+        ctx.shadowBlur = 8;
+        ctx.shadowOffsetY = 4;
+        
+        const fontSize = adjustFontSize(currentVerseText);
+        ctx.font = `500 ${fontSize}px system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif`;
+        
+        // Word wrap the text
+        const words = currentVerseText.split(' ');
+        const maxWidth = canvas.width * 0.85; // Increased margin for larger images
+        const lines = [];
+        let currentLine = '';
+        
+        for (let word of words) {
+          const testLine = currentLine + (currentLine ? ' ' : '') + word;
+          const metrics = ctx.measureText(testLine);
+          if (metrics.width > maxWidth && currentLine) {
+            lines.push(currentLine);
+            currentLine = word;
+          } else {
+            currentLine = testLine;
           }
         }
-        if(line.trim()) lines.push(line.trim());
-      }
-      return lines;
-    }
-
-    // Rounded-rect path
-    function roundRectPath(ctx,x,y,w,h,r){
-      const rr = Math.min(r, w/2, h/2);
-      ctx.beginPath();
-      ctx.moveTo(x+rr, y);
-      ctx.arcTo(x+w, y,   x+w, y+h, rr);
-      ctx.arcTo(x+w, y+h, x,   y+h, rr);
-      ctx.arcTo(x,   y+h, x,   y,   rr);
-      ctx.arcTo(x,   y,   x+w, y,   rr);
-      ctx.closePath();
-    }
-
-    // Main render -> canvas that MATCHES preview
-    function drawToCanvas(){
-      return new Promise((resolve,reject)=>{
-        const verse = $('#inputVerse').value.trim();
-        if(!verse) return reject(new Error('No verse entered'));
-
-        // Lock to exactly the image being shown
-        const src = bgImage.currentSrc || bgImage.src;
-        const tempImg = new Image();
-        tempImg.crossOrigin = 'anonymous';
-        tempImg.onload = async function(){
-          const cvs = $('#canvas');
-          const ctx = cvs.getContext('2d');
-          const dpr = 1; // export at native image resolution
-          cvs.width  = tempImg.naturalWidth * dpr;
-          cvs.height = tempImg.naturalHeight * dpr;
-
-          // draw background
-          ctx.drawImage(tempImg, 0, 0, cvs.width, cvs.height);
-
-          // Compute scaling from preview container -> canvas
-          const scaleX = cvs.width / container.clientWidth;
-          const scaleY = cvs.height / container.clientHeight;
-          const scale = Math.min(scaleX, scaleY);
-
-          // Box dimensions (same as preview: width 90% of container)
-          const boxW = Math.round(container.clientWidth * 0.90 * scaleX);
-          // font from preview sizing heuristic
-          const previewFontPx = adjustFontSize(verse);
-          const fontPx = previewFontPx * scale;
-          const pad = parseFloat(getComputedStyle(verseBox).paddingLeft) * scaleX; // 20px * scale
-          const lineHeight = fontPx * 1.2;
-
-          ctx.font = `500 ${fontPx}px Roboto, Arial, sans-serif`;
-
-          // Wrap text using the SAME width as the visual box minus padding
-          const maxTextW = boxW - pad*2;
-          const lines = wrapText(ctx, verse, maxTextW, lineHeight);
-          const textH = lines.length * lineHeight;
-
-          const boxH = Math.round(textH + pad*2);
-          const boxX = Math.round((cvs.width - boxW)/2);
-          const boxY = Math.round((cvs.height - boxH)/2);
-
-          // Frosted background that matches CSS backdrop-filter:
-          // 1) crop & blur the area from the original image into an offscreen canvas
-          const frost = document.createElement('canvas');
-          frost.width = boxW; frost.height = boxH;
-          const fctx = frost.getContext('2d');
-          // apply blur + darken similar to 'brightness(.7)'
-          fctx.filter = `blur(${16*scale}px) brightness(.7)`;
-          // draw the original image offset so only the box area shows
-          fctx.drawImage(tempImg, -boxX, -boxY, cvs.width, cvs.height);
-
-          // 2) draw that blurred patch into a rounded-rect clip
-          ctx.save();
-          roundRectPath(ctx, boxX, boxY, boxW, boxH, 12 * scale);
-          ctx.clip();
-          ctx.drawImage(frost, boxX, boxY);
-          // subtle frosted tint
-          ctx.fillStyle = 'rgba(255,255,255,.08)';
-          ctx.fillRect(boxX, boxY, boxW, boxH);
-          ctx.restore();
-
-          // Optional soft border for glass
-          ctx.save();
-          roundRectPath(ctx, boxX, boxY, boxW, boxH, 12 * scale);
-          ctx.strokeStyle = 'rgba(255,255,255,.18)';
-          ctx.lineWidth = Math.max(1, 1 * scale);
+        if (currentLine) lines.push(currentLine);
+        
+        // Draw main text
+        const lineHeight = fontSize * 1.4;
+        const totalHeight = lines.length * lineHeight + (currentReference ? 60 : 0);
+        let startY = (canvas.height - totalHeight) / 2;
+        
+        lines.forEach((line, index) => {
+          ctx.fillText(line, canvas.width / 2, startY + index * lineHeight);
+        });
+        
+        // Draw reference if it exists
+        if (currentReference) {
+          startY += lines.length * lineHeight + 30;
+          
+          // Draw separator line
+          ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(canvas.width * 0.3, startY);
+          ctx.lineTo(canvas.width * 0.7, startY);
           ctx.stroke();
-          ctx.restore();
-
-          // Draw text centered inside the box
-          ctx.fillStyle = '#fff';
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          ctx.shadowColor = 'rgba(0,0,0,.6)';
-          ctx.shadowBlur = 8 * scale;
-          const cx = boxX + boxW/2;
-          let y = boxY + pad + lineHeight/2;
-          for(const ln of lines){
-            if (ln === '') { y += lineHeight; continue; }
-            ctx.fillText(ln, cx, y);
-            y += lineHeight;
-          }
-
-          resolve(cvs);
-        };
-        tempImg.onerror = () => reject(new Error('Failed to load background image'));
-        tempImg.src = src;
-      });
+          
+          // Draw reference text
+          ctx.font = `italic 400 ${fontSize * 0.8}px system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif`;
+          ctx.globalAlpha = 0.9;
+          ctx.fillText(currentReference, canvas.width / 2, startY + 30);
+          ctx.globalAlpha = 1;
+        }
+      }
+      
+      // Draw watermark if enabled
+      if ($('#wmCheck').checked) {
+        ctx.font = '12px system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif';
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+        ctx.shadowBlur = 3;
+        ctx.textAlign = 'right';
+        ctx.fillText('fb.com/sajinmsimon', canvas.width - 15, canvas.height - 10);
+      }
     }
 
     async function downloadImage(){
-      try{
-        setBusy(true);
-        const canvas = await drawToCanvas();
+      if (!currentVerseText) {
+        showStatus('Please generate a verse first.', 'error');
+        return;
+      }
+      
+      setBusy(true);
+      try {
+        await drawToCanvas();
+        const canvas = $('#canvas');
         const link = document.createElement('a');
         link.download = 'bible-verse.png';
         link.href = canvas.toDataURL('image/png');
         link.click();
-        showStatus('Image downloaded!');
-      }catch(err){
-        console.error(err); showStatus('Download failed','error');
-      }finally{
+        showStatus('Image downloaded successfully!');
+      } catch (e) {
+        console.error(e);
+        showStatus('Failed to download image.', 'error');
+      } finally {
         setBusy(false);
       }
     }
 
     async function copyImage(){
-      try{
-        setBusy(true);
-        const canvas = await drawToCanvas();
-        const dataUrl = canvas.toDataURL('image/png');
-        const blob = await (await fetch(dataUrl)).blob(); // quick & reliable
-        await navigator.clipboard.write([new ClipboardItem({'image/png': blob})]);
-        showStatus('Image copied to clipboard!');
-      }catch(err){
-        console.error(err); showStatus('Copy failed','error');
-      }finally{
+      if (!currentVerseText) {
+        showStatus('Please generate a verse first.', 'error');
+        return;
+      }
+      
+      setBusy(true);
+      try {
+        await drawToCanvas();
+        const canvas = $('#canvas');
+        canvas.toBlob(async (blob) => {
+          try {
+            await navigator.clipboard.write([
+              new ClipboardItem({ 'image/png': blob })
+            ]);
+            showStatus('Image copied to clipboard!');
+          } catch (e) {
+            console.error(e);
+            showStatus('Failed to copy image. Please try download instead.', 'error');
+          } finally {
+            setBusy(false);
+          }
+        }, 'image/png');
+      } catch (e) {
+        console.error(e);
+        showStatus('Failed to copy image.', 'error');
         setBusy(false);
       }
     }
 
     function shareVerse(){
-      const verse = $('#inputVerse').value.trim();
-      if(!verse){ showStatus('Please enter a verse first','error'); return; }
-      if(navigator.share){
-        navigator.share({ title:'Bible Verse', text:verse, url:location.href })
-          .then(()=>showStatus('Shared!'))
-          .catch(()=>navigator.clipboard.writeText(verse).then(()=>showStatus('Verse copied!')));
-      }else{
-        navigator.clipboard.writeText(verse).then(()=>showStatus('Verse copied!'));
+      if (!currentVerseText) {
+        showStatus('Please generate a verse first.', 'error');
+        return;
+      }
+      
+      const shareText = currentReference ? 
+        `${currentVerseText}\n— ${currentReference}` : 
+        currentVerseText;
+      
+      if (navigator.share) {
+        navigator.share({
+          title: 'Bible Verse',
+          text: shareText
+        }).catch(e => console.log('Share cancelled'));
+      } else {
+        // Fallback: copy to clipboard
+        navigator.clipboard.writeText(shareText).then(() => {
+          showStatus('Verse copied to clipboard!');
+        }).catch(() => {
+          showStatus('Unable to share. Please copy manually.', 'error');
+        });
       }
     }
   </script>
