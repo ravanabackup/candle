@@ -7,65 +7,101 @@
     body {
       background-color: #121212;
       color: #fff;
-      font-family: 'Segoe UI', sans-serif;
+      font-family: 'Roboto', sans-serif;
       display: flex;
       flex-direction: column;
       align-items: center;
       padding: 20px;
     }
+
     #container {
       position: relative;
       width: 600px;
       max-width: 95vw;
+      margin-top: 20px;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+      overflow: hidden;
     }
+
     #bgImage {
       width: 100%;
-      border-radius: 10px;
+      height: auto;
       display: block;
+      transition: transform 0.3s ease;
     }
+
     #verseText {
       position: absolute;
       top: 50%;
       left: 50%;
-      transform: translateX(-50%);
-      width: 80%;
+      transform: translate(-50%, -50%);
+      width: 90%;
       text-align: center;
       color: #fff;
-      font-weight: bold;
+      font-weight: 500;
       word-wrap: break-word;
-      padding: 15px;
-      border-radius: 10px;
-      backdrop-filter: blur(12px) brightness(0.6);
-      -webkit-backdrop-filter: blur(12px) brightness(0.6);
-      text-shadow: 2px 2px 6px rgba(0,0,0,0.9);
+      padding: 20px;
+      border-radius: 12px;
+      backdrop-filter: blur(16px) brightness(0.7);
+      -webkit-backdrop-filter: blur(16px) brightness(0.7);
+      text-shadow: 0 4px 8px rgba(0, 0, 0, 0.6);
+      transition: all 0.5s ease;
     }
+
     textarea {
       width: 600px;
       max-width: 95vw;
-      height: 80px;
-      padding: 10px;
-      border-radius: 8px;
-      border: none;
+      height: 100px;
+      padding: 15px;
+      border-radius: 12px;
+      border: 1px solid #444;
       margin-top: 20px;
       resize: vertical;
       font-size: 16px;
+      background-color: #1e1e1e;
+      color: #fff;
+      box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.3);
+      transition: border-color 0.3s ease;
     }
+
+    textarea:focus {
+      outline: none;
+      border-color: #8ab4f8;
+      box-shadow: 0 0 0 2px #8ab4f8;
+    }
+
     button {
       margin: 10px;
-      padding: 10px 20px;
+      padding: 12px 24px;
       border: none;
-      border-radius: 8px;
-      background: #333;
+      border-radius: 20px;
+      background: #3c4043;
       color: #fff;
       cursor: pointer;
       font-size: 16px;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+      transition: background 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
     }
+
     button:hover {
-      background: #444;
+      background: #5f6368;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
     }
+
+    button:active {
+      transform: translateY(0);
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
+    }
+
     #buttons {
       margin-top: 10px;
       display: none;
+      justify-content: center;
+      flex-wrap: wrap;
     }
   </style>
 </head>
@@ -73,7 +109,6 @@
   <h2>Bible Verse Quote Generator</h2>
 
   <textarea id="inputVerse" placeholder="Paste Bible verse here..."></textarea>
-  <br>
   <button onclick="generateVerse()">Generate</button>
 
   <div id="container">
@@ -91,7 +126,7 @@
 
   <script>
     function adjustFontSize(text) {
-      let length = text.length;
+      const length = text.length;
       if (length < 50) return "32px";
       if (length < 120) return "28px";
       if (length < 200) return "24px";
@@ -99,48 +134,70 @@
     }
 
     function generateVerse() {
-      const verse = document.getElementById("inputVerse").value;
-      if (!verse.trim()) return;
-
+      const verse = document.getElementById("inputVerse").value.trim();
+      if (!verse) {
+        alert("Please enter a Bible verse.");
+        return;
+      }
       const verseText = document.getElementById("verseText");
       verseText.innerText = verse;
       verseText.style.fontSize = adjustFontSize(verse);
-
-      document.getElementById("buttons").style.display = "block";
+      document.getElementById("buttons").style.display = "flex";
     }
 
     function drawToCanvas(callback) {
-      const verse = document.getElementById("inputVerse").value;
+      const verse = document.getElementById("inputVerse").value.trim();
+      if (!verse) return;
+      
       const canvas = document.getElementById("canvas");
       const ctx = canvas.getContext("2d");
       const img = document.getElementById("bgImage");
 
-      canvas.width = img.naturalWidth;
-      canvas.height = img.naturalHeight;
+      img.onload = () => {
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
 
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
-      // semi-transparent blur panel
-      ctx.fillStyle = "rgba(0,0,0,0.5)";
-      ctx.fillRect(canvas.width * 0.1, canvas.height * 0.2 - 40, canvas.width * 0.8, 200);
+        // Backdrop panel
+        ctx.save();
+        ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.restore();
 
-      ctx.fillStyle = "white";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.font = adjustFontSize(verse) + " 'Segoe UI'";
-      ctx.shadowColor = "black";
-      ctx.shadowBlur = 8;
+        // Watermark
+        const watermarkText = "@iamsajin";
+        ctx.font = "20px 'Roboto'";
+        ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
+        ctx.textAlign = "right";
+        ctx.textBaseline = "bottom";
+        ctx.shadowColor = "black";
+        ctx.shadowBlur = 4;
+        ctx.fillText(watermarkText, canvas.width - 20, canvas.height - 20);
 
-      wrapText(ctx, verse, canvas.width / 2, canvas.height * 0.3, canvas.width * 0.75, 40);
+        // Verse Text
+        ctx.font = adjustFontSize(verse) + " 'Roboto'";
+        ctx.fillStyle = "white";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.shadowColor = "black";
+        ctx.shadowBlur = 8;
+        wrapText(ctx, verse, canvas.width / 2, canvas.height / 2, canvas.width * 0.75, 40);
 
-      callback(canvas);
+        callback(canvas);
+      };
+      
+      if (img.complete) {
+        img.onload();
+      }
     }
 
     function downloadImage() {
       drawToCanvas((canvas) => {
         const link = document.createElement("a");
         link.download = "bible-verse.png";
-        link.href = canvas.toDataURL();
+        link.href = canvas.toDataURL("image/png");
         link.click();
       });
     }
@@ -149,43 +206,55 @@
       drawToCanvas(async (canvas) => {
         canvas.toBlob(async (blob) => {
           try {
-            await navigator.clipboard.write([
-              new ClipboardItem({ "image/png": blob })
-            ]);
-            alert("Image copied to clipboard!");
+            if (navigator.clipboard) {
+              const item = new ClipboardItem({ "image/png": blob });
+              await navigator.clipboard.write([item]);
+              alert("Image copied to clipboard!");
+            } else {
+              alert("Copy failed: Clipboard API not supported.");
+            }
           } catch (err) {
-            alert("Copy failed: " + err);
+            console.error("Copy failed:", err);
+            alert("Copy failed: " + err.message);
           }
-        });
+        }, "image/png");
       });
     }
 
     function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
       const words = text.split(" ");
       let line = "";
+      const lines = [];
       for (let n = 0; n < words.length; n++) {
         let testLine = line + words[n] + " ";
         let metrics = ctx.measureText(testLine);
         let testWidth = metrics.width;
         if (testWidth > maxWidth && n > 0) {
-          ctx.fillText(line, x, y);
+          lines.push(line.trim());
           line = words[n] + " ";
-          y += lineHeight;
         } else {
           line = testLine;
         }
       }
-      ctx.fillText(line, x, y);
+      lines.push(line.trim());
+
+      let totalHeight = lines.length * lineHeight;
+      let startY = y - totalHeight / 2 + lineHeight / 2;
+
+      for (let i = 0; i < lines.length; i++) {
+        ctx.fillText(lines[i], x, startY + i * lineHeight);
+      }
     }
 
     function shareVerse() {
-      const verse = document.getElementById("inputVerse").value;
+      const verse = document.getElementById("inputVerse").value.trim();
+      if (!verse) return;
       if (navigator.share) {
         navigator.share({
           title: "Bible Verse",
           text: verse,
           url: window.location.href
-        });
+        }).catch((error) => console.log('Error sharing', error));
       } else {
         alert("Sharing not supported in this browser.");
       }
