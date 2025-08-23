@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Bible Verse Quote Generator</title>
+  <style>
+    body {
+      background-color: #121212;
+      color: #fff;
+      font-family: 'Roboto', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+
+    #container {
+      position: relative;
+      width: 600px;
+      max-width: 95vw;
+      margin-top: 20px;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+      overflow: hidden;
+    }
+
+    #bgImage {
+      width: 100%;
+      height: auto;
+      display: block;
+      transition: transform 0.3s ease;
+    }
+
+    #verseText {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 90%;
+      text-align: center;
+      color: #fff;
+      font-weight: 500;
+      word-wrap: break-word;
+      padding: 20px;
+      border-radius: 12px;
+      backdrop-filter: blur(16px) brightness(0.7);
+      -webkit-backdrop-filter: blur(16px) brightness(0.7);
+      text-shadow: 0 4px 8px rgba(0, 0, 0, 0.6);
+      transition: all 0.5s ease;
+    }
+
+    textarea {
+      width: 600px;
+      max-width: 95vw;
+      height: 150px;
+      padding: 15px;
+      border-radius: 12px;
+      border: 1px solid #444;
+      margin-top: 20px;
+      resize: vertical;
+      font-size: 16px;
+      background-color: #1e1e1e;
+      color: #fff;
+      box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.3);
+      transition: border-color 0.3s ease;
+    }
+
+    textarea:focus {
+      outline: none;
+      border-color: #8ab4f8;
+      box-shadow: 0 0 0 2px #8ab4f8;
+    }
+
+    button {
+      margin: 10px;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 20px;
+      background: #3c4043;
+      color: #fff;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+      transition: background 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
+    }
+
+    button:hover {
+      background: #5f6368;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+    }
+
+    button:active {
+      transform: translateY(0);
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
+    }
+
+    #buttons {
+      margin-top: 10px;
+      display: none;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .status {
+      margin-top: 10px;
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 14px;
+      text-align: center;
+      display: none;
+    }
+
+    .success {
+      background-color: rgba(76, 175, 80, 0.2);
+      color: #4CAF50;
+      border: 1px solid #4CAF50;
+    }
+
+    .error {
+      background-color: rgba(244, 67, 54, 0.2);
+      color: #F44336;
+      border: 1px solid #F44336;
+    }
+  </style>
+</head>
+<body>
+  <h2>Bible Verse Quote Generator</h2>
+
+  <textarea id="inputVerse" placeholder="Paste Bible verse here..."></textarea>
+  <button onclick="generateVerse()">Generate</button>
+
+  <div id="container">
+    <img id="bgImage" src="https://picsum.photos/1000?blur" alt="Background" crossorigin="anonymous" onerror="handleImageError(this)">
+    <div id="verseText"></div>
+  </div>
+
+  <div id="buttons">
+    <button onclick="downloadImage()">Download</button>
+    <button onclick="copyImage()">Copy</button>
+    <button onclick="shareVerse()">Share</button>
+    <button onclick="refreshImage()">Refresh Image</button>
+  </div>
+
+  <div id="status" class="status"></div>
+
+  <canvas id="canvas" style="display:none;"></canvas>
+
+  <script>
+    function handleImageError(img) {
+      // Fallback to a solid background with gradient
+      const canvas = document.createElement('canvas');
+      canvas.width = 800;
+      canvas.height = 1200;
+      const ctx = canvas.getContext('2d');
+      
+      // Create a beautiful gradient background
+      const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      gradient.addColorStop(0, '#1e3c72');
+      gradient.addColorStop(0.5, '#2a5298');
+      gradient.addColorStop(1, '#1e3c72');
+      
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      // Add some texture/pattern
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
+      for (let i = 0; i < 20; i++) {
+        ctx.beginPath();
+        ctx.arc(Math.random() * canvas.width, Math.random() * canvas.height, Math.random() * 50, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      
+      img.src = canvas.toDataURL();
+    }
+
+    function showStatus(message, type = 'success') {
+      const statusEl = document.getElementById('status');
+      statusEl.textContent = message;
+      statusEl.className = `status ${type}`;
+      statusEl.style.display = 'block';
+      setTimeout(() => {
+        statusEl.style.display = 'none';
+      }, 3000);
+    }
+
+    function adjustFontSize(text) {
+      const length = text.length;
+      if (length < 50) return 48;
+      if (length < 120) return 36;
+      if (length < 200) return 28;
+      return 24;
+    }
+
+    function generateVerse() {
+      const verse = document.getElementById("inputVerse").value.trim();
+      if (!verse) {
+        showStatus("Please enter a Bible verse.", 'error');
+        return;
+      }
+      const verseText = document.getElementById("verseText");
+      verseText.innerText = verse;
+      verseText.style.fontSize = adjustFontSize(verse) + "px";
+      document.getElementById("buttons").style.display = "flex";
+    }
+
+    function refreshImage() {
+      const bgImage = document.getElementById("bgImage");
+      // Add a timestamp to force a new image from Picsum
+      const timestamp = new Date().getTime();
+      bgImage.src = `https://picsum.photos/1000?blur&t=${timestamp}`;
+      showStatus("Background image refreshed!");
+    }
+
+    function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
+      // First split by manual line breaks (Enter key)
+      const paragraphs = text.split(/\r\n|\r|\n/);
+      const lines = [];
+
+      paragraphs.forEach((paragraph, paragraphIndex) => {
+        // Add empty line for line breaks (except for the first paragraph)
+        if (paragraphIndex > 0) {
+          lines.push(""); // This creates the spacing for manual line breaks
+        }
+
+        if (paragraph.trim() === "") {
+          lines.push(""); // Preserve empty lines
+          return;
+        }
+
+        // Now handle word wrapping for each paragraph
+        const words = paragraph.split(" ");
+        let line = "";
+
+        for (let n = 0; n < words.length; n++) {
+          let testLine = line + words[n] + " ";
+          let metrics = ctx.measureText(testLine);
+          let testWidth = metrics.width;
+
+          if (testWidth > maxWidth && n > 0) {
+            lines.push(line.trim());
+            line = words[n] + " ";
+          } else {
+            line = testLine;
+          }
+        }
+        if (line.trim()) {
+          lines.push(line.trim());
+        }
+      });
+
+      return lines;
+    }
+
+    function drawToCanvas() {
+      return new Promise((resolve, reject) => {
+        const verse = document.getElementById("inputVerse").value.trim();
+        if (!verse) {
+          reject(new Error("No verse entered"));
+          return;
+        }
+
+        const canvas = document.getElementById("canvas");
+        const ctx = canvas.getContext("2d");
+        const img = document.getElementById("bgImage");
+        const container = document.getElementById("container");
+        const verseTextEl = document.getElementById("verseText");
+
+        const tempImg = new Image();
+        tempImg.crossOrigin = "anonymous";
+
+        tempImg.onload = function () {
+          try {
+            // Use the natural image dimensions
+            canvas.width = tempImg.naturalWidth;
+            canvas.height = tempImg.naturalHeight;
+
+            // Draw background image
+            ctx.drawImage(tempImg, 0, 0, canvas.width, canvas.height);
+
+            // Get the exact text content and styling from preview
+            const previewRect = verseTextEl.getBoundingClientRect();
+            const containerRect = container.getBoundingClientRect();
+            const computedStyle = window.getComputedStyle(verseTextEl);
+            
+            // Calculate exact scaling factors
+            const scaleX = canvas.width / container.offsetWidth;
+            const scaleY = canvas.height / container.offsetHeight;
+            
+            // Get exact font size from preview
+            const previewFontSize = parseFloat(computedStyle.fontSize);
+            const fontSize = previewFontSize * Math.min(scaleX, scaleY);
+
+            // Use exact same font setup as CSS
+            ctx.font = `500 ${fontSize}px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+
+            // Get exact positioning from preview element
+            const textWidth = previewRect.width * scaleX;
+            const textHeight = previewRect.height * scaleY;
+            
+            // Calculate exact center position (same as CSS transform: translate(-50%, -50%))
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+
+            // Create backdrop that matches CSS backdrop-filter exactly
+            const padding = 20 * Math.min(scaleX, scaleY);
+            const backdropWidth = textWidth + padding;
+            const backdropHeight = textHeight + padding;
+            const backdropX = centerX - backdropWidth / 2;
+            const backdropY = centerY - backdropHeight / 2;
+
+            // Extract the backdrop area
+            const imageData = ctx.getImageData(backdropX, backdropY, backdropWidth, backdropHeight);
+            
+            // Create temporary canvas for backdrop effect
+            const backdropCanvas = document.createElement("canvas");
+            backdropCanvas.width = backdropWidth;
+            backdropCanvas.height = backdropHeight;
+            const backdropCtx = backdropCanvas.getContext("2d");
+            
+            // Draw the extracted area
+            backdropCtx.putImageData(imageData, 0, 0);
+            
+            // Apply blur and brightness to match CSS backdrop-filter: blur(16px) brightness(0.7)
+            backdropCtx.filter = 'blur(16px) brightness(0.7)';
+            backdropCtx.drawImage(backdropCanvas, 0, 0);
+            
+            // Draw blurred backdrop back to main canvas
+            ctx.drawImage(backdropCanvas, backdropX, backdropY);
+
+            // Calculate line height and wrap text exactly as preview does
+            const lineHeight = fontSize * 1.2;
+            const maxWidth = textWidth * 0.9; // Match CSS width: 90%
+            const lines = wrapText(ctx, verse, centerX, centerY, maxWidth, lineHeight);
+            
+            const totalTextHeight = lines.length * lineHeight;
+
+            // Draw text with exact same shadow as CSS: text-shadow: 0 4px 8px rgba(0, 0, 0, 0.6)
+            ctx.fillStyle = "white";
+            ctx.shadowColor = "rgba(0, 0, 0, 0.6)";
+            ctx.shadowBlur = 8 * Math.min(scaleX, scaleY);
+            ctx.shadowOffsetX = 0;
+            ctx.shadowOffsetY = 4 * Math.min(scaleX, scaleY);
+
+            // Position text exactly in center
+            const startY = centerY - totalTextHeight / 2 + lineHeight / 2;
+            for (let i = 0; i < lines.length; i++) {
+              // Only draw non-empty lines (empty lines create spacing)
+              if (lines[i] !== "") {
+                ctx.fillText(lines[i], centerX, startY + i * lineHeight);
+              }
+            }
+
+            // Add watermark with no shadow
+            ctx.save();
+            ctx.shadowBlur = 0;
+            ctx.shadowOffsetX = 0;
+            ctx.shadowOffsetY = 0;
+            const watermarkSize = Math.max(12, 16 * Math.min(scaleX, scaleY));
+            ctx.font = `${watermarkSize}px Arial, sans-serif`;
+            ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
+            ctx.textAlign = "right";
+            ctx.textBaseline = "bottom";
+            ctx.fillText("@iamsajin", canvas.width - 20 * Math.min(scaleX, scaleY), canvas.height - 20 * Math.min(scaleX, scaleY));
+            ctx.restore();
+
+            resolve(canvas);
+          } catch (error) {
+            reject(error);
+          }
+        };
+
+        tempImg.onerror = function () {
+          reject(new Error("Failed to load background image"));
+        };
+
+        tempImg.src = img.src;
+      });
+    }
+
+    async function downloadImage() {
+      try {
+        const canvas = await drawToCanvas();
+        const link = document.createElement("a");
+        link.download = "bible-verse.png";
+        link.href = canvas.toDataURL("image/png", 1.0);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        showStatus("Image downloaded successfully!");
+      } catch (error) {
+        console.error("Download failed:", error);
+        showStatus("Download failed: " + error.message, 'error');
+      }
+    }
+
+    async function copyImage() {
+      try {
+        const canvas = await drawToCanvas();
+        const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png', 1.0));
+        if (!blob) throw new Error("Failed to create image blob");
+
+        const item = new ClipboardItem({ "image/png": blob });
+        await navigator.clipboard.write([item]);
+        showStatus("Image copied to clipboard!");
+      } catch (error) {
+        console.error("Copy failed:", error);
+        showStatus("Copy failed: " + error.message, 'error');
+      }
+    }
+
+    function shareVerse() {
+      const verse = document.getElementById("inputVerse").value.trim();
+      if (!verse) {
+        showStatus("Please enter a verse first", 'error');
+        return;
+      }
+
+      if (navigator.share) {
+        navigator.share({
+          title: "Bible Verse",
+          text: verse,
+          url: window.location.href
+        }).then(() => {
+          showStatus("Shared successfully!");
+        }).catch((error) => {
+          console.error('Error sharing:', error);
+          fallbackShare(verse);
+        });
+      } else {
+        fallbackShare(verse);
+      }
+    }
+
+    function fallbackShare(verse) {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(verse).then(() => {
+          showStatus("Verse copied to clipboard for sharing!");
+        }).catch(() => {
+          showStatus("Sharing not supported in this browser", 'error');
+        });
+      }
+    }
+  </script>
+</body>
+</html>
