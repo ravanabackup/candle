@@ -47,17 +47,25 @@
       -webkit-backdrop-filter: blur(16px) brightness(0.7);
       text-shadow: 0 4px 8px rgba(0, 0, 0, 0.6);
       transition: all 0.5s ease;
+      line-height: 1.4;
     }
 
-    textarea {
+    .verse-reference {
+      margin-top: 20px;
+      font-size: 0.8em;
+      font-style: italic;
+      opacity: 0.9;
+      border-top: 1px solid rgba(255,255,255,0.3);
+      padding-top: 15px;
+    }
+
+    textarea, input, select {
       width: 600px;
       max-width: 95vw;
-      height: 150px;
       padding: 15px;
       border-radius: 12px;
       border: 1px solid #444;
       margin-top: 20px;
-      resize: vertical;
       font-size: 16px;
       background-color: #1e1e1e;
       color: #fff;
@@ -65,10 +73,32 @@
       transition: border-color 0.3s ease;
     }
 
-    textarea:focus {
+    textarea {
+      height: 150px;
+      resize: vertical;
+    }
+
+    input, select {
+      height: 50px;
+    }
+
+    textarea:focus, input:focus, select:focus {
       outline: none;
       border-color: #8ab4f8;
       box-shadow: 0 0 0 2px #8ab4f8;
+    }
+
+    #bibleModeBox {
+      margin-top: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+    }
+
+    #bibleModeBox select, #bibleModeBox input {
+      flex: 1 1 30%;
+      min-width: 150px;
     }
 
     button {
@@ -95,6 +125,12 @@
     button:active {
       transform: translateY(0);
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
     }
 
     #buttons {
@@ -124,13 +160,42 @@
       color: #F44336;
       border: 1px solid #F44336;
     }
+
+    .loading {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .loading::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      animation: loading 1.5s infinite;
+    }
+
+    @keyframes loading {
+      0% { left: -100%; }
+      100% { left: 100%; }
+    }
   </style>
 </head>
 <body>
   <h2>Bible Verse Quote Generator</h2>
 
   <textarea id="inputVerse" placeholder="Paste Bible verse here..."></textarea>
-  <button onclick="generateVerse()">Generate</button>
+  <button onclick="generateVerse()">Generate (Manual)</button>
+
+  <div id="bibleModeBox">
+    <select id="bookSelect"></select>
+    <input id="chapterInput" type="number" placeholder="Chapter" min="1">
+    <input id="verseStartInput" type="number" placeholder="Start Verse" min="1">
+    <input id="verseEndInput" type="number" placeholder="End Verse (optional)" min="1">
+    <button onclick="generateBibleVerse()">Generate (Bible Mode)</button>
+  </div>
 
   <div id="container">
     <img id="bgImage" src="https://i.ibb.co/B23M6FPn/Kreupasanam-Mathavu-sajin.png" alt="Background" crossorigin="anonymous" onerror="handleImageError(this)">
@@ -148,6 +213,29 @@
   <canvas id="canvas" style="display:none;"></canvas>
 
   <script>
+    const bibleBooks = [
+      "Genesis","Exodus","Leviticus","Numbers","Deuteronomy","Joshua","Judges","Ruth",
+      "1 Samuel","2 Samuel","1 Kings","2 Kings","1 Chronicles","2 Chronicles","Ezra","Nehemiah","Esther","Job","Psalms",
+      "Proverbs","Ecclesiastes","Song of Solomon","Isaiah","Jeremiah","Lamentations","Ezekiel","Daniel","Hosea","Joel","Amos",
+      "Obadiah","Jonah","Micah","Nahum","Habakkuk","Zephaniah","Haggai","Zechariah","Malachi",
+      "Matthew","Mark","Luke","John","Acts","Romans","1 Corinthians","2 Corinthians","Galatians","Ephesians","Philippians","Colossians",
+      "1 Thessalonians","2 Thessalonians","1 Timothy","2 Timothy","Titus","Philemon","Hebrews","James","1 Peter","2 Peter",
+      "1 John","2 John","3 John","Jude","Revelation"
+    ];
+
+    let currentVerseText = '';
+    let currentReference = '';
+    let busy = false;
+
+    // Initialize book dropdown
+    const bookSelect = document.getElementById('bookSelect');
+    bibleBooks.forEach(book => {
+      const option = document.createElement('option');
+      option.value = book;
+      option.textContent = book;
+      bookSelect.appendChild(option);
+    });
+
     function handleImageError(img) {
       // Fallback to a solid background with gradient
       const canvas = document.createElement('canvas');
@@ -180,7 +268,8 @@
       statusEl.textContent = message;
       statusEl.className = `status ${type}`;
       statusEl.style.display = 'block';
-      setTimeout(() => {
+      clearTimeout(showStatus._timeout);
+      showStatus._timeout = setTimeout(() => {
         statusEl.style.display = 'none';
       }, 3000);
     }
@@ -193,16 +282,112 @@
       return 24;
     }
 
+    function setBusy(on) {
+      busy = on;
+      const buttons = document.querySelectorAll('button');
+      buttons.forEach(btn => {
+        btn.disabled = on;
+        if (on) {
+          btn.classList.add('loading');
+        } else {
+          btn.classList.remove('loading');
+        }
+      });
+    }
+
+    function updateVerseDisplay() {
+      const verseTextEl = document.getElementById("verseText");
+      if (currentReference) {
+        verseTextEl.innerHTML = `
+          <div style="font-size: ${adjustFontSize(currentVerseText)}px;">${currentVerseText}</div>
+          <div class="verse-reference">${currentReference}</div>
+        `;
+      } else {
+        verseTextEl.innerHTML = `<div style="font-size: ${adjustFontSize(currentVerseText)}px;">${currentVerseText}</div>`;
+      }
+    }
+
     function generateVerse() {
       const verse = document.getElementById("inputVerse").value.trim();
       if (!verse) {
         showStatus("Please enter a Bible verse.", 'error');
         return;
       }
-      const verseText = document.getElementById("verseText");
-      verseText.innerText = verse;
-      verseText.style.fontSize = adjustFontSize(verse) + "px";
+      
+      // Check if verse already has reference format (ends with — Book Chapter:Verse)
+      const referenceMatch = verse.match(/\n?—\s*(.+)$/);
+      if (referenceMatch) {
+        currentVerseText = verse.replace(/\n?—\s*(.+)$/, '').trim();
+        currentReference = referenceMatch[1];
+      } else {
+        currentVerseText = verse;
+        currentReference = '';
+      }
+      
+      updateVerseDisplay();
       document.getElementById("buttons").style.display = "flex";
+    }
+
+    async function generateBibleVerse() {
+      const book = bookSelect.value;
+      const chapter = document.getElementById('chapterInput').value.trim();
+      const verseStart = document.getElementById('verseStartInput').value.trim();
+      const verseEnd = document.getElementById('verseEndInput').value.trim();
+      
+      if (!book || !chapter || !verseStart) {
+        showStatus('Please fill book, chapter, and start verse fields', 'error');
+        return;
+      }
+      
+      setBusy(true);
+      try {
+        let passage, reference;
+        
+        if (verseEnd && verseEnd !== verseStart) {
+          // Range of verses
+          passage = `${book} ${chapter}:${verseStart}-${verseEnd}`;
+          reference = `${book} ${chapter}:${verseStart}-${verseEnd}`;
+        } else {
+          // Single verse
+          passage = `${book} ${chapter}:${verseStart}`;
+          reference = `${book} ${chapter}:${verseStart}`;
+        }
+        
+        const url = `https://labs.bible.org/api/?passage=${encodeURIComponent(passage)}&type=text`;
+        const response = await fetch(url);
+        let text = await response.text();
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch verse');
+        }
+        
+        // Clean up the text
+        text = text.replace(/<[^>]+>/g, "").trim();
+        // Remove verse numbers from the beginning of lines
+        text = text.replace(/^\d+:\d+\s*/gm, "");
+        // Clean up extra whitespace
+        text = text.replace(/\s+/g, ' ').trim();
+        
+        if (!text) {
+          throw new Error('No verse found. Please check the reference.');
+        }
+        
+        currentVerseText = text;
+        currentReference = reference;
+        
+        const finalText = `${text}\n— ${reference}`;
+        document.getElementById('inputVerse').value = finalText;
+        
+        updateVerseDisplay();
+        document.getElementById("buttons").style.display = "flex";
+        showStatus('Verse(s) loaded successfully!');
+        
+      } catch (error) {
+        console.error('Error fetching verse:', error);
+        showStatus('Error fetching verse: ' + error.message, 'error');
+      } finally {
+        setBusy(false);
+      }
     }
 
     function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
@@ -247,8 +432,7 @@
 
     function drawToCanvas() {
       return new Promise((resolve, reject) => {
-        const verse = document.getElementById("inputVerse").value.trim();
-        if (!verse) {
+        if (!currentVerseText) {
           reject(new Error("No verse entered"));
           return;
         }
@@ -323,27 +507,54 @@
             // Draw blurred backdrop back to main canvas
             ctx.drawImage(backdropCanvas, backdropX, backdropY);
 
-            // Calculate line height and wrap text exactly as preview does
-            const lineHeight = fontSize * 1.2;
-            const maxWidth = textWidth * 0.9; // Match CSS width: 90%
-            const lines = wrapText(ctx, verse, centerX, centerY, maxWidth, lineHeight);
-            
-            const totalTextHeight = lines.length * lineHeight;
-
-            // Draw text with exact same shadow as CSS: text-shadow: 0 4px 8px rgba(0, 0, 0, 0.6)
+            // Draw main verse text
             ctx.fillStyle = "white";
             ctx.shadowColor = "rgba(0, 0, 0, 0.6)";
             ctx.shadowBlur = 8 * Math.min(scaleX, scaleY);
             ctx.shadowOffsetX = 0;
             ctx.shadowOffsetY = 4 * Math.min(scaleX, scaleY);
 
-            // Position text exactly in center
-            const startY = centerY - totalTextHeight / 2 + lineHeight / 2;
-            for (let i = 0; i < lines.length; i++) {
-              // Only draw non-empty lines (empty lines create spacing)
-              if (lines[i] !== "") {
-                ctx.fillText(lines[i], centerX, startY + i * lineHeight);
+            const lineHeight = fontSize * 1.2;
+            const maxWidth = textWidth * 0.9;
+            const mainLines = wrapText(ctx, currentVerseText, centerX, centerY, maxWidth, lineHeight);
+            
+            let totalHeight = mainLines.length * lineHeight;
+            if (currentReference) {
+              totalHeight += 60; // Space for reference
+            }
+            
+            let startY = centerY - totalHeight / 2 + lineHeight / 2;
+            
+            // Draw main text lines
+            for (let i = 0; i < mainLines.length; i++) {
+              if (mainLines[i] !== "") {
+                ctx.fillText(mainLines[i], centerX, startY + i * lineHeight);
               }
+            }
+            
+            // Draw reference if it exists
+            if (currentReference) {
+              startY += mainLines.length * lineHeight + 30;
+              
+              // Draw separator line
+              ctx.save();
+              ctx.shadowBlur = 0;
+              ctx.shadowOffsetX = 0;
+              ctx.shadowOffsetY = 0;
+              ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+              ctx.lineWidth = 1;
+              ctx.beginPath();
+              ctx.moveTo(centerX - textWidth * 0.2, startY);
+              ctx.lineTo(centerX + textWidth * 0.2, startY);
+              ctx.stroke();
+              ctx.restore();
+              
+              // Draw reference text
+              ctx.save();
+              ctx.font = `italic 400 ${fontSize * 0.8}px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+              ctx.globalAlpha = 0.9;
+              ctx.fillText(currentReference, centerX, startY + 30);
+              ctx.restore();
             }
 
             // Add watermark with no shadow
@@ -374,7 +585,13 @@
     }
 
     async function downloadImage() {
+      if (!currentVerseText) {
+        showStatus("Please generate a verse first.", 'error');
+        return;
+      }
+      
       try {
+        setBusy(true);
         const canvas = await drawToCanvas();
         const link = document.createElement("a");
         link.download = "bible-verse.png";
@@ -386,11 +603,19 @@
       } catch (error) {
         console.error("Download failed:", error);
         showStatus("Download failed: " + error.message, 'error');
+      } finally {
+        setBusy(false);
       }
     }
 
     async function copyImage() {
+      if (!currentVerseText) {
+        showStatus("Please generate a verse first.", 'error');
+        return;
+      }
+      
       try {
+        setBusy(true);
         const canvas = await drawToCanvas();
         const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png', 1.0));
         if (!blob) throw new Error("Failed to create image blob");
@@ -401,29 +626,34 @@
       } catch (error) {
         console.error("Copy failed:", error);
         showStatus("Copy failed: " + error.message, 'error');
+      } finally {
+        setBusy(false);
       }
     }
 
     function shareVerse() {
-      const verse = document.getElementById("inputVerse").value.trim();
-      if (!verse) {
-        showStatus("Please enter a verse first", 'error');
+      if (!currentVerseText) {
+        showStatus("Please generate a verse first", 'error');
         return;
       }
+
+      const shareText = currentReference ? 
+        `${currentVerseText}\n— ${currentReference}` : 
+        currentVerseText;
 
       if (navigator.share) {
         navigator.share({
           title: "Bible Verse",
-          text: verse,
+          text: shareText,
           url: window.location.href
         }).then(() => {
           showStatus("Shared successfully!");
         }).catch((error) => {
           console.error('Error sharing:', error);
-          fallbackShare(verse);
+          fallbackShare(shareText);
         });
       } else {
-        fallbackShare(verse);
+        fallbackShare(shareText);
       }
     }
 
