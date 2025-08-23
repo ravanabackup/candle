@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Bible Verse Quote Generator</title>
+  <style>
+    body {
+      background-color: #121212;
+      color: #fff;
+      font-family: 'Segoe UI', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+    #container {
+      position: relative;
+      width: 600px;
+      max-width: 95vw;
+    }
+    #bgImage {
+      width: 100%;
+      border-radius: 10px;
+      display: block;
+    }
+    #verseText {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80%;
+      text-align: center;
+      color: #fff;
+      font-weight: bold;
+      word-wrap: break-word;
+      padding: 15px;
+      border-radius: 10px;
+      backdrop-filter: blur(12px) brightness(0.6);
+      -webkit-backdrop-filter: blur(12px) brightness(0.6);
+      text-shadow: 2px 2px 6px rgba(0,0,0,0.9);
+    }
+    textarea {
+      width: 600px;
+      max-width: 95vw;
+      height: 80px;
+      padding: 10px;
+      border-radius: 8px;
+      border: none;
+      margin-top: 20px;
+      resize: vertical;
+      font-size: 16px;
+    }
+    button {
+      margin: 10px;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      background: #333;
+      color: #fff;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    button:hover {
+      background: #444;
+    }
+    #buttons {
+      margin-top: 10px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <h2>Bible Verse Quote Generator</h2>
+
+  <textarea id="inputVerse" placeholder="Paste Bible verse here..."></textarea>
+  <br>
+  <button onclick="generateVerse()">Generate</button>
+
+  <div id="container">
+    <img id="bgImage" src="https://i.ibb.co/B23M6FPn/Kreupasanam-Mathavu-sajin.png" alt="Background">
+    <div id="verseText"></div>
+  </div>
+
+  <div id="buttons">
+    <button onclick="downloadImage()">Download</button>
+    <button onclick="copyImage()">Copy</button>
+    <button onclick="shareVerse()">Share</button>
+  </div>
+
+  <canvas id="canvas" style="display:none;"></canvas>
+
+  <script>
+    function adjustFontSize(text) {
+      let length = text.length;
+      if (length < 50) return "32px";
+      if (length < 120) return "28px";
+      if (length < 200) return "24px";
+      return "20px";
+    }
+
+    function generateVerse() {
+      const verse = document.getElementById("inputVerse").value;
+      if (!verse.trim()) return;
+
+      const verseText = document.getElementById("verseText");
+      verseText.innerText = verse;
+      verseText.style.fontSize = adjustFontSize(verse);
+
+      document.getElementById("buttons").style.display = "block";
+    }
+
+    function drawToCanvas(callback) {
+      const verse = document.getElementById("inputVerse").value;
+      const canvas = document.getElementById("canvas");
+      const ctx = canvas.getContext("2d");
+      const img = document.getElementById("bgImage");
+
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+      // semi-transparent blur panel
+      ctx.fillStyle = "rgba(0,0,0,0.5)";
+      ctx.fillRect(canvas.width * 0.1, canvas.height * 0.2 - 40, canvas.width * 0.8, 200);
+
+      ctx.fillStyle = "white";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.font = adjustFontSize(verse) + " 'Segoe UI'";
+      ctx.shadowColor = "black";
+      ctx.shadowBlur = 8;
+
+      wrapText(ctx, verse, canvas.width / 2, canvas.height * 0.3, canvas.width * 0.75, 40);
+
+      callback(canvas);
+    }
+
+    function downloadImage() {
+      drawToCanvas((canvas) => {
+        const link = document.createElement("a");
+        link.download = "bible-verse.png";
+        link.href = canvas.toDataURL();
+        link.click();
+      });
+    }
+
+    async function copyImage() {
+      drawToCanvas(async (canvas) => {
+        canvas.toBlob(async (blob) => {
+          try {
+            await navigator.clipboard.write([
+              new ClipboardItem({ "image/png": blob })
+            ]);
+            alert("Image copied to clipboard!");
+          } catch (err) {
+            alert("Copy failed: " + err);
+          }
+        });
+      });
+    }
+
+    function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
+      const words = text.split(" ");
+      let line = "";
+      for (let n = 0; n < words.length; n++) {
+        let testLine = line + words[n] + " ";
+        let metrics = ctx.measureText(testLine);
+        let testWidth = metrics.width;
+        if (testWidth > maxWidth && n > 0) {
+          ctx.fillText(line, x, y);
+          line = words[n] + " ";
+          y += lineHeight;
+        } else {
+          line = testLine;
+        }
+      }
+      ctx.fillText(line, x, y);
+    }
+
+    function shareVerse() {
+      const verse = document.getElementById("inputVerse").value;
+      if (navigator.share) {
+        navigator.share({
+          title: "Bible Verse",
+          text: verse,
+          url: window.location.href
+        });
+      } else {
+        alert("Sharing not supported in this browser.");
+      }
+    }
+  </script>
+</body>
+</html>
