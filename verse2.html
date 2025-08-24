@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -19,7 +18,7 @@
     #bgImage{width:100%;display:block;transition:opacity .4s ease}
     #verseText{
       position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
-      width:90%;text-align:center;color:#fff;font-weight:500;word-wrap:break-word;
+      width:90%;text-align:center;color:#fff;font-weight:500;
       padding:var(--pad);border-radius:12px;
       backdrop-filter: blur(16px) brightness(.7);
       -webkit-backdrop-filter: blur(16px) brightness(.7);
@@ -28,12 +27,10 @@
       line-height: 1.4;
     }
     .verse-reference {
-      margin-top: 20px;
-      font-size: 0.8em;
-      font-style: italic;
-      opacity: 0.9;
-      border-top: 1px solid rgba(255,255,255,0.3);
-      padding-top: 15px;
+      font-size: 1.1em;
+      font-weight: bold;
+      margin-bottom: 15px;
+      display: block;
     }
     #watermark {
       position: absolute;
@@ -85,7 +82,7 @@
     <input id="chapterInput" type="number" placeholder="Chapter" min="1">
     <input id="verseStartInput" type="number" placeholder="Start Verse" min="1">
     <input id="verseEndInput" type="number" placeholder="End Verse (optional)" min="1">
-    <button onclick="generateBibleVerse()">Generate (Bible Mode)</button>
+    <button id="btnGenerateBible" onclick="generateBibleVerse()">Generate (Bible Mode)</button>
   </div>
 
   <div id="watermarkToggle">
@@ -138,7 +135,6 @@
       bookSelect.appendChild(opt);
     });
 
-    // Update watermark visibility
     $('#wmCheck').addEventListener('change', function() {
       watermark.style.display = this.checked ? 'block' : 'none';
     });
@@ -153,31 +149,18 @@
       showStatus._t = setTimeout(()=>statusEl.style.display='none', 2800);
     }
 
-    function getImageDimensions(textLength) {
-      if (textLength < 100) {
-        return { width: 800, height: 500 }; // Small image for short text
-      } else if (textLength < 300) {
-        return { width: 1000, height: 600 }; // Medium image
-      } else if (textLength < 600) {
-        return { width: 1200, height: 700 }; // Large image
-      } else {
-        return { width: 1400, height: 800 }; // Extra large for very long text
-      }
-    }
-
     function adjustFontSize(text){
       const len = text.length;
-      if (len < 50) return 48;
-      if (len < 120) return 36;
-      if (len < 200) return 28;
-      if (len < 400) return 24;
-      return 20; // Smaller font for very long text
+      if (len < 80) return 40;
+      if (len < 200) return 32;
+      if (len < 400) return 26;
+      return 22;
     }
 
     function setBusy(on){
       busy = on;
       loader.style.display = on ? 'grid' : 'none';
-      ['#btnDownload','#btnCopy','#btnRefresh','#btnGenerate'].forEach(id=>{
+      ['#btnDownload', '#btnCopy', '#btnRefresh', '#btnGenerate', '#btnGenerateBible'].forEach(id => {
         $(id)?.toggleAttribute('disabled', on);
       });
     }
@@ -186,7 +169,6 @@
       const verse = $('#inputVerse').value.trim();
       if(!verse){ showStatus('Please enter a Bible verse.','error'); return; }
       
-      // Check if verse already has reference format (ends with — Book Chapter:Verse)
       const referenceMatch = verse.match(/\n?—\s*(.+)$/);
       if (referenceMatch) {
         currentVerseText = verse.replace(/\n?—\s*(.+)$/, '').trim();
@@ -198,290 +180,247 @@
       
       updateVerseDisplay();
       buttons.style.display = 'flex';
-      
-      // Refresh image with new dimensions based on text length
       refreshImage();
+    }
+    
+    async function generateBibleVerse(){
+      const book = bookSelect.value;
+      const chapter = $('#chapterInput').value;
+      const verseStart = $('#verseStartInput').value;
+      const verseEnd = $('#verseEndInput').value;
+
+      if (!book || !chapter || !verseStart) {
+        showStatus('Please fill in Book, Chapter, and Start Verse.','error');
+        return;
+      }
+
+      setBusy(true);
+      
+      const passage = `${book} ${chapter}:${verseStart}${verseEnd ? `-${verseEnd}` : ''}`;
+      const url = `https://labs.bible.org/api/?passage=${encodeURIComponent(passage)}&type=text`;
+      
+      try {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error('Network response was not ok.');
+        
+        let text = await res.text();
+        
+        // Remove HTML tags
+        text = text.replace(/<[^>]+>/g,"").trim();
+        
+        // Better verse processing: remove verse numbers and add proper line breaks
+        text = text
+          .replace(/^\d+:\d+\s*/, '') // Remove leading verse number
+          .replace(/\s+(\d+)\s*/g, '\n\n') // Replace verse numbers with double line breaks
+          .replace(/\n{3,}/g, '\n\n') // Limit to max 2 line breaks
+          .trim();
+        
+        if (text === 'Passage not found.' || text === '') {
+          throw new Error('Passage not found.');
+        }
+
+        currentVerseText = text;
+        currentReference = passage;
+        updateVerseDisplay();
+        buttons.style.display = 'flex';
+        refreshImage();
+        showStatus('Verse generated successfully!');
+      } catch (e) {
+        showStatus(`Error: ${e.message}`, 'error');
+      } finally {
+        setBusy(false);
+      }
     }
 
     function updateVerseDisplay() {
+      // Create a temporary canvas to measure text and match the final output
+      const tempCanvas = document.createElement('canvas');
+      const tempCtx = tempCanvas.getContext('2d');
+      
+      const fontSize = adjustFontSize(currentVerseText);
+      tempCtx.font = `${fontSize}px system-ui`;
+      
+      let previewHTML = '';
+      
+      // Add reference if exists
       if (currentReference) {
-        verseBox.innerHTML = `
-          <div style="font-size: ${adjustFontSize(currentVerseText)}px;">${currentVerseText}</div>
-          <div class="verse-reference">${currentReference}</div>
-        `;
-      } else {
-        verseBox.innerHTML = `<div style="font-size: ${adjustFontSize(currentVerseText)}px;">${currentVerseText}</div>`;
-      }
-    }
-
-    async function generateBibleVerse(){
-      const book = bookSelect.value;
-      const chap = $('#chapterInput').value.trim();
-      const verseStart = $('#verseStartInput').value.trim();
-      const verseEnd = $('#verseEndInput').value.trim();
-      
-      if(!book || !chap || !verseStart){ 
-        showStatus('Please fill book, chapter, and start verse fields','error'); 
-        return; 
+        previewHTML += `<span class="verse-reference">${currentReference}</span>`;
       }
       
-      setBusy(true);
-      try{
-        let passage, reference;
+      // Process verse text exactly like canvas does
+      const verses = currentVerseText.split('\n\n').filter(v => v.trim() !== '');
+      const wrappedLines = [];
+      
+      verses.forEach((verse, verseIndex) => {
+        const words = verse.trim().split(" ");
+        let line = "";
         
-        if (verseEnd && verseEnd !== verseStart) {
-          // Range of verses
-          passage = `${book} ${chap}:${verseStart}-${verseEnd}`;
-          reference = `${book} ${chap}:${verseStart}-${verseEnd}`;
-        } else {
-          // Single verse
-          passage = `${book} ${chap}:${verseStart}`;
-          reference = `${book} ${chap}:${verseStart}`;
+        for (let i = 0; i < words.length; i++) {
+          const testLine = line + words[i] + " ";
+          if (tempCtx.measureText(testLine).width > 600 * 0.8) { // Match container width
+            if (line) {
+              wrappedLines.push(line.trim());
+              line = words[i] + " ";
+            } else {
+              wrappedLines.push(words[i]);
+            }
+          } else {
+            line = testLine;
+          }
+        }
+        if (line.trim()) {
+          wrappedLines.push(line.trim());
         }
         
-        const url = `https://labs.bible.org/api/?passage=${encodeURIComponent(passage)}&type=text`;
-        const res = await fetch(url);
-        let text = await res.text();
-        text = text.replace(/<[^>]+>/g,"").trim();
-        
-        // Remove verse numbers from the beginning of lines
-        text = text.replace(/^\d+:\d+\s*/gm, "");
-        // Clean up extra whitespace
-        text = text.replace(/\s+/g, ' ').trim();
-        
-        currentVerseText = text;
-        currentReference = reference;
-        
-        const finalText = `${text}\n— ${reference}`;
-        $('#inputVerse').value = finalText;
-        
-        updateVerseDisplay();
-        buttons.style.display = 'flex';
-        showStatus('Verse(s) loaded!');
-        
-        // Refresh image with new dimensions based on text length
-        refreshImage();
-        
-      }catch(e){
-        console.error(e);
-        showStatus('Error fetching verse','error');
-      }finally{
-        setBusy(false);
-      }
+        // Add spacing between verses (except for the last one)
+        if (verseIndex < verses.length - 1) {
+          wrappedLines.push(""); // Empty line for spacing
+        }
+      });
+      
+      previewHTML += `<div style="font-size:${fontSize}px; line-height: 1.4;">${wrappedLines.join('<br>')}</div>`;
+      verseBox.innerHTML = previewHTML;
     }
 
-    async function refreshImage(retryCount = 0){
+    async function refreshImage(){
       if (busy) return;
       setBusy(true);
-      const t = Date.now();
-      
-      // Determine image size based on current text length
-      let dimensions = { width: 1000, height: 600 }; // default
-      if (currentVerseText) {
-        dimensions = getImageDimensions(currentVerseText.length);
-      }
-      
-      const tryLoadImage = (src, maxRetries = 5) => {
-        return new Promise((resolve, reject) => {
-          const img = new Image();
-          img.crossOrigin = 'anonymous';
-          img.src = src;
-          
-          img.onload = () => resolve(img);
-          img.onerror = () => {
-            if (retryCount < maxRetries) {
-              console.log(`Retrying image load... attempt ${retryCount + 1}`);
-              setTimeout(() => {
-                refreshImage(retryCount + 1);
-              }, 1000);
-            } else {
-              reject(new Error('Failed to load image after retries'));
-            }
-          };
-        });
-      };
-
       try {
-        // Try Picsum first with dynamic dimensions
-        const img = await tryLoadImage(`https://picsum.photos/${dimensions.width}/${dimensions.height}?blur=5`);
-        bgImage.src = img.src;
+        bgImage.src = `https://picsum.photos/1000/600?blur=5&random=${Date.now()}`;
+        bgImage.onload = () => setBusy(false);
+        bgImage.onerror = () => setBusy(false);
+      } catch {
         setBusy(false);
-        showStatus(`Background image loaded! (${dimensions.width}x${dimensions.height})`);
-      } catch (e) {
-        try {
-          // Fallback to Unsplash with dynamic dimensions
-          const fallbackImg = await tryLoadImage(`https://picsum.photos/${dimensions.width}/${dimensions.height}?blur=5`);
-          bgImage.src = fallbackImg.src;
-          setBusy(false);
-          showStatus(`Fallback image loaded! (${dimensions.width}x${dimensions.height})`);
-        } catch (e2) {
-          setBusy(false);
-          showStatus('Failed to load image after multiple attempts.','error');
-        }
       }
     }
 
     async function drawToCanvas(){
       const canvas = $('#canvas');
       const ctx = canvas.getContext('2d');
-      
-      // Set canvas size based on text length
-      const dimensions = currentVerseText ? getImageDimensions(currentVerseText.length) : { width: 1000, height: 600 };
-      canvas.width = dimensions.width;
-      canvas.height = dimensions.height;
+      canvas.width = 1000; 
+      canvas.height = 600;
       
       // Draw background image
-      if (bgImage.src) {
+      if (bgImage.src && bgImage.complete) {
         ctx.drawImage(bgImage, 0, 0, canvas.width, canvas.height);
       }
+
+      // Add dark overlay
+      ctx.fillStyle = 'rgba(0,0,0,0.3)';
+      ctx.fillRect(0,0,canvas.width,canvas.height);
+
+      // Text settings
+      ctx.fillStyle = '#fff';
+      ctx.textAlign = 'center';
+      ctx.shadowColor = 'rgba(0,0,0,0.8)';
+      ctx.shadowBlur = 6;
+      ctx.shadowOffsetY = 3;
+
+      // Calculate starting position - center vertically
+      const fontSize = adjustFontSize(currentVerseText);
+      const lineHeight = fontSize * 1.4;
       
-      // Apply blur effect overlay
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      // Count total lines needed
+      const lines = [];
       
-      // Draw verse text
-      if (currentVerseText) {
-        ctx.textAlign = 'center';
-        ctx.fillStyle = '#ffffff';
-        ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
-        ctx.shadowBlur = 8;
-        ctx.shadowOffsetY = 4;
-        
-        const fontSize = adjustFontSize(currentVerseText);
-        ctx.font = `500 ${fontSize}px system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif`;
-        
-        // Word wrap the text
-        const words = currentVerseText.split(' ');
-        const maxWidth = canvas.width * 0.85; // Increased margin for larger images
-        const lines = [];
-        let currentLine = '';
-        
-        for (let word of words) {
-          const testLine = currentLine + (currentLine ? ' ' : '') + word;
-          const metrics = ctx.measureText(testLine);
-          if (metrics.width > maxWidth && currentLine) {
-            lines.push(currentLine);
-            currentLine = word;
-          } else {
-            currentLine = testLine;
-          }
-        }
-        if (currentLine) lines.push(currentLine);
-        
-        // Draw main text
-        const lineHeight = fontSize * 1.4;
-        const totalHeight = lines.length * lineHeight + (currentReference ? 60 : 0);
-        let startY = (canvas.height - totalHeight) / 2;
-        
-        lines.forEach((line, index) => {
-          ctx.fillText(line, canvas.width / 2, startY + index * lineHeight);
-        });
-        
-        // Draw reference if it exists
-        if (currentReference) {
-          startY += lines.length * lineHeight + 30;
-          
-          // Draw separator line
-          ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
-          ctx.lineWidth = 1;
-          ctx.beginPath();
-          ctx.moveTo(canvas.width * 0.3, startY);
-          ctx.lineTo(canvas.width * 0.7, startY);
-          ctx.stroke();
-          
-          // Draw reference text
-          ctx.font = `italic 400 ${fontSize * 0.8}px system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif`;
-          ctx.globalAlpha = 0.9;
-          ctx.fillText(currentReference, canvas.width / 2, startY + 30);
-          ctx.globalAlpha = 1;
-        }
+      // Add reference if exists
+      if (currentReference) {
+        lines.push({text: currentReference, fontSize: 34, bold: true});
       }
       
-      // Draw watermark if enabled
+      // Process verse text - split by double line breaks (new verses)
+      const verses = currentVerseText.split('\n\n').filter(v => v.trim() !== '');
+      
+      verses.forEach(verse => {
+        const words = verse.trim().split(" ");
+        let line = "";
+        
+        for (let i = 0; i < words.length; i++) {
+          const testLine = line + words[i] + " ";
+          ctx.font = `${fontSize}px system-ui`;
+          if (ctx.measureText(testLine).width > canvas.width * 0.8) {
+            if (line) {
+              lines.push({text: line.trim(), fontSize: fontSize, bold: false});
+              line = words[i] + " ";
+            } else {
+              lines.push({text: words[i], fontSize: fontSize, bold: false});
+            }
+          } else {
+            line = testLine;
+          }
+        }
+        if (line.trim()) {
+          lines.push({text: line.trim(), fontSize: fontSize, bold: false});
+        }
+        // Add space between verses
+        lines.push({text: "", fontSize: fontSize * 0.5, bold: false});
+      });
+
+      // Remove last empty line
+      if (lines.length > 0 && lines[lines.length - 1].text === "") {
+        lines.pop();
+      }
+
+      // Calculate total height needed
+      let totalHeight = 0;
+      lines.forEach(line => {
+        totalHeight += line.fontSize * 1.4;
+      });
+
+      // Start drawing from center
+      let y = (canvas.height - totalHeight) / 2 + lines[0].fontSize;
+
+      // Draw all lines
+      lines.forEach(line => {
+        if (line.text) {
+          ctx.font = `${line.bold ? 'bold ' : ''}${line.fontSize}px system-ui`;
+          ctx.fillText(line.text, canvas.width / 2, y);
+        }
+        y += line.fontSize * 1.4;
+      });
+
+      // Add watermark if enabled
       if ($('#wmCheck').checked) {
-        ctx.font = '12px system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif';
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
-        ctx.shadowBlur = 3;
+        ctx.font = '12px system-ui';
         ctx.textAlign = 'right';
-        ctx.fillText('fb.com/sajinmsimon', canvas.width - 15, canvas.height - 10);
+        ctx.fillStyle = 'rgba(255,255,255,0.6)';
+        ctx.shadowBlur = 3;
+        ctx.fillText('fb.com/sajinmsimon', canvas.width-15, canvas.height-10);
       }
     }
 
     async function downloadImage(){
-      if (!currentVerseText) {
-        showStatus('Please generate a verse first.', 'error');
-        return;
-      }
-      
+      if (!currentVerseText) return showStatus('Please generate a verse first.','error');
       setBusy(true);
-      try {
-        await drawToCanvas();
-        const canvas = $('#canvas');
-        const link = document.createElement('a');
-        link.download = 'bible-verse.png';
-        link.href = canvas.toDataURL('image/png');
-        link.click();
-        showStatus('Image downloaded successfully!');
-      } catch (e) {
-        console.error(e);
-        showStatus('Failed to download image.', 'error');
-      } finally {
-        setBusy(false);
-      }
+      await drawToCanvas();
+      const link = document.createElement('a');
+      link.download = 'bible-verse.png';
+      link.href = $('#canvas').toDataURL('image/png');
+      link.click();
+      setBusy(false);
+      showStatus('Image downloaded successfully!');
     }
 
     async function copyImage(){
-      if (!currentVerseText) {
-        showStatus('Please generate a verse first.', 'error');
-        return;
-      }
-      
+      if (!currentVerseText) return showStatus('Please generate a verse first.','error');
       setBusy(true);
-      try {
-        await drawToCanvas();
-        const canvas = $('#canvas');
-        canvas.toBlob(async (blob) => {
-          try {
-            await navigator.clipboard.write([
-              new ClipboardItem({ 'image/png': blob })
-            ]);
-            showStatus('Image copied to clipboard!');
-          } catch (e) {
-            console.error(e);
-            showStatus('Failed to copy image. Please try download instead.', 'error');
-          } finally {
-            setBusy(false);
-          }
-        }, 'image/png');
-      } catch (e) {
-        console.error(e);
-        showStatus('Failed to copy image.', 'error');
+      await drawToCanvas();
+      $('#canvas').toBlob(async blob=>{
+        try {
+          await navigator.clipboard.write([new ClipboardItem({'image/png':blob})]);
+          showStatus('Image copied to clipboard!');
+        }catch{ showStatus('Failed to copy image.','error'); }
         setBusy(false);
-      }
+      });
     }
 
     function shareVerse(){
-      if (!currentVerseText) {
-        showStatus('Please generate a verse first.', 'error');
-        return;
-      }
-      
-      const shareText = currentReference ? 
-        `${currentVerseText}\n— ${currentReference}` : 
-        currentVerseText;
-      
-      if (navigator.share) {
-        navigator.share({
-          title: 'Bible Verse',
-          text: shareText
-        }).catch(e => console.log('Share cancelled'));
-      } else {
-        // Fallback: copy to clipboard
-        navigator.clipboard.writeText(shareText).then(() => {
-          showStatus('Verse copied to clipboard!');
-        }).catch(() => {
-          showStatus('Unable to share. Please copy manually.', 'error');
-        });
+      if (!currentVerseText) return showStatus('Please generate a verse first.','error');
+      const shareText = `${currentVerseText}\n${currentReference}`;
+      if(navigator.share){
+        navigator.share({title:'Bible Verse',text:shareText}).catch(()=>{});
+      }else{
+        navigator.clipboard.writeText(shareText).then(()=>showStatus('Verse copied to clipboard!'));
       }
     }
   </script>
