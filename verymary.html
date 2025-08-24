@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bible Verse Quote Generator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Source+Sans+Pro:wght@300;400;600&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
+      color: #fff;
+      font-family: 'Source Sans Pro', sans-serif;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      text-align: center;
+      font-family: 'Playfair Display', serif;
+      font-size: 2.5rem;
+      margin-bottom: 2rem;
+      background: linear-gradient(45deg, #ffd700, #ffed4a);
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 2px 10px rgba(255, 215, 0, 0.3);
+    }
+
+    .input-section {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 20px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    .input-group {
+      margin-bottom: 1.5rem;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+      color: #e2e8f0;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 12px 16px;
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      background: rgba(0, 0, 0, 0.3);
+      color: #fff;
+      font-size: 16px;
+      transition: all 0.3s ease;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: #ffd700;
+      box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+    }
+
+    textarea {
+      height: 120px;
+      resize: vertical;
+      font-family: inherit;
+    }
+
+    .bible-inputs {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 1rem;
+      align-items: end;
+    }
+
+    .watermark {
+      position: absolute;
+      bottom: 15px;
+      right: 20px;
+      font-family: 'Source Sans Pro', sans-serif;
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.7);
+      z-index: 3;
+      font-weight: 400;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+    }
+
+    @media (max-width: 768px) {
+      .bible-inputs {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .btn {
+      background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
+      border: none;
+      border-radius: 12px;
+      color: white;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 600;
+      padding: 12px 24px;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-primary {
+      background: linear-gradient(45deg, #ffd700, #ffed4a);
+      color: #000;
+      width: 100%;
+      margin-top: 1rem;
+    }
+
+    .btn-secondary {
+      background: linear-gradient(45deg, #43cea2, #185a9d);
+      margin: 0.5rem;
+    }
+
+    .preview-container {
+      position: relative;
+      max-width: 800px;
+      margin: 2rem auto;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    }
+
+    #preview {
+      width: 100%;
+      height: 450px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 60px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    #preview::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-image: url('https://i.ibb.co/B23M6FPn/Kreupasanam-Mathavu-sajin.png');
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+      z-index: 1;
+    }
+
+    .verse-content {
+      position: relative;
+      z-index: 2;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(25px) saturate(180%);
+      -webkit-backdrop-filter: blur(25px) saturate(180%);
+      border-radius: 12px;
+      padding: 35px 45px;
+      max-width: 85%;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+    }
+
+    .verse-text {
+      font-family: 'Source Sans Pro', sans-serif;
+      font-size: 22px;
+      line-height: 1.5;
+      margin-bottom: 15px;
+      font-weight: 400;
+      color: #fff;
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.7);
+    }
+
+    .verse-reference {
+      font-family: 'Source Sans Pro', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      color: #ffd700;
+      text-transform: none;
+      letter-spacing: 0.5px;
+      border-top: none;
+      padding-top: 0;
+      margin-top: 15px;
+    }
+
+    .actions {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin-top: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .language-toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 1000;
+    }
+
+    .status {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      padding: 15px 25px;
+      border-radius: 10px;
+      color: white;
+      font-weight: 600;
+      z-index: 1000;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .status.success {
+      background: linear-gradient(45deg, #4CAF50, #45a049);
+    }
+
+    .status.error {
+      background: linear-gradient(45deg, #f44336, #d32f2f);
+    }
+
+    .status.show {
+      opacity: 1;
+    }
+
+    #canvas {
+      display: none;
+    }
+
+    .empty-state {
+      color: #94a3b8;
+      font-style: italic;
+      font-size: 18px;
+    }
+
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 2rem;
+      }
+      
+      .verse-text {
+        font-size: 22px;
+      }
+      
+      .verse-content {
+        padding: 25px;
+      }
+      
+      #preview {
+        height: 500px;
+        padding: 40px 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>✨ Bible Verse Generator ✨</h1>
+    
+    <div class="language-toggle">
+      <button id="langToggle" class="btn btn-secondary">🌐 EN</button>
+    </div>
+
+    <div class="input-section">
+      <div class="input-group">
+        <label for="manualInput">Manual Verse Input</label>
+        <textarea id="manualInput" placeholder="Enter your Bible verse here..."></textarea>
+        <button class="btn btn-primary" onclick="generateFromText()">Generate from Text</button>
+      </div>
+
+      <div class="input-group">
+        <label>Bible Verse Lookup</label>
+        <div class="bible-inputs">
+          <select id="bookSelect">
+            <option value="">Select Book...</option>
+          </select>
+          <input type="number" id="chapter" placeholder="Chapter" min="1">
+          <input type="number" id="verseStart" placeholder="Verse" min="1">
+          <input type="number" id="verseEnd" placeholder="End (opt)" min="1">
+        </div>
+        <button class="btn btn-primary" onclick="generateFromBible()">Generate from Bible</button>
+      </div>
+
+      <button class="btn btn-primary" onclick="generateRandom()" style="background: linear-gradient(45deg, #43cea2, #185a9d);">
+        🎲 Random Verse
+      </button>
+    </div>
+
+    <div class="preview-container">
+      <div id="preview">
+        <div class="verse-content">
+          <div id="verseDisplay" class="empty-state">
+            Select or enter a Bible verse to begin
+          </div>
+        </div>
+        <div class="watermark">fb.com/sajinmsimon</div>
+      </div>
+    </div>
+
+    <div class="actions" id="actions" style="display: none;">
+      <button class="btn btn-secondary" onclick="downloadImage()">📥 Download</button>
+      <button class="btn btn-secondary" onclick="copyImage()">📋 Copy</button>
+      <button class="btn btn-secondary" onclick="shareImage()">📤 Share</button>
+    </div>
+  </div>
+
+  <div id="status" class="status"></div>
+  <canvas id="canvas"></canvas>
+
+  <script>
+    const bibleBooks = [
+      "Genesis","Exodus","Leviticus","Numbers","Deuteronomy","Joshua","Judges","Ruth",
+      "1 Samuel","2 Samuel","1 Kings","2 Kings","1 Chronicles","2 Chronicles","Ezra","Nehemiah","Esther","Job","Psalms",
+      "Proverbs","Ecclesiastes","Song of Solomon","Isaiah","Jeremiah","Lamentations","Ezekiel","Daniel","Hosea","Joel","Amos",
+      "Obadiah","Jonah","Micah","Nahum","Habakkuk","Zephaniah","Haggai","Zechariah","Malachi",
+      "Matthew","Mark","Luke","John","Acts","Romans","1 Corinthians","2 Corinthians","Galatians","Ephesians","Philippians","Colossians",
+      "1 Thessalonians","2 Thessalonians","1 Timothy","2 Timothy","Titus","Philemon","Hebrews","James","1 Peter","2 Peter",
+      "1 John","2 John","3 John","Jude","Revelation"
+    ];
+
+    const backgrounds = [
+      'https://i.ibb.co/B23M6FPn/Kreupasanam-Mathavu-sajin.png'
+    ];
+
+    let currentData = {
+      verseText: '',
+      reference: '',
+      language: 'en',
+      currentBg: 0
+    };
+
+    // Initialize
+    function init() {
+      populateBooks();
+      setupEventListeners();
+    }
+
+    function populateBooks() {
+      const select = document.getElementById('bookSelect');
+      bibleBooks.forEach(book => {
+        const option = document.createElement('option');
+        option.value = book;
+        option.textContent = book;
+        select.appendChild(option);
+      });
+    }
+
+    function setupEventListeners() {
+      document.getElementById('langToggle').addEventListener('click', toggleLanguage);
+    }
+
+    function showStatus(message, type = 'success') {
+      const status = document.getElementById('status');
+      status.textContent = message;
+      status.className = `status ${type} show`;
+      
+      setTimeout(() => {
+        status.classList.remove('show');
+      }, 3000);
+    }
+
+    function updateDisplay() {
+      const display = document.getElementById('verseDisplay');
+      const actions = document.getElementById('actions');
+
+      if (currentData.verseText) {
+        const displayText = currentData.language === 'ml' && currentData.translatedText ? 
+                           currentData.translatedText : currentData.verseText;
+        
+        display.innerHTML = `
+          <div class="verse-text">${displayText}</div>
+          ${currentData.reference ? `<div class="verse-reference">${currentData.reference}</div>` : ''}
+        `;
+        actions.style.display = 'flex';
+      } else {
+        display.innerHTML = '<div class="empty-state">Select or enter a Bible verse to begin</div>';
+        actions.style.display = 'none';
+      }
+    }
+
+    async function generateFromText() {
+      const text = document.getElementById('manualInput').value.trim();
+      if (!text) {
+        showStatus('Please enter a verse', 'error');
+        return;
+      }
+
+      currentData.verseText = text;
+      currentData.reference = '';
+      currentData.language = 'en';
+      updateDisplay();
+      showStatus('Verse generated successfully!');
+    }
+
+    async function generateFromBible() {
+      const book = document.getElementById('bookSelect').value;
+      const chapter = document.getElementById('chapter').value;
+      const verseStart = document.getElementById('verseStart').value;
+      const verseEnd = document.getElementById('verseEnd').value;
+
+      if (!book || !chapter || !verseStart) {
+        showStatus('Please fill in book, chapter, and verse', 'error');
+        return;
+      }
+
+      try {
+        const passage = `${book} ${chapter}:${verseStart}${verseEnd ? `-${verseEnd}` : ''}`;
+        const url = `https://labs.bible.org/api/?passage=${encodeURIComponent(passage)}&type=json`;
+        
+        const response = await fetch(url);
+        const data = await response.json();
+        
+        if (!data || data.length === 0) {
+          showStatus('Verse not found', 'error');
+          return;
+        }
+
+        currentData.verseText = data.map(v => v.text).join(' ').trim();
+        currentData.reference = `${book} ${chapter}:${verseStart}${verseEnd ? `-${verseEnd}` : ''}`;
+        currentData.language = 'en';
+        
+        updateDisplay();
+        showStatus('Bible verse loaded successfully!');
+      } catch (error) {
+        console.error('Error:', error);
+        showStatus('Failed to fetch verse', 'error');
+      }
+    }
+
+    async function generateRandom() {
+      try {
+        const url = 'https://labs.bible.org/api/?passage=random&type=json';
+        const response = await fetch(url);
+        const data = await response.json();
+        
+        if (data && data[0]) {
+          const verse = data[0];
+          currentData.verseText = verse.text.trim();
+          currentData.reference = `${verse.bookname} ${verse.chapter}:${verse.verse}`;
+          currentData.language = 'en';
+          
+          updateDisplay();
+          showStatus('Random verse loaded!');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        showStatus('Failed to fetch random verse', 'error');
+      }
+    }
+
+    async function toggleLanguage() {
+      const button = document.getElementById('langToggle');
+      
+      if (currentData.language === 'en' && currentData.verseText) {
+        try {
+          // Simple translation using Google Translate API
+          const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=ml&dt=t&q=${encodeURIComponent(currentData.verseText)}`;
+          const response = await fetch(url);
+          const data = await response.json();
+          
+          currentData.translatedText = data[0].map(item => item[0]).join('');
+          currentData.language = 'ml';
+          button.textContent = '🌐 ML';
+          
+          updateDisplay();
+          showStatus('Translated to Malayalam');
+        } catch (error) {
+          showStatus('Translation failed', 'error');
+        }
+      } else if (currentData.language === 'ml') {
+        currentData.language = 'en';
+        button.textContent = '🌐 EN';
+        updateDisplay();
+        showStatus('Switched to English');
+      }
+    }
+
+    function changeBackground() {
+      // Function removed as per user request
+    }
+
+    async function renderToCanvas() {
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+      
+      // Set canvas size to match 16:9 widescreen aspect ratio like your reference
+      canvas.width = 1024;
+      canvas.height = 1536;
+      
+      // Load and draw background image
+      try {
+        const bgImg = new Image();
+        bgImg.crossOrigin = 'anonymous';
+        
+        await new Promise((resolve, reject) => {
+          bgImg.onload = resolve;
+          bgImg.onerror = reject;
+          bgImg.src = 'https://i.ibb.co/B23M6FPn/Kreupasanam-Mathavu-sajin.png';
+        });
+        
+        // Draw background image to fit within canvas maintaining aspect ratio
+        const imgAspect = bgImg.naturalWidth / bgImg.naturalHeight;
+        const canvasAspect = canvas.width / canvas.height;
+        
+        let drawWidth, drawHeight, drawX, drawY;
+        
+        if (imgAspect > canvasAspect) {
+          // Image is wider than canvas
+          drawHeight = canvas.height;
+          drawWidth = drawHeight * imgAspect;
+          drawX = (canvas.width - drawWidth) / 2;
+          drawY = 0;
+        } else {
+          // Image is taller than canvas
+          drawWidth = canvas.width;
+          drawHeight = drawWidth / imgAspect;
+          drawX = 0;
+          drawY = (canvas.height - drawHeight) / 2;
+        }
+        
+        ctx.drawImage(bgImg, drawX, drawY, drawWidth, drawHeight);
+      } catch (error) {
+        console.log('Background image failed to load, using solid background');
+        // Fallback background
+        const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+        gradient.addColorStop(0, '#1a1a2e');
+        gradient.addColorStop(1, '#16213e');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
+      
+      // Create frosted glass text container
+      const containerX = canvas.width * 0.1;
+      const containerY = canvas.height * 0.35;
+      const containerWidth = canvas.width * 0.8;
+      const containerHeight = canvas.height * 0.3;
+      
+      // Draw frosted glass background effect
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
+      ctx.filter = 'blur(1px)';
+      
+      // Main container with frosted glass effect
+      ctx.beginPath();
+      ctx.roundRect(containerX, containerY, containerWidth, containerHeight, 12);
+      ctx.fill();
+      
+      // Reset filter
+      ctx.filter = 'none';
+      
+      // Add subtle border for glass effect
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.18)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.roundRect(containerX, containerY, containerWidth, containerHeight, 12);
+      ctx.stroke();
+      
+      // Text setup
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = '#ffffff';
+      
+      // Draw verse text
+      const text = currentData.language === 'ml' && currentData.translatedText ? 
+                   currentData.translatedText : currentData.verseText;
+      
+      if (text) {
+        // Use clean, readable font similar to your reference
+        const fontSize = canvas.width < 1200 ? 36 : 44;
+        ctx.font = `${fontSize}px "Arial", "Helvetica", sans-serif`;
+        
+        // Word wrap
+        const maxWidth = containerWidth * 0.9;
+        const centerX = canvas.width / 2;
+        const centerY = containerY + containerHeight / 2;
+        
+        const words = text.split(' ');
+        const lines = [];
+        let currentLine = '';
+        
+        for (const word of words) {
+          const testLine = currentLine + (currentLine ? ' ' : '') + word;
+          const metrics = ctx.measureText(testLine);
+          
+          if (metrics.width > maxWidth && currentLine) {
+            lines.push(currentLine);
+            currentLine = word;
+          } else {
+            currentLine = testLine;
+          }
+        }
+        if (currentLine) lines.push(currentLine);
+        
+        // Calculate line height and starting position
+        const lineHeight = fontSize * 1.4;
+        const totalTextHeight = lines.length * lineHeight;
+        const startY = centerY - (totalTextHeight / 2) + (lineHeight / 2);
+        
+        // Draw text lines with shadow for better readability
+        lines.forEach((line, index) => {
+          const y = startY + index * lineHeight;
+          
+          // Text shadow
+          ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+          ctx.fillText(line, centerX + 2, y + 2);
+          
+          // Main text
+          ctx.fillStyle = '#ffffff';
+          ctx.fillText(line, centerX, y);
+        });
+        
+        // Draw reference
+        if (currentData.reference) {
+          const refY = startY + lines.length * lineHeight + 25;
+          const refFontSize = Math.floor(fontSize * 0.7);
+          
+          // Reference shadow
+          ctx.font = `bold ${refFontSize}px "Arial", "Helvetica", sans-serif`;
+          ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+          ctx.fillText(currentData.reference, centerX + 1, refY + 1);
+          
+          // Reference text
+          ctx.fillStyle = '#ffd700';
+          ctx.fillText(currentData.reference, centerX, refY);
+        }
+      }
+      
+      // Draw watermark
+      ctx.font = '24px "Arial", "Helvetica", sans-serif';
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+      ctx.textAlign = 'right';
+      ctx.textBaseline = 'bottom';
+      
+      // Watermark shadow
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+      ctx.fillText('fb.com/sajinmsimon', canvas.width - 31, canvas.height - 31);
+      
+      // Watermark text
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+      ctx.fillText('fb.com/sajinmsimon', canvas.width - 30, canvas.height - 30);
+      
+      return canvas;
+    }
+
+    async function downloadImage() {
+      try {
+        const canvas = await renderToCanvas();
+        const link = document.createElement('a');
+        link.download = 'bible-verse.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+        showStatus('Image downloaded!');
+      } catch (error) {
+        console.error('Download error:', error);
+        showStatus('Download failed', 'error');
+      }
+    }
+
+    async function copyImage() {
+      try {
+        const canvas = await renderToCanvas();
+        canvas.toBlob(async (blob) => {
+          try {
+            await navigator.clipboard.write([
+              new ClipboardItem({ 'image/png': blob })
+            ]);
+            showStatus('Image copied to clipboard!');
+          } catch (error) {
+            showStatus('Copy not supported in this browser', 'error');
+          }
+        });
+      } catch (error) {
+        console.error('Copy error:', error);
+        showStatus('Copy failed', 'error');
+      }
+    }
+
+    async function shareImage() {
+      try {
+        const canvas = await renderToCanvas();
+        canvas.toBlob(async (blob) => {
+          const file = new File([blob], 'bible-verse.png', { type: 'image/png' });
+          
+          if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            await navigator.share({
+              files: [file],
+              title: 'Bible Verse',
+              text: 'Check out this Bible verse!'
+            });
+            showStatus('Shared successfully!');
+          } else {
+            showStatus('Sharing not supported - try download instead', 'error');
+          }
+        });
+      } catch (error) {
+        console.error('Share error:', error);
+        showStatus('Share failed', 'error');
+      }
+    }
+
+    // Initialize on page load
+    init();
+  </script>
+</body>
+</html>
