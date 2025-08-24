@@ -133,6 +133,17 @@
       transform: none;
     }
 
+    #randomButton {
+      background: linear-gradient(45deg, #4CAF50, #45a049);
+      font-weight: bold;
+      width: 100%;
+      margin: 20px 10px 10px 10px;
+    }
+
+    #randomButton:hover {
+      background: linear-gradient(45deg, #45a049, #4CAF50);
+    }
+
     #buttons {
       margin-top: 10px;
       display: none;
@@ -189,6 +200,8 @@
   <textarea id="inputVerse" placeholder="Paste Bible verse here..."></textarea>
   <button onclick="generateVerse()">Generate (Manual)</button>
 
+  <button id="randomButton" onclick="generateRandomVerse()">🎲 Get Random Verse</button>
+
   <div id="bibleModeBox">
     <select id="bookSelect"></select>
     <input id="chapterInput" type="number" placeholder="Chapter" min="1">
@@ -205,7 +218,7 @@
   <div id="buttons">
     <button onclick="downloadImage()">Download</button>
     <button onclick="copyImage()">Copy</button>
-    <button onclick="shareVerse()">Share</button>
+    <button onclick="shareImage()">Share Image</button>
   </div>
 
   <div id="status" class="status"></div>
@@ -307,6 +320,23 @@
       }
     }
 
+    function formatVerseText(text) {
+      // Remove HTML tags
+      text = text.replace(/<[^>]+>/g, "");
+      
+      // Remove verse numbers at the beginning of sentences
+      text = text.replace(/\b\d+\s+/g, '');
+      
+      // Split sentences and add line breaks
+      // This regex looks for sentence endings followed by capital letters
+      text = text.replace(/([.!?])\s+([A-Z])/g, '$1\n$2');
+      
+      // Clean up extra whitespace but preserve line breaks
+      text = text.replace(/[ \t]+/g, ' ').trim();
+      
+      return text;
+    }
+
     function generateVerse() {
       const verse = document.getElementById("inputVerse").value.trim();
       if (!verse) {
@@ -317,15 +347,54 @@
       // Check if verse already has reference format (ends with — Book Chapter:Verse)
       const referenceMatch = verse.match(/\n?—\s*(.+)$/);
       if (referenceMatch) {
-        currentVerseText = verse.replace(/\n?—\s*(.+)$/, '').trim();
+        currentVerseText = formatVerseText(verse.replace(/\n?—\s*(.+)$/, '').trim());
         currentReference = referenceMatch[1];
       } else {
-        currentVerseText = verse;
+        currentVerseText = formatVerseText(verse);
         currentReference = '';
       }
       
       updateVerseDisplay();
       document.getElementById("buttons").style.display = "flex";
+    }
+
+    async function generateRandomVerse() {
+      setBusy(true);
+      try {
+        const url = 'https://labs.bible.org/api/?passage=random&type=json';
+        const response = await fetch(url);
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch random verse');
+        }
+        
+        const data = await response.json();
+        
+        if (!data || data.length === 0) {
+          throw new Error('No verse returned');
+        }
+        
+        const verse = data[0];
+        const text = formatVerseText(verse.text);
+        const reference = `${verse.bookname} ${verse.chapter}:${verse.verse}`;
+        
+        currentVerseText = text;
+        currentReference = reference;
+        
+        // Update the input textarea
+        const finalText = `${text}\n— ${reference}`;
+        document.getElementById('inputVerse').value = finalText;
+        
+        updateVerseDisplay();
+        document.getElementById("buttons").style.display = "flex";
+        showStatus('Random verse loaded successfully!');
+        
+      } catch (error) {
+        console.error('Error fetching random verse:', error);
+        showStatus('Error fetching random verse: ' + error.message, 'error');
+      } finally {
+        setBusy(false);
+      }
     }
 
     async function generateBibleVerse() {
@@ -361,16 +430,11 @@
           throw new Error('Failed to fetch verse');
         }
         
-        // Clean up the text
-        text = text.replace(/<[^>]+>/g, "").trim();
-        // Remove verse numbers from the beginning of lines
-        text = text.replace(/^\d+:\d+\s*/gm, "");
-        // Clean up extra whitespace
-        text = text.replace(/\s+/g, ' ').trim();
-        
-        if (!text) {
+        if (!text || text.trim() === '') {
           throw new Error('No verse found. Please check the reference.');
         }
+        
+        text = formatVerseText(text);
         
         currentVerseText = text;
         currentReference = reference;
@@ -464,25 +528,26 @@
             const scaleX = canvas.width / container.offsetWidth;
             const scaleY = canvas.height / container.offsetHeight;
             
-            // Get exact font size from preview
+            // Get exact font size from preview and scale it properly for high-res output
             const previewFontSize = parseFloat(computedStyle.fontSize);
-            const fontSize = previewFontSize * Math.min(scaleX, scaleY);
+            // Use a more aggressive scaling factor to ensure readable text in high-res output
+            const fontSize = previewFontSize * Math.max(scaleX, scaleY) * 1.5;
 
             // Use exact same font setup as CSS
             ctx.font = `500 ${fontSize}px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
 
-            // Get exact positioning from preview element
-            const textWidth = previewRect.width * scaleX;
-            const textHeight = previewRect.height * scaleY;
+            // Get exact positioning from preview element with better scaling
+            const textWidth = previewRect.width * Math.max(scaleX, scaleY);
+            const textHeight = previewRect.height * Math.max(scaleX, scaleY);
             
             // Calculate exact center position (same as CSS transform: translate(-50%, -50%))
             const centerX = canvas.width / 2;
             const centerY = canvas.height / 2;
 
-            // Create backdrop that matches CSS backdrop-filter exactly
-            const padding = 20 * Math.min(scaleX, scaleY);
+            // Create backdrop that matches CSS backdrop-filter with proper scaling
+            const padding = 40 * Math.max(scaleX, scaleY); // Increased padding
             const backdropWidth = textWidth + padding;
             const backdropHeight = textHeight + padding;
             const backdropX = centerX - backdropWidth / 2;
@@ -631,39 +696,61 @@
       }
     }
 
-    function shareVerse() {
+    async function shareImage() {
       if (!currentVerseText) {
-        showStatus("Please generate a verse first", 'error');
+        showStatus("Please generate a verse first.", 'error');
         return;
       }
+      
+      try {
+        setBusy(true);
+        const canvas = await drawToCanvas();
+        
+        // Convert canvas to blob
+        const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png', 1.0));
+        if (!blob) throw new Error("Failed to create image blob");
 
-      const shareText = currentReference ? 
-        `${currentVerseText}\n— ${currentReference}` : 
-        currentVerseText;
+        // Create a file from the blob
+        const file = new File([blob], 'bible-verse.png', { type: 'image/png' });
+        
+        const shareData = {
+          title: 'Bible Verse',
+          text: currentReference ? `${currentVerseText}\n— ${currentReference}` : currentVerseText,
+          files: [file]
+        };
 
-      if (navigator.share) {
-        navigator.share({
-          title: "Bible Verse",
-          text: shareText,
-          url: window.location.href
-        }).then(() => {
-          showStatus("Shared successfully!");
-        }).catch((error) => {
-          console.error('Error sharing:', error);
-          fallbackShare(shareText);
-        });
-      } else {
-        fallbackShare(shareText);
-      }
-    }
-
-    function fallbackShare(verse) {
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(verse).then(() => {
-          showStatus("Verse copied to clipboard for sharing!");
-        }).catch(() => {
+        // Check if sharing is supported and files can be shared
+        if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+          await navigator.share(shareData);
+          showStatus("Image shared successfully!");
+        } else if (navigator.share) {
+          // Fall back to sharing without file
+          await navigator.share({
+            title: 'Bible Verse',
+            text: currentReference ? `${currentVerseText}\n— ${currentReference}` : currentVerseText,
+            url: window.location.href
+          });
+          showStatus("Verse shared successfully!");
+        } else {
+          // Fallback: copy image to clipboard
+          const item = new ClipboardItem({ "image/png": blob });
+          await navigator.clipboard.write([item]);
+          showStatus("Image copied to clipboard! You can now paste it anywhere.");
+        }
+      } catch (error) {
+        console.error("Share failed:", error);
+        try {
+          // Final fallback: copy text to clipboard
+          const shareText = currentReference ? 
+            `${currentVerseText}\n— ${currentReference}` : 
+            currentVerseText;
+          await navigator.clipboard.writeText(shareText);
+          showStatus("Verse text copied to clipboard for sharing!");
+        } catch (copyError) {
           showStatus("Sharing not supported in this browser", 'error');
-        });
+        }
+      } finally {
+        setBusy(false);
       }
     }
   </script>
