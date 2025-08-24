@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Bible Verse Quote Generator</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    :root { --radius: 16px; --pad: 20px; }
+    body{
+      background:#121212;color:#fff;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+      display:flex;flex-direction:column;align-items:center;padding:20px;
+    }
+    h2{margin:0 0 10px}
+    #container{
+      position:relative;width:600px;height:400px; max-width:95vw;margin-top:20px;border-radius:var(--radius);
+      box-shadow:0 4px 20px rgba(0,0,0,.5);overflow:hidden;
+      background: #020024; /* Fallback */
+    }
+    #bgGradient{
+      position:absolute; inset:0;
+      transition: background 0.4s ease;
+      backdrop-filter: blur(8px) brightness(.7);
+      -webkit-backdrop-filter: blur(8px) brightness(.7);
+    }
+    #verseText{
+      position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+      width:90%;height:100%;text-align:center;color:#fff;font-weight:500;
+      display: flex; flex-direction: column; justify-content: center;
+      padding:var(--pad);
+      text-shadow:0 4px 8px rgba(0,0,0,.6);
+      line-height: 1.4;
+    }
+    .verse-reference {
+      font-size: 1.1em;
+      font-weight: bold;
+      margin-bottom: 15px;
+      display: block;
+    }
+    #watermark {
+      position: absolute;
+      bottom: 10px;
+      right: 15px;
+      font-size: 12px;
+      opacity: 0.6;
+      color: #fff;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+    }
+    #imageLoader{
+      position:absolute;inset:0;display:none;place-items:center;background:rgba(0,0,0,.25);
+    }
+    .spinner{
+      width:44px;height:44px;border-radius:50%;
+      border:4px solid rgba(255,255,255,.25);border-top-color:#fff;animation:spin 1s linear infinite;
+    }
+    @keyframes spin{to{transform:rotate(360deg)}}
+    textarea,input,select{
+      width:600px;max-width:95vw;margin-top:10px;padding:12px;border-radius:12px;
+      border:1px solid #444;background:#1e1e1e;color:#fff;font-size:16px;
+    }
+    textarea{height:120px;resize:vertical}
+    input:focus,textarea:focus,select:focus{outline:none;border-color:#8ab4f8;box-shadow:0 0 0 2px #8ab4f8}
+    #bibleModeBox{margin-top:20px;display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+    #bibleModeBox select,#bibleModeBox input{flex:1 1 30%}
+    #buttons{margin-top:10px;display:none;justify-content:center;flex-wrap:wrap}
+    button{
+      margin:10px;padding:12px 24px;border:0;border-radius:20px;background:#3c4043;color:#fff;cursor:pointer;
+      font-size:16px;font-weight:500;letter-spacing:.3px;transition:background .2s,transform .15s,box-shadow .2s;
+      box-shadow:0 2px 5px rgba(0,0,0,.4)
+    }
+    button:hover{background:#5f6368;transform:translateY(-2px)}
+    button:disabled{opacity:.6;cursor:not-allowed;transform:none}
+    .status{margin-top:10px;padding:10px;border-radius:8px;font-size:14px;text-align:center;display:none}
+    .success{background:rgba(76,175,80,.18);color:#4CAF50;border:1px solid #4CAF50}
+    .error{background:rgba(244,67,54,.18);color:#F44336;border:1px solid #F44336}
+    #watermarkToggle{margin-top:15px;display:flex;align-items:center;gap:6px;font-size:14px;}
+  </style>
+</head>
+<body>
+  <h2>Bible Verse Quote Generator</h2>
+
+  <textarea id="inputVerse" placeholder="Paste Bible verse here..."></textarea>
+  <button id="btnGenerate" onclick="generateVerse()">Generate (Manual)</button>
+
+  <div id="bibleModeBox">
+    <select id="bookSelect"></select>
+    <input id="chapterInput" type="number" placeholder="Chapter" min="1">
+    <input id="verseStartInput" type="number" placeholder="Start Verse" min="1">
+    <input id="verseEndInput" type="number" placeholder="End Verse (optional)" min="1">
+    <button id="btnGenerateBible" onclick="generateBibleVerse()">Generate (Bible Mode)</button>
+  </div>
+
+  <div id="watermarkToggle">
+    <input type="checkbox" id="wmCheck" checked>
+    <label for="wmCheck">Show Watermark</label>
+  </div>
+
+  <div id="container">
+    <div id="bgGradient"></div>
+    <div id="imageLoader"><div class="spinner" aria-label="loading"></div></div>
+    <div id="verseText"></div>
+    <div id="watermark">fb.com/sajinmsimon</div>
+  </div>
+
+  <div id="buttons">
+    <button id="btnDownload" onclick="downloadImage()">Download</button>
+    <button id="btnCopy" onclick="copyImage()">Copy</button>
+    <button onclick="shareVerse()">Share</button>
+    <button id="btnRefresh" onclick="refreshImage()">Refresh Image</button>
+  </div>
+
+  <div id="status" class="status"></div>
+  <canvas id="canvas" style="display:none;"></canvas>
+
+  <script>
+    const bibleBooks = [
+      "Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy", "Joshua", "Judges", "Ruth",
+      "1 Samuel", "2 Samuel", "1 Kings", "2 Kings", "1 Chronicles", "2 Chronicles", "Ezra", "Nehemiah", "Esther", "Job", "Psalms",
+      "Proverbs", "Ecclesiastes", "Song of Solomon", "Isaiah", "Jeremiah", "Lamentations", "Ezekiel", "Daniel", "Hosea", "Joel", "Amos",
+      "Obadiah", "Jonah", "Micah", "Nahum", "Habakkuk", "Zephaniah", "Haggai", "Zechariah", "Malachi",
+      "Matthew", "Mark", "Luke", "John", "Acts", "Romans", "1 Corinthians", "2 Corinthians", "Galatians", "Ephesians", "Philippians", "Colossians",
+      "1 Thessalonians", "2 Thessalonians", "1 Timothy", "2 Timothy", "Titus", "Philemon", "Hebrews", "James", "1 Peter", "2 Peter",
+      "1 John", "2 John", "3 John", "Jude", "Revelation"
+    ];
+    const $ = s => document.querySelector(s);
+    const loader = $('#imageLoader');
+    const container = $('#container');
+    const bgGradient = $('#bgGradient');
+    const verseBox = $('#verseText');
+    const statusEl = $('#status');
+    const buttons = $('#buttons');
+    const watermark = $('#watermark');
+    let busy = false;
+    let currentVerseText = '';
+    let currentReference = '';
+    let currentGradient = '';
+
+    const bookSelect = $('#bookSelect');
+    bibleBooks.forEach(b => {
+      const opt = document.createElement('option');
+      opt.value = b; opt.textContent = b;
+      bookSelect.appendChild(opt);
+    });
+
+    $('#wmCheck').addEventListener('change', function() {
+      watermark.style.display = this.checked ? 'block' : 'none';
+    });
+
+    window.onload = refreshImage;
+
+    function showStatus(msg, type = 'success') {
+      statusEl.textContent = msg;
+      statusEl.className = `status ${type}`;
+      statusEl.style.display = 'block';
+      clearTimeout(showStatus._t);
+      showStatus._t = setTimeout(() => statusEl.style.display = 'none', 2800);
+    }
+
+    function adjustFontSize(text) {
+      const len = text.length;
+      if (len < 80) return 40;
+      if (len < 200) return 32;
+      if (len < 400) return 26;
+      return 22;
+    }
+
+    function setBusy(on) {
+      busy = on;
+      loader.style.display = on ? 'grid' : 'none';
+      ['#btnDownload', '#btnCopy', '#btnRefresh', '#btnGenerate', '#btnGenerateBible'].forEach(id => {
+        $(id)?.toggleAttribute('disabled', on);
+      });
+    }
+
+    function generateVerse() {
+      const verse = $('#inputVerse').value.trim();
+      if (!verse) {
+        showStatus('Please enter a Bible verse.', 'error');
+        return;
+      }
+
+      const referenceMatch = verse.match(/\n?—\s*(.+)$/);
+      if (referenceMatch) {
+        currentVerseText = verse.replace(/\n?—\s*(.+)$/, '').trim();
+        currentReference = referenceMatch && referenceMatch.length > 1 ? referenceMatch[1] : '';
+      } else {
+        currentVerseText = verse;
+        currentReference = '';
+      }
+
+      updateVerseDisplay();
+      buttons.style.display = 'flex';
+      refreshImage();
+    }
+
+    async function generateBibleVerse() {
+      const book = bookSelect.value;
+      const chapter = $('#chapterInput').value;
+      const verseStart = $('#verseStartInput').value;
+      const verseEnd = $('#verseEndInput').value;
+
+      if (!book || !chapter || !verseStart) {
+        showStatus('Please fill in Book, Chapter, and Start Verse.', 'error');
+        return;
+      }
+
+      setBusy(true);
+
+      const passage = `${book} ${chapter}:${verseStart}${verseEnd ? `-${verseEnd}` : ''}`;
+      const url = `https://labs.bible.org/api/?passage=${encodeURIComponent(passage)}&type=text`;
+
+      try {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error('Network response was not ok.');
+
+        let text = await res.text();
+
+        text = text.replace(/<[^>]+>/g, "").trim();
+        text = text.replace(/(\s+)(\d+:\d+)/g, "\n\n").replace(/\d+:\d+\s*/g, "").trim();
+
+        if (text === 'Passage not found.' || text === '') {
+          throw new Error('Passage not found.');
+        }
+
+        currentVerseText = text;
+        currentReference = passage;
+        updateVerseDisplay();
+        buttons.style.display = 'flex';
+        refreshImage();
+        showStatus('Verse generated successfully!');
+      } catch (e) {
+        showStatus(`Error: ${e.message}`, 'error');
+      } finally {
+        setBusy(false);
+      }
+    }
+
+    function updateVerseDisplay() {
+      const tempCanvas = document.createElement('canvas');
+      const tempCtx = tempCanvas.getContext('2d');
+
+      const fontSize = adjustFontSize(currentVerseText);
+      tempCtx.font = `${fontSize}px system-ui`;
+
+      let previewHTML = '';
+
+      if (currentReference) {
+        previewHTML += `<span class="verse-reference">${currentReference}</span>`;
+      }
+
+      const verses = currentVerseText.split('\n\n').filter(v => v.trim() !== '');
+      const wrappedLines = [];
+
+      verses.forEach((verse, verseIndex) => {
+        const words = verse.trim().split(" ");
+        let line = "";
+
+        for (let i = 0; i < words.length; i++) {
+          const testLine = line + words[i] + " ";
+          if (tempCtx.measureText(testLine).width > 600 * 0.8) {
+            if (line) {
+              wrappedLines.push(line.trim());
+              line = words[i] + " ";
+            } else {
+              wrappedLines.push(words[i]);
+            }
+          } else {
+            line = testLine;
+          }
+        }
+        if (line.trim()) {
+          wrappedLines.push(line.trim());
+        }
+
+        if (verseIndex < verses.length - 1) {
+          wrappedLines.push("");
+        }
+      });
+
+      previewHTML += `<div style="font-size:${fontSize}px; line-height: 1.4;">${wrappedLines.join('<br>')}</div>`;
+      verseBox.innerHTML = previewHTML;
+    }
+
+    function generateRandomGradient() {
+      const randomColor = () => {
+        const h = Math.floor(Math.random() * 360);
+        const s = Math.floor(Math.random() * 50) + 50;
+        const l = Math.floor(Math.random() * 50) + 15;
+        return `hsl(${h}, ${s}%, ${l}%)`;
+      };
+
+      const startColor = randomColor();
+      const endColor = randomColor();
+      const type = Math.random() < 0.5 ? 'circle' : 'ellipse';
+      let position = '';
+      if (type === 'ellipse' && Math.random() < 0.5) {
+        const x = Math.floor(Math.random() * 101);
+        const y = Math.floor(Math.random() * 101);
+        position = `at ${x}% ${y}%`;
+      }
+
+      currentGradient = `radial-gradient(${type} ${position}, ${startColor} 0%, ${endColor} 100%)`;
+      bgGradient.style.background = currentGradient;
+    }
+
+    async function refreshImage() {
+      if (busy) return;
+      setBusy(true);
+      generateRandomGradient();
+      setBusy(false);
+    }
+
+    function drawGradientToCanvas(ctx, canvas) {
+      const gradient = ctx.createRadialGradient(
+        canvas.width / 2, canvas.height / 2, 0,
+        canvas.width / 2, canvas.height / 2, Math.max(canvas.width, canvas.height) / 2
+      );
+
+      const hslMatches = currentGradient.match(/hsl\(\d+, \d+%?, \d+%?\)/g);
+      if (hslMatches && hslMatches.length >= 2) {
+        gradient.addColorStop(0, hslMatches[0]);
+        gradient.addColorStop(1, hslMatches[1]);
+      } else {
+        ctx.fillStyle = '#000';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        return;
+      }
+      
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+
+    async function drawToCanvas() {
+      const canvas = $('#canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = 1000;
+      canvas.height = 600;
+
+      drawGradientToCanvas(ctx, canvas);
+
+      ctx.fillStyle = 'rgba(0,0,0,0.3)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.fillStyle = '#fff';
+      ctx.textAlign = 'center';
+      ctx.shadowColor = 'rgba(0,0,0,0.8)';
+      ctx.shadowBlur = 6;
+      ctx.shadowOffsetY = 3;
+
+      // Calculate total height of the text block to center it vertically
+      const fontSize = adjustFontSize(currentVerseText);
+      const lineHeight = fontSize * 1.4;
+      const lines = currentVerseText.split('\n').filter(line => line.trim() !== '');
+      let totalTextHeight = lines.length * lineHeight;
+      if (currentReference) {
+        totalTextHeight += 34 * 1.2 + 50; // Reference height + spacing
+      }
+
+      let y = (canvas.height - totalTextHeight) / 2;
+
+      if (currentReference) {
+        ctx.font = "bold 34px system-ui";
+        ctx.fillText(`${currentReference}`, canvas.width / 2, y);
+        y += 50;
+      }
+
+      ctx.font = `${fontSize}px system-ui`;
+
+      lines.forEach(lineText => {
+        const words = lineText.split(" ");
+        let line = "";
+        
+        for (let i = 0; i < words.length; i++) {
+          const testLine = line + words[i] + " ";
+          if (ctx.measureText(testLine).width > canvas.width * 0.8) {
+            if (line) {
+              ctx.fillText(line.trim(), canvas.width / 2, y);
+              y += lineHeight;
+              line = words[i] + " ";
+            } else {
+              line = words[i] + " ";
+            }
+          } else {
+            line = testLine;
+          }
+        }
+        if (line.trim()) {
+          ctx.fillText(line.trim(), canvas.width / 2, y);
+        }
+        y += lineHeight * 1.5;
+      });
+
+      if ($('#wmCheck').checked) {
+        ctx.font = '12px system-ui';
+        ctx.textAlign = 'right';
+        ctx.fillStyle = 'rgba(255,255,255,0.6)';
+        ctx.shadowBlur = 3;
+        ctx.fillText('fb.com/sajinmsimon', canvas.width - 15, canvas.height - 10);
+      }
+    }
+
+    async function downloadImage() {
+      if (!currentVerseText) return showStatus('Please generate a verse first.', 'error');
+      setBusy(true);
+      await drawToCanvas();
+      const link = document.createElement('a');
+      link.download = 'bible-verse.png';
+      link.href = $('#canvas').toDataURL('image/png');
+      link.click();
+      setBusy(false);
+      showStatus('Image downloaded successfully!');
+    }
+
+    async function copyImage() {
+      if (!currentVerseText) return showStatus('Please generate a verse first.', 'error');
+      setBusy(true);
+      await drawToCanvas();
+      $('#canvas').toBlob(async blob => {
+        try {
+          await navigator.clipboard.write([new ClipboardItem({
+            'image/png': blob
+          })]);
+          showStatus('Image copied to clipboard!');
+        } catch {
+          showStatus('Failed to copy image.', 'error');
+        }
+        setBusy(false);
+      });
+    }
+
+    function shareVerse() {
+      if (!currentVerseText) return showStatus('Please generate a verse first.', 'error');
+      const shareText = `${currentVerseText}\n${currentReference}`;
+      if (navigator.share) {
+        navigator.share({
+          title: 'Bible Verse',
+          text: shareText
+        }).catch(() => {});
+      } else {
+        navigator.clipboard.writeText(shareText).then(() => showStatus('Verse copied to clipboard!'));
+      }
+    }
+  </script>
+</body>
+</html>
