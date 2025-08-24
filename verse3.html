@@ -14,13 +14,20 @@
     #container{
       position:relative;width:600px;height:400px; max-width:95vw;margin-top:20px;border-radius:var(--radius);
       box-shadow:0 4px 20px rgba(0,0,0,.5);overflow:hidden;
-      background: #020024; /* Fallback */
     }
-    #bgGradient{
+    #bgGradient, #bgImage{
       position:absolute; inset:0;
-      transition: background 0.4s ease;
+      transition: opacity 0.4s ease, background 0.4s ease;
       backdrop-filter: blur(8px) brightness(.7);
       -webkit-backdrop-filter: blur(8px) brightness(.7);
+    }
+    #bgImage {
+      object-fit: cover;
+      filter: blur(5px) brightness(0.7);
+      opacity: 0;
+    }
+    #bgGradient {
+      opacity: 1;
     }
     #verseText{
       position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
@@ -29,6 +36,7 @@
       padding:var(--pad);
       text-shadow:0 4px 8px rgba(0,0,0,.6);
       line-height: 1.4;
+      z-index: 2;
     }
     .verse-reference {
       font-size: 1.1em;
@@ -44,9 +52,10 @@
       opacity: 0.6;
       color: #fff;
       text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+      z-index: 2;
     }
     #imageLoader{
-      position:absolute;inset:0;display:none;place-items:center;background:rgba(0,0,0,.25);
+      position:absolute;inset:0;display:none;place-items:center;background:rgba(0,0,0,.25); z-index: 3;
     }
     .spinner{
       width:44px;height:44px;border-radius:50%;
@@ -72,45 +81,61 @@
     .status{margin-top:10px;padding:10px;border-radius:8px;font-size:14px;text-align:center;display:none}
     .success{background:rgba(76,175,80,.18);color:#4CAF50;border:1px solid #4CAF50}
     .error{background:rgba(244,67,54,.18);color:#F44336;border:1px solid #F44336}
+    .info{background:rgba(33,150,243,.18);color:#2196F3;border:1px solid #2196F3}
     #watermarkToggle{margin-top:15px;display:flex;align-items:center;gap:6px;font-size:14px;}
+    .toggle-group { display: flex; gap: 10px; margin-top: 15px; }
+    .toggle-group .toggle-btn {
+      background: #3c4043;
+      border: 1px solid #5f6368;
+      color: #fff;
+      padding: 8px 16px;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .toggle-group .toggle-btn.active {
+      background: #8ab4f8;
+      color: #121212;
+      border-color: #8ab4f8;
+      box-shadow: 0 0 0 2px rgba(138, 180, 248, 0.3);
+    }
   </style>
 </head>
 <body>
   <h2>Bible Verse Quote Generator</h2>
-
   <textarea id="inputVerse" placeholder="Paste Bible verse here..."></textarea>
   <button id="btnGenerate" onclick="generateVerse()">Generate (Manual)</button>
-
   <div id="bibleModeBox">
     <select id="bookSelect"></select>
     <input id="chapterInput" type="number" placeholder="Chapter" min="1">
     <input id="verseStartInput" type="number" placeholder="Start Verse" min="1">
     <input id="verseEndInput" type="number" placeholder="End Verse (optional)" min="1">
     <button id="btnGenerateBible" onclick="generateBibleVerse()">Generate (Bible Mode)</button>
+    <button id="btnGenerateRandom" onclick="generateRandomVerse()">Random Verse</button>
   </div>
-
+  <div class="toggle-group">
+    <button id="gradientToggle" class="toggle-btn active">Use Gradient</button>
+    <button id="imageToggle" class="toggle-btn">Use Image</button>
+  </div>
   <div id="watermarkToggle">
     <input type="checkbox" id="wmCheck" checked>
     <label for="wmCheck">Show Watermark</label>
   </div>
-
   <div id="container">
     <div id="bgGradient"></div>
+    <img id="bgImage" src="" alt="Random background image">
     <div id="imageLoader"><div class="spinner" aria-label="loading"></div></div>
     <div id="verseText"></div>
     <div id="watermark">fb.com/sajinmsimon</div>
   </div>
-
   <div id="buttons">
     <button id="btnDownload" onclick="downloadImage()">Download</button>
     <button id="btnCopy" onclick="copyImage()">Copy</button>
     <button onclick="shareVerse()">Share</button>
-    <button id="btnRefresh" onclick="refreshImage()">Refresh Image</button>
+    <button id="btnRefresh" onclick="refreshImage()">Refresh Background</button>
   </div>
-
   <div id="status" class="status"></div>
   <canvas id="canvas" style="display:none;"></canvas>
-
   <script>
     const bibleBooks = [
       "Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy", "Joshua", "Judges", "Ruth",
@@ -121,32 +146,63 @@
       "1 Thessalonians", "2 Thessalonians", "1 Timothy", "2 Timothy", "Titus", "Philemon", "Hebrews", "James", "1 Peter", "2 Peter",
       "1 John", "2 John", "3 John", "Jude", "Revelation"
     ];
+    
+    // DOM elements
     const $ = s => document.querySelector(s);
     const loader = $('#imageLoader');
-    const container = $('#container');
     const bgGradient = $('#bgGradient');
+    const bgImage = $('#bgImage');
     const verseBox = $('#verseText');
     const statusEl = $('#status');
     const buttons = $('#buttons');
     const watermark = $('#watermark');
+    const gradientToggle = $('#gradientToggle');
+    const imageToggle = $('#imageToggle');
+    
+    // State variables
     let busy = false;
     let currentVerseText = '';
     let currentReference = '';
     let currentGradient = '';
-
+    let isUsingGradient = true;
+    
+    // Initialize book select
     const bookSelect = $('#bookSelect');
     bibleBooks.forEach(b => {
       const opt = document.createElement('option');
-      opt.value = b; opt.textContent = b;
+      opt.value = b; 
+      opt.textContent = b;
       bookSelect.appendChild(opt);
     });
-
+    
+    // Event listeners
     $('#wmCheck').addEventListener('change', function() {
       watermark.style.display = this.checked ? 'block' : 'none';
     });
-
-    window.onload = refreshImage;
-
+    
+    gradientToggle.addEventListener('click', () => {
+      if (!gradientToggle.classList.contains('active')) {
+        gradientToggle.classList.add('active');
+        imageToggle.classList.remove('active');
+        isUsingGradient = true;
+        switchToGradient();
+      }
+    });
+    
+    imageToggle.addEventListener('click', () => {
+      if (!imageToggle.classList.contains('active')) {
+        imageToggle.classList.add('active');
+        gradientToggle.classList.remove('active');
+        isUsingGradient = false;
+        switchToImage();
+      }
+    });
+    
+    // Initialize on load
+    window.onload = () => {
+      generateRandomGradient();
+    };
+    
     function showStatus(msg, type = 'success') {
       statusEl.textContent = msg;
       statusEl.className = `status ${type}`;
@@ -154,7 +210,7 @@
       clearTimeout(showStatus._t);
       showStatus._t = setTimeout(() => statusEl.style.display = 'none', 2800);
     }
-
+    
     function adjustFontSize(text) {
       const len = text.length;
       if (len < 80) return 40;
@@ -162,22 +218,48 @@
       if (len < 400) return 26;
       return 22;
     }
-
+    
     function setBusy(on) {
       busy = on;
       loader.style.display = on ? 'grid' : 'none';
-      ['#btnDownload', '#btnCopy', '#btnRefresh', '#btnGenerate', '#btnGenerateBible'].forEach(id => {
-        $(id)?.toggleAttribute('disabled', on);
+      ['#btnDownload', '#btnCopy', '#btnRefresh', '#btnGenerate', '#btnGenerateBible', '#btnGenerateRandom'].forEach(id => {
+        const btn = $(id);
+        if (btn) btn.disabled = on;
       });
     }
-
+    
+    function switchToGradient() {
+      bgImage.style.opacity = '0';
+      bgGradient.style.opacity = '1';
+      if (!currentGradient) {
+        generateRandomGradient();
+      }
+    }
+    
+    function switchToImage() {
+      if (!isUsingGradient) return; // Already in image mode
+      
+      setBusy(true);
+      
+      // If no image is loaded or the current image failed, fetch a new one
+      if (!bgImage.src || bgImage.src === window.location.href || bgImage.naturalWidth === 0) {
+        fetchRandomImage();
+      } else {
+        // Image already loaded, just switch to it
+        bgGradient.style.opacity = '0';
+        bgImage.style.opacity = '1';
+        setBusy(false);
+        showStatus('Switched to image background!');
+      }
+    }
+    
     function generateVerse() {
       const verse = $('#inputVerse').value.trim();
       if (!verse) {
         showStatus('Please enter a Bible verse.', 'error');
         return;
       }
-
+      
       const referenceMatch = verse.match(/\n?—\s*(.+)$/);
       if (referenceMatch) {
         currentVerseText = verse.replace(/\n?—\s*(.+)$/, '').trim();
@@ -186,46 +268,45 @@
         currentVerseText = verse;
         currentReference = '';
       }
-
+      
       updateVerseDisplay();
       buttons.style.display = 'flex';
-      refreshImage();
+      showStatus('Verse generated successfully!');
     }
-
+    
     async function generateBibleVerse() {
       const book = bookSelect.value;
       const chapter = $('#chapterInput').value;
       const verseStart = $('#verseStartInput').value;
       const verseEnd = $('#verseEndInput').value;
-
+      
       if (!book || !chapter || !verseStart) {
         showStatus('Please fill in Book, Chapter, and Start Verse.', 'error');
         return;
       }
-
+      
       setBusy(true);
-
+      
       const passage = `${book} ${chapter}:${verseStart}${verseEnd ? `-${verseEnd}` : ''}`;
       const url = `https://labs.bible.org/api/?passage=${encodeURIComponent(passage)}&type=text`;
-
+      
       try {
         const res = await fetch(url);
         if (!res.ok) throw new Error('Network response was not ok.');
-
+        
         let text = await res.text();
-
+        
         text = text.replace(/<[^>]+>/g, "").trim();
         text = text.replace(/(\s+)(\d+:\d+)/g, "\n\n").replace(/\d+:\d+\s*/g, "").trim();
-
+        
         if (text === 'Passage not found.' || text === '') {
           throw new Error('Passage not found.');
         }
-
+        
         currentVerseText = text;
         currentReference = passage;
         updateVerseDisplay();
         buttons.style.display = 'flex';
-        refreshImage();
         showStatus('Verse generated successfully!');
       } catch (e) {
         showStatus(`Error: ${e.message}`, 'error');
@@ -233,27 +314,70 @@
         setBusy(false);
       }
     }
+    
+    async function generateRandomVerse() {
+      setBusy(true);
+      showStatus('Finding a random verse...', 'info');
+      try {
+        const url = 'https://labs.bible.org/api/?passage=random&type=text';
+        const res = await fetch(url);
+        if (!res.ok) throw new Error('Network response was not ok.');
+        
+        let text = await res.text();
+        text = text.replace(/<[^>]+>/g, "").trim();
+        
+        const referenceMatch = text.match(/^(\w+\s?\w*?\s?\w*?\s\d+:\d+)/);
+        
+        if (!referenceMatch) {
+          throw new Error('Random verse format not recognized.');
+        }
 
+        const fullReference = referenceMatch[1].trim();
+        const verseText = text.replace(fullReference, "").trim();
+
+        const [book, chapterAndVerse] = fullReference.split(/(\d+:\d+)/);
+        const [chapter, verseRange] = chapterAndVerse.split(":");
+        const [verseStart, verseEnd] = verseRange.split("-");
+        
+        currentReference = fullReference;
+        currentVerseText = verseText;
+        
+        // Fill the input fields
+        bookSelect.value = book.trim();
+        $('#chapterInput').value = chapter;
+        $('#verseStartInput').value = verseStart;
+        $('#verseEndInput').value = verseEnd || '';
+        
+        updateVerseDisplay();
+        buttons.style.display = 'flex';
+        showStatus('Random verse generated successfully!');
+      } catch (e) {
+        showStatus(`Error: ${e.message}`, 'error');
+      } finally {
+        setBusy(false);
+      }
+    }
+    
     function updateVerseDisplay() {
       const tempCanvas = document.createElement('canvas');
       const tempCtx = tempCanvas.getContext('2d');
-
+      
       const fontSize = adjustFontSize(currentVerseText);
       tempCtx.font = `${fontSize}px system-ui`;
-
+      
       let previewHTML = '';
-
+      
       if (currentReference) {
         previewHTML += `<span class="verse-reference">${currentReference}</span>`;
       }
-
+      
       const verses = currentVerseText.split('\n\n').filter(v => v.trim() !== '');
       const wrappedLines = [];
-
+      
       verses.forEach((verse, verseIndex) => {
         const words = verse.trim().split(" ");
         let line = "";
-
+        
         for (let i = 0; i < words.length; i++) {
           const testLine = line + words[i] + " ";
           if (tempCtx.measureText(testLine).width > 600 * 0.8) {
@@ -270,16 +394,83 @@
         if (line.trim()) {
           wrappedLines.push(line.trim());
         }
-
+        
         if (verseIndex < verses.length - 1) {
           wrappedLines.push("");
         }
       });
-
+      
       previewHTML += `<div style="font-size:${fontSize}px; line-height: 1.4;">${wrappedLines.join('<br>')}</div>`;
       verseBox.innerHTML = previewHTML;
     }
-
+    
+    function fetchRandomImage() {
+      setBusy(true);
+      
+      // Use only Picsum Photos which is reliable and CORS-friendly
+      const randomId = Math.floor(Math.random() * 1000) + 1;
+      const imageSources = [
+        `https://picsum.photos/1000/600?random=${Date.now()}`,
+        `https://picsum.photos/id/${randomId}/1000/600`,
+        `https://picsum.photos/1000/600?blur=1&random=${Math.floor(Math.random() * 1000)}`,
+        `https://picsum.photos/1000/600?grayscale&random=${Math.floor(Math.random() * 1000)}`
+      ];
+      
+      let currentIndex = 0;
+      
+      function tryNextImage() {
+        if (currentIndex >= imageSources.length) {
+          setBusy(false);
+          showStatus('Image loading failed. Using gradient fallback.', 'error');
+          gradientToggle.classList.add('active');
+          imageToggle.classList.remove('active');
+          isUsingGradient = true;
+          switchToGradient();
+          return;
+        }
+        
+        const newSrc = imageSources[currentIndex];
+        currentIndex++;
+        
+        // Create a new image to preload
+        const tempImg = new Image();
+        tempImg.crossOrigin = 'anonymous'; // Add this back for canvas compatibility
+        
+        const timeoutId = setTimeout(() => {
+          if (!tempImg.complete || tempImg.naturalWidth === 0) {
+            tempImg.src = '';
+            tempImg.onload = null;
+            tempImg.onerror = null;
+            tryNextImage();
+          }
+        }, 3000);
+        
+        tempImg.onload = () => {
+          clearTimeout(timeoutId);
+          if (tempImg.naturalWidth > 0 && tempImg.naturalHeight > 0) {
+            bgImage.crossOrigin = 'anonymous'; // Set crossOrigin on the main image too
+            bgImage.src = newSrc;
+            bgGradient.style.opacity = '0';
+            bgImage.style.opacity = '1';
+            setBusy(false);
+            showStatus('Background image loaded successfully!');
+          } else {
+            tryNextImage();
+          }
+        };
+        
+        tempImg.onerror = () => {
+          clearTimeout(timeoutId);
+          console.log(`Failed to load image from: ${newSrc}`);
+          tryNextImage();
+        };
+        
+        tempImg.src = newSrc;
+      }
+      
+      tryNextImage();
+    }
+    
     function generateRandomGradient() {
       const randomColor = () => {
         const h = Math.floor(Math.random() * 360);
@@ -287,108 +478,147 @@
         const l = Math.floor(Math.random() * 50) + 15;
         return `hsl(${h}, ${s}%, ${l}%)`;
       };
-
+      
       const startColor = randomColor();
       const endColor = randomColor();
-      const type = Math.random() < 0.5 ? 'circle' : 'ellipse';
-      let position = '';
-      if (type === 'ellipse' && Math.random() < 0.5) {
-        const x = Math.floor(Math.random() * 101);
-        const y = Math.floor(Math.random() * 101);
-        position = `at ${x}% ${y}%`;
-      }
-
-      currentGradient = `radial-gradient(${type} ${position}, ${startColor} 0%, ${endColor} 100%)`;
+      const angles = [0, 45, 90, 135, 180, 225, 270, 315];
+      const angle = angles[Math.floor(Math.random() * angles.length)];
+      
+      currentGradient = `linear-gradient(${angle}deg, ${startColor} 0%, ${endColor} 100%)`;
       bgGradient.style.background = currentGradient;
     }
-
+    
     async function refreshImage() {
       if (busy) return;
-      setBusy(true);
-      generateRandomGradient();
-      setBusy(false);
-    }
-
-    function drawGradientToCanvas(ctx, canvas) {
-      const gradient = ctx.createRadialGradient(
-        canvas.width / 2, canvas.height / 2, 0,
-        canvas.width / 2, canvas.height / 2, Math.max(canvas.width, canvas.height) / 2
-      );
-
-      const hslMatches = currentGradient.match(/hsl\(\d+, \d+%?, \d+%?\)/g);
-      if (hslMatches && hslMatches.length >= 2) {
-        gradient.addColorStop(0, hslMatches[0]);
-        gradient.addColorStop(1, hslMatches[1]);
+      if (isUsingGradient) {
+        generateRandomGradient();
+        showStatus('New gradient generated!');
       } else {
-        ctx.fillStyle = '#000';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        return;
+        fetchRandomImage();
+        showStatus('New image loading...');
+      }
+    }
+    
+    function drawGradientToCanvas(ctx, canvas) {
+      if (!currentGradient) {
+        generateRandomGradient();
       }
       
-      ctx.fillStyle = gradient;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      // Parse gradient for canvas
+      const gradientMatch = currentGradient.match(/linear-gradient\((\d+)deg,\s*(.+?)\s+0%,\s*(.+?)\s+100%\)/);
+      if (gradientMatch) {
+        const angle = parseInt(gradientMatch[1]);
+        const startColor = gradientMatch[2];
+        const endColor = gradientMatch[3];
+        
+        // Convert angle to canvas gradient coordinates
+        const angleRad = (angle * Math.PI) / 180;
+        const x1 = canvas.width / 2 - Math.cos(angleRad) * canvas.width / 2;
+        const y1 = canvas.height / 2 - Math.sin(angleRad) * canvas.height / 2;
+        const x2 = canvas.width / 2 + Math.cos(angleRad) * canvas.width / 2;
+        const y2 = canvas.height / 2 + Math.sin(angleRad) * canvas.height / 2;
+        
+        const gradient = ctx.createLinearGradient(x1, y1, x2, y2);
+        gradient.addColorStop(0, startColor);
+        gradient.addColorStop(1, endColor);
+        
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      } else {
+        // Fallback solid color
+        ctx.fillStyle = '#2c3e50';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
     }
-
+    
     async function drawToCanvas() {
       const canvas = $('#canvas');
       const ctx = canvas.getContext('2d');
       canvas.width = 1000;
       canvas.height = 600;
-
-      drawGradientToCanvas(ctx, canvas);
-
-      ctx.fillStyle = 'rgba(0,0,0,0.3)';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
+      
+      // Clear canvas
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      if (!isUsingGradient && bgImage.src && bgImage.complete && bgImage.naturalWidth > 0) {
+        try {
+          // Wait a bit to ensure image is fully loaded
+          await new Promise(resolve => setTimeout(resolve, 100));
+          
+          ctx.drawImage(bgImage, 0, 0, canvas.width, canvas.height);
+          ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+        } catch (e) {
+          console.log('Canvas image drawing failed, using gradient fallback:', e);
+          // If image fails, fall back to gradient
+          drawGradientToCanvas(ctx, canvas);
+          ctx.fillStyle = 'rgba(0,0,0,0.3)';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+      } else {
+        drawGradientToCanvas(ctx, canvas);
+        ctx.fillStyle = 'rgba(0,0,0,0.3)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
+      
+      // Draw text
       ctx.fillStyle = '#fff';
       ctx.textAlign = 'center';
       ctx.shadowColor = 'rgba(0,0,0,0.8)';
       ctx.shadowBlur = 6;
       ctx.shadowOffsetY = 3;
-
-      // Calculate total height of the text block to center it vertically
+      
       const fontSize = adjustFontSize(currentVerseText);
       const lineHeight = fontSize * 1.4;
-      const lines = currentVerseText.split('\n').filter(line => line.trim() !== '');
-      let totalTextHeight = lines.length * lineHeight;
-      if (currentReference) {
-        totalTextHeight += 34 * 1.2 + 50; // Reference height + spacing
+      
+      // Word wrap for canvas
+      const lines = [];
+      const tempCanvas = document.createElement('canvas');
+      const tempCtx = tempCanvas.getContext('2d');
+      tempCtx.font = `${fontSize}px system-ui`;
+      
+      const words = currentVerseText.split(' ');
+      let line = '';
+      for (let i = 0; i < words.length; i++) {
+        const testLine = line + words[i] + ' ';
+        if (tempCtx.measureText(testLine).width > canvas.width * 0.8) {
+          if (line) {
+            lines.push(line.trim());
+            line = words[i] + ' ';
+          } else {
+            lines.push(words[i]);
+            line = '';
+          }
+        } else {
+          line = testLine;
+        }
       }
-
+      if (line.trim()) {
+        lines.push(line.trim());
+      }
+      
+      let totalTextHeight = lines.length * lineHeight;
+      let yOffset = 0;
+      if (currentReference) {
+        totalTextHeight += 34 * 1.2;
+        yOffset = 34 * 1.2 + 20;
+      }
+      
       let y = (canvas.height - totalTextHeight) / 2;
-
+      
       if (currentReference) {
         ctx.font = "bold 34px system-ui";
         ctx.fillText(`${currentReference}`, canvas.width / 2, y);
         y += 50;
       }
-
+      
       ctx.font = `${fontSize}px system-ui`;
-
+      
       lines.forEach(lineText => {
-        const words = lineText.split(" ");
-        let line = "";
-        
-        for (let i = 0; i < words.length; i++) {
-          const testLine = line + words[i] + " ";
-          if (ctx.measureText(testLine).width > canvas.width * 0.8) {
-            if (line) {
-              ctx.fillText(line.trim(), canvas.width / 2, y);
-              y += lineHeight;
-              line = words[i] + " ";
-            } else {
-              line = words[i] + " ";
-            }
-          } else {
-            line = testLine;
-          }
-        }
-        if (line.trim()) {
-          ctx.fillText(line.trim(), canvas.width / 2, y);
-        }
-        y += lineHeight * 1.5;
+        ctx.fillText(lineText, canvas.width / 2, y);
+        y += lineHeight;
       });
-
+      
       if ($('#wmCheck').checked) {
         ctx.font = '12px system-ui';
         ctx.textAlign = 'right';
@@ -397,47 +627,103 @@
         ctx.fillText('fb.com/sajinmsimon', canvas.width - 15, canvas.height - 10);
       }
     }
-
+    
     async function downloadImage() {
-      if (!currentVerseText) return showStatus('Please generate a verse first.', 'error');
+      if (!currentVerseText) {
+        showStatus('Please generate a verse first.', 'error');
+        return;
+      }
+      
       setBusy(true);
-      await drawToCanvas();
-      const link = document.createElement('a');
-      link.download = 'bible-verse.png';
-      link.href = $('#canvas').toDataURL('image/png');
-      link.click();
-      setBusy(false);
-      showStatus('Image downloaded successfully!');
-    }
-
-    async function copyImage() {
-      if (!currentVerseText) return showStatus('Please generate a verse first.', 'error');
-      setBusy(true);
-      await drawToCanvas();
-      $('#canvas').toBlob(async blob => {
-        try {
-          await navigator.clipboard.write([new ClipboardItem({
-            'image/png': blob
-          })]);
-          showStatus('Image copied to clipboard!');
-        } catch {
-          showStatus('Failed to copy image.', 'error');
-        }
+      try {
+        await drawToCanvas();
+        const link = document.createElement('a');
+        link.download = 'bible-verse.png';
+        link.href = $('#canvas').toDataURL('image/png');
+        link.click();
+        showStatus('Image downloaded successfully!');
+      } catch (e) {
+        showStatus('Failed to download image.', 'error');
+      } finally {
         setBusy(false);
-      });
+      }
     }
-
+    
+    async function copyImage() {
+      if (!currentVerseText) {
+        showStatus('Please generate a verse first.', 'error');
+        return;
+      }
+      
+      setBusy(true);
+      try {
+        await drawToCanvas();
+        $('#canvas').toBlob(async blob => {
+          try {
+            if (navigator.clipboard && window.ClipboardItem) {
+              await navigator.clipboard.write([new ClipboardItem({
+                'image/png': blob
+              })]);
+              showStatus('Image copied to clipboard!');
+            } else {
+              showStatus('Clipboard not supported in this browser.', 'error');
+            }
+          } catch (e) {
+            showStatus('Failed to copy image. Try downloading instead.', 'error');
+          }
+          setBusy(false);
+        }, 'image/png');
+      } catch (e) {
+        showStatus('Failed to copy image.', 'error');
+        setBusy(false);
+      }
+    }
+    
     function shareVerse() {
-      if (!currentVerseText) return showStatus('Please generate a verse first.', 'error');
-      const shareText = `${currentVerseText}\n${currentReference}`;
+      if (!currentVerseText) {
+        showStatus('Please generate a verse first.', 'error');
+        return;
+      }
+      
+      const shareText = `${currentVerseText}${currentReference ? '\n\n— ' + currentReference : ''}`;
+      
       if (navigator.share) {
         navigator.share({
           title: 'Bible Verse',
           text: shareText
-        }).catch(() => {});
+        }).catch(() => {
+          // Fallback to clipboard
+          copyTextToClipboard(shareText);
+        });
       } else {
-        navigator.clipboard.writeText(shareText).then(() => showStatus('Verse copied to clipboard!'));
+        copyTextToClipboard(shareText);
       }
+    }
+    
+    function copyTextToClipboard(text) {
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(() => {
+          showStatus('Verse copied to clipboard!');
+        }).catch(() => {
+          fallbackCopyText(text);
+        });
+      } else {
+        fallbackCopyText(text);
+      }
+    }
+    
+    function fallbackCopyText(text) {
+      const textArea = document.createElement('textarea');
+      textArea.value = text;
+      document.body.appendChild(textArea);
+      textArea.select();
+      try {
+        document.execCommand('copy');
+        showStatus('Verse copied to clipboard!');
+      } catch (e) {
+        showStatus('Failed to copy text.', 'error');
+      }
+      document.body.removeChild(textArea);
     }
   </script>
 </body>
