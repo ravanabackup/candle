@@ -44,6 +44,11 @@
       margin-bottom: 15px;
       display: block;
     }
+    .malayalam-text {
+      font-family: 'Noto Sans Malayalam', 'Kartika', 'Malayalam Sangam MN', sans-serif;
+      direction: ltr;
+      text-align: center;
+    }
     #watermark {
       position: absolute;
       bottom: 10px;
@@ -83,7 +88,7 @@
     .error{background:rgba(244,67,54,.18);color:#F44336;border:1px solid #F44336}
     .info{background:rgba(33,150,243,.18);color:#2196F3;border:1px solid #2196F3}
     #watermarkToggle{margin-top:15px;display:flex;align-items:center;gap:6px;font-size:14px;}
-    .toggle-group { display: flex; gap: 10px; margin-top: 15px; }
+    .toggle-group { display: flex; gap: 10px; margin-top: 15px; align-items: center; justify-content: center; flex-wrap: wrap; }
     .toggle-group .toggle-btn {
       background: #3c4043;
       border: 1px solid #5f6368;
@@ -99,7 +104,90 @@
       border-color: #8ab4f8;
       box-shadow: 0 0 0 2px rgba(138, 180, 248, 0.3);
     }
+    
+    /* Share dropdown styles */
+    .share-container {
+      position: relative;
+      display: inline-block;
+    }
+    
+    .share-dropdown {
+      display: none;
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #2d2d2d;
+      border: 1px solid #5f6368;
+      border-radius: 12px;
+      padding: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+      z-index: 10;
+      min-width: 180px;
+      margin-bottom: 5px;
+    }
+    
+    .share-dropdown.show {
+      display: block;
+    }
+    
+    .share-option {
+      display: block;
+      width: 100%;
+      padding: 8px 12px;
+      background: transparent;
+      border: none;
+      color: #fff;
+      text-align: left;
+      cursor: pointer;
+      border-radius: 8px;
+      margin: 2px 0;
+      font-size: 14px;
+      transition: background 0.2s;
+    }
+    
+    .share-option:hover {
+      background: #404040;
+    }
+    
+    .share-option:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    /* Language toggle styles */
+    .language-toggle {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .lang-btn {
+      background: #3c4043;
+      border: 1px solid #5f6368;
+      color: #fff;
+      padding: 8px 16px;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 14px;
+      min-width: 80px;
+    }
+
+    .lang-btn.active {
+      background: #ff9800;
+      color: #121212;
+      border-color: #ff9800;
+      box-shadow: 0 0 0 2px rgba(255, 152, 0, 0.3);
+    }
+
+    .lang-btn:hover:not(.active) {
+      background: #5f6368;
+    }
   </style>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Malayalam:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
   <h2>Bible Verse Quote Generator</h2>
@@ -117,6 +205,10 @@
     <button id="gradientToggle" class="toggle-btn active">Use Gradient</button>
     <button id="imageToggle" class="toggle-btn">Use Image</button>
   </div>
+  <div class="language-toggle">
+    <button id="englishBtn" class="lang-btn active">English</button>
+    <button id="malayalamBtn" class="lang-btn">മലയാളം</button>
+  </div>
   <div id="watermarkToggle">
     <input type="checkbox" id="wmCheck" checked>
     <label for="wmCheck">Show Watermark</label>
@@ -131,7 +223,14 @@
   <div id="buttons">
     <button id="btnDownload" onclick="downloadImage()">Download</button>
     <button id="btnCopy" onclick="copyImage()">Copy</button>
-    <button onclick="shareVerse()">Share</button>
+    <div class="share-container">
+      <button id="btnShare" onclick="toggleShareDropdown()">Share</button>
+      <div id="shareDropdown" class="share-dropdown">
+        <button class="share-option" onclick="shareImage()">Share Image</button>
+        <button class="share-option" onclick="shareText()">Share Text Only</button>
+        <button class="share-option" onclick="shareImageFile()">Save & Share Image</button>
+      </div>
+    </div>
     <button id="btnRefresh" onclick="refreshImage()">Refresh Background</button>
   </div>
   <div id="status" class="status"></div>
@@ -158,6 +257,9 @@
     const watermark = $('#watermark');
     const gradientToggle = $('#gradientToggle');
     const imageToggle = $('#imageToggle');
+    const shareDropdown = $('#shareDropdown');
+    const englishBtn = $('#englishBtn');
+    const malayalamBtn = $('#malayalamBtn');
     
     // State variables
     let busy = false;
@@ -165,6 +267,8 @@
     let currentReference = '';
     let currentGradient = '';
     let isUsingGradient = true;
+    let currentLanguage = 'english'; // 'english' or 'malayalam'
+    let malayalamTranslation = '';
     
     // Initialize book select
     const bookSelect = $('#bookSelect');
@@ -178,6 +282,13 @@
     // Event listeners
     $('#wmCheck').addEventListener('change', function() {
       watermark.style.display = this.checked ? 'block' : 'none';
+    });
+    
+    // Close share dropdown when clicking outside
+    document.addEventListener('click', function(event) {
+      if (!event.target.closest('.share-container')) {
+        shareDropdown.classList.remove('show');
+      }
     });
     
     gradientToggle.addEventListener('click', () => {
@@ -195,6 +306,37 @@
         gradientToggle.classList.remove('active');
         isUsingGradient = false;
         switchToImage();
+      }
+    });
+
+    // Language toggle event listeners
+    englishBtn.addEventListener('click', () => {
+      if (currentLanguage !== 'english') {
+        englishBtn.classList.add('active');
+        malayalamBtn.classList.remove('active');
+        currentLanguage = 'english';
+        updateVerseDisplay();
+        showStatus('Switched to English');
+      }
+    });
+
+    malayalamBtn.addEventListener('click', async () => {
+      if (currentLanguage !== 'malayalam') {
+        if (!currentVerseText) {
+          showStatus('Please generate a verse first.', 'error');
+          return;
+        }
+        
+        malayalamBtn.classList.add('active');
+        englishBtn.classList.remove('active');
+        currentLanguage = 'malayalam';
+        
+        if (!malayalamTranslation) {
+          await translateToMalayalam();
+        } else {
+          updateVerseDisplay();
+          showStatus('Switched to Malayalam');
+        }
       }
     });
     
@@ -222,10 +364,14 @@
     function setBusy(on) {
       busy = on;
       loader.style.display = on ? 'grid' : 'none';
-      ['#btnDownload', '#btnCopy', '#btnRefresh', '#btnGenerate', '#btnGenerateBible', '#btnGenerateRandom'].forEach(id => {
+      ['#btnDownload', '#btnCopy', '#btnRefresh', '#btnGenerate', '#btnGenerateBible', '#btnGenerateRandom', '#btnShare'].forEach(id => {
         const btn = $(id);
         if (btn) btn.disabled = on;
       });
+      
+      // Also disable language buttons when busy
+      englishBtn.disabled = on;
+      malayalamBtn.disabled = on;
     }
     
     function switchToGradient() {
@@ -252,6 +398,54 @@
         showStatus('Switched to image background!');
       }
     }
+
+    // Translation function
+    async function translateToMalayalam() {
+      if (!currentVerseText) {
+        showStatus('No verse text to translate.', 'error');
+        return;
+      }
+
+      setBusy(true);
+      showStatus('Translating to Malayalam...', 'info');
+
+      try {
+        // Clean the verse text for translation
+        const textToTranslate = currentVerseText.replace(/\n+/g, ' ').trim();
+        
+        const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=ml&dt=t&q=${encodeURIComponent(textToTranslate)}`;
+        
+        const response = await fetch(url);
+        
+        if (!response.ok) {
+          throw new Error(`Translation service error: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        // Parse the Google Translate response
+        if (data && data[0] && Array.isArray(data[0])) {
+          malayalamTranslation = data[0].map(item => item[0]).join('');
+          updateVerseDisplay();
+          showStatus('Translated to Malayalam successfully!');
+        } else {
+          throw new Error('Invalid translation response format');
+        }
+        
+      } catch (error) {
+        console.error('Translation error:', error);
+        showStatus('Translation failed. Please try again.', 'error');
+        
+        // Switch back to English
+        englishBtn.classList.add('active');
+        malayalamBtn.classList.remove('active');
+        currentLanguage = 'english';
+        updateVerseDisplay();
+        
+      } finally {
+        setBusy(false);
+      }
+    }
     
     function generateVerse() {
       const verse = $('#inputVerse').value.trim();
@@ -267,6 +461,16 @@
       } else {
         currentVerseText = verse;
         currentReference = '';
+      }
+      
+      // Reset translation when new verse is generated
+      malayalamTranslation = '';
+      
+      // Switch back to English if we were in Malayalam mode
+      if (currentLanguage === 'malayalam') {
+        englishBtn.classList.add('active');
+        malayalamBtn.classList.remove('active');
+        currentLanguage = 'english';
       }
       
       updateVerseDisplay();
@@ -305,6 +509,17 @@
         
         currentVerseText = text;
         currentReference = passage;
+        
+        // Reset translation when new verse is generated
+        malayalamTranslation = '';
+        
+        // Switch back to English if we were in Malayalam mode
+        if (currentLanguage === 'malayalam') {
+          englishBtn.classList.add('active');
+          malayalamBtn.classList.remove('active');
+          currentLanguage = 'english';
+        }
+        
         updateVerseDisplay();
         buttons.style.display = 'flex';
         showStatus('Verse generated successfully!');
@@ -342,6 +557,16 @@
         currentReference = fullReference;
         currentVerseText = verseText;
         
+        // Reset translation when new verse is generated
+        malayalamTranslation = '';
+        
+        // Switch back to English if we were in Malayalam mode
+        if (currentLanguage === 'malayalam') {
+          englishBtn.classList.add('active');
+          malayalamBtn.classList.remove('active');
+          currentLanguage = 'english';
+        }
+        
         // Fill the input fields
         bookSelect.value = book.trim();
         $('#chapterInput').value = chapter;
@@ -362,7 +587,12 @@
       const tempCanvas = document.createElement('canvas');
       const tempCtx = tempCanvas.getContext('2d');
       
-      const fontSize = adjustFontSize(currentVerseText);
+      // Determine which text to display
+      const displayText = currentLanguage === 'malayalam' && malayalamTranslation 
+        ? malayalamTranslation 
+        : currentVerseText;
+      
+      const fontSize = adjustFontSize(displayText);
       tempCtx.font = `${fontSize}px system-ui`;
       
       let previewHTML = '';
@@ -371,7 +601,7 @@
         previewHTML += `<span class="verse-reference">${currentReference}</span>`;
       }
       
-      const verses = currentVerseText.split('\n\n').filter(v => v.trim() !== '');
+      const verses = displayText.split('\n\n').filter(v => v.trim() !== '');
       const wrappedLines = [];
       
       verses.forEach((verse, verseIndex) => {
@@ -400,7 +630,8 @@
         }
       });
       
-      previewHTML += `<div style="font-size:${fontSize}px; line-height: 1.4;">${wrappedLines.join('<br>')}</div>`;
+      const malayalamClass = currentLanguage === 'malayalam' ? 'malayalam-text' : '';
+      previewHTML += `<div class="${malayalamClass}" style="font-size:${fontSize}px; line-height: 1.4;">${wrappedLines.join('<br>')}</div>`;
       verseBox.innerHTML = previewHTML;
     }
     
@@ -412,7 +643,6 @@
       const imageSources = [
         `https://picsum.photos/1000/600?random=${Date.now()}`,
         `https://picsum.photos/id/${randomId}/1000/600`,
-        `https://picsum.photos/1000/600?blur=5&random=${Date.now()}`,
         `https://picsum.photos/1000/600?blur=1&random=${Math.floor(Math.random() * 1000)}`,
         `https://picsum.photos/1000/600?grayscale&random=${Math.floor(Math.random() * 1000)}`
       ];
@@ -569,16 +799,27 @@
       ctx.shadowBlur = 6;
       ctx.shadowOffsetY = 3;
       
-      const fontSize = adjustFontSize(currentVerseText);
+      // Determine which text to use for canvas
+      const displayText = currentLanguage === 'malayalam' && malayalamTranslation 
+        ? malayalamTranslation 
+        : currentVerseText;
+      
+      const fontSize = adjustFontSize(displayText);
       const lineHeight = fontSize * 1.4;
+      
+      // Set appropriate font for Malayalam text
+      let fontFamily = 'system-ui';
+      if (currentLanguage === 'malayalam') {
+        fontFamily = 'Noto Sans Malayalam, Kartika, Malayalam Sangam MN, system-ui';
+      }
       
       // Word wrap for canvas
       const lines = [];
       const tempCanvas = document.createElement('canvas');
       const tempCtx = tempCanvas.getContext('2d');
-      tempCtx.font = `${fontSize}px system-ui`;
+      tempCtx.font = `${fontSize}px ${fontFamily}`;
       
-      const words = currentVerseText.split(' ');
+      const words = displayText.split(' ');
       let line = '';
       for (let i = 0; i < words.length; i++) {
         const testLine = line + words[i] + ' ';
@@ -613,7 +854,7 @@
         y += 50;
       }
       
-      ctx.font = `${fontSize}px system-ui`;
+      ctx.font = `${fontSize}px ${fontFamily}`;
       
       lines.forEach(lineText => {
         ctx.fillText(lineText, canvas.width / 2, y);
@@ -639,7 +880,8 @@
       try {
         await drawToCanvas();
         const link = document.createElement('a');
-        link.download = 'bible-verse.png';
+        const filename = currentLanguage === 'malayalam' ? 'bible-verse-malayalam.png' : 'bible-verse.png';
+        link.download = filename;
         link.href = $('#canvas').toDataURL('image/png');
         link.click();
         showStatus('Image downloaded successfully!');
@@ -680,51 +922,117 @@
       }
     }
     
-    function shareVerse() {
+    function toggleShareDropdown() {
+      shareDropdown.classList.toggle('show');
+    }
+    
+    // Share image using Web Share API or fallback
+    async function shareImage() {
       if (!currentVerseText) {
         showStatus('Please generate a verse first.', 'error');
         return;
       }
       
-      const shareText = `${currentVerseText}${currentReference ? '\n\n— ' + currentReference : ''}`;
+      shareDropdown.classList.remove('show');
+      setBusy(true);
       
-      if (navigator.share) {
-        navigator.share({
-          title: 'Bible Verse',
-          text: shareText
-        }).catch(() => {
-          // Fallback to clipboard
-          copyTextToClipboard(shareText);
-        });
-      } else {
-        copyTextToClipboard(shareText);
-      }
-    }
-    
-    function copyTextToClipboard(text) {
-      if (navigator.clipboard) {
-        navigator.clipboard.writeText(text).then(() => {
-          showStatus('Verse copied to clipboard!');
-        }).catch(() => {
-          fallbackCopyText(text);
-        });
-      } else {
-        fallbackCopyText(text);
-      }
-    }
-    
-    function fallbackCopyText(text) {
-      const textArea = document.createElement('textarea');
-      textArea.value = text;
-      document.body.appendChild(textArea);
-      textArea.select();
       try {
-        document.execCommand('copy');
-        showStatus('Verse copied to clipboard!');
+        await drawToCanvas();
+        const blob = await new Promise(resolve => $('#canvas').toBlob(resolve, 'image/png'));
+        const file = new File([blob], 'bible-verse.png', { type: 'image/png' });
+
+        if (navigator.share && navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            title: 'Bible Verse',
+            text: `${currentVerseText}\n\n— ${currentReference}`,
+            files: [file]
+          });
+          showStatus('Image shared successfully!');
+        } else {
+          showStatus('Web Share API for images is not supported. Try "Save & Share" or "Copy".', 'error');
+        }
       } catch (e) {
-        showStatus('Failed to copy text.', 'error');
+        console.error('Sharing failed:', e);
+        if (e.name !== 'AbortError') {
+          showStatus('Failed to share image. Your browser may not support this feature.', 'error');
+        } else {
+          showStatus('Sharing cancelled.', 'info');
+        }
+      } finally {
+        setBusy(false);
       }
-      document.body.removeChild(textArea);
+    }
+    
+    // Share text only using Web Share API or fallback
+    async function shareText() {
+      if (!currentVerseText) {
+        showStatus('Please generate a verse first.', 'error');
+        return;
+      }
+      
+      shareDropdown.classList.remove('show');
+      
+      try {
+        if (navigator.share) {
+          await navigator.share({
+            title: 'Bible Verse',
+            text: `${currentVerseText}\n\n— ${currentReference}`
+          });
+          showStatus('Text shared successfully!');
+        } else {
+          showStatus('Web Share API is not supported. Text copied to clipboard.', 'info');
+          // Fallback to clipboard copy
+          const textToCopy = `${currentVerseText}\n\n— ${currentReference}`;
+          await navigator.clipboard.writeText(textToCopy);
+        }
+      } catch (e) {
+        console.error('Sharing failed:', e);
+        if (e.name !== 'AbortError') {
+          showStatus('Failed to share text.', 'error');
+        } else {
+          showStatus('Sharing cancelled.', 'info');
+        }
+      }
+    }
+    
+    // Save image to file and then share (iOS workaround)
+    async function shareImageFile() {
+      if (!currentVerseText) {
+        showStatus('Please generate a verse first.', 'error');
+        return;
+      }
+      
+      shareDropdown.classList.remove('show');
+      setBusy(true);
+      
+      try {
+        await drawToCanvas();
+        const blob = await new Promise(resolve => $('#canvas').toBlob(resolve, 'image/png'));
+        const file = new File([blob], 'bible-verse.png', { type: 'image/png' });
+        
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          // This is a direct share for supported platforms
+          await navigator.share({
+            title: 'Bible Verse',
+            text: `${currentVerseText}\n\n— ${currentReference}`,
+            files: [file]
+          });
+          showStatus('Image saved and shared!');
+        } else {
+          // Fallback for browsers that don't support direct file sharing, like many on desktop
+          showStatus('File saving and sharing not supported. Use "Download" instead.', 'error');
+        }
+        
+      } catch (e) {
+        console.error('Save and share failed:', e);
+        if (e.name !== 'AbortError') {
+          showStatus('Failed to save and share image.', 'error');
+        } else {
+          showStatus('Sharing cancelled.', 'info');
+        }
+      } finally {
+        setBusy(false);
+      }
     }
   </script>
 </body>
