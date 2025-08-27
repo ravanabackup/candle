@@ -215,7 +215,7 @@
   </div>
   <div id="container">
     <div id="bgGradient"></div>
-    <img id="bgImage" src="" alt="Random background image">
+    <img id="bgImage" crossorigin="anonymous" src="" alt="Random background image">
     <div id="imageLoader"><div class="spinner" aria-label="loading"></div></div>
     <div id="verseText"></div>
     <div id="watermark">fb.com/sajinmsimon</div>
@@ -719,14 +719,30 @@
       bgGradient.style.background = currentGradient;
     }
     
+    // User-provided refreshImage logic
     async function refreshImage() {
       if (busy) return;
       if (isUsingGradient) {
         generateRandomGradient();
         showStatus('New gradient generated!');
       } else {
-        fetchRandomImage();
-        showStatus('New image loading...');
+        setBusy(true);
+        try {
+          bgImage.src = `https://picsum.photos/1000/600?blur=5&random=${Date.now()}`;
+          bgImage.onload = () => {
+            bgGradient.style.opacity = '0';
+            bgImage.style.opacity = '1';
+            setBusy(false);
+            showStatus('Background image loaded successfully!');
+          };
+          bgImage.onerror = () => {
+            setBusy(false);
+            showStatus('Failed to load new image. Try gradient.', 'error');
+          };
+        } catch {
+          setBusy(false);
+          showStatus('Failed to load new image. Try gradient.', 'error');
+        }
       }
     }
     
@@ -762,35 +778,29 @@
       }
     }
     
+    // Combined drawToCanvas logic
     async function drawToCanvas() {
       const canvas = $('#canvas');
       const ctx = canvas.getContext('2d');
       canvas.width = 1000;
       canvas.height = 600;
-      
-      // Clear canvas
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      
-      if (!isUsingGradient && bgImage.src && bgImage.complete && bgImage.naturalWidth > 0) {
-        try {
-          // Wait a bit to ensure image is fully loaded
-          await new Promise(resolve => setTimeout(resolve, 100));
-          
-          ctx.drawImage(bgImage, 0, 0, canvas.width, canvas.height);
-          ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
-          ctx.fillRect(0, 0, canvas.width, canvas.height);
-        } catch (e) {
-          console.log('Canvas image drawing failed, using gradient fallback:', e);
-          // If image fails, fall back to gradient
-          drawGradientToCanvas(ctx, canvas);
-          ctx.fillStyle = 'rgba(0,0,0,0.3)';
-          ctx.fillRect(0, 0, canvas.width, canvas.height);
-        }
-      } else {
+            
+      // Draw background based on current mode
+      if (isUsingGradient) {
         drawGradientToCanvas(ctx, canvas);
-        ctx.fillStyle = 'rgba(0,0,0,0.3)';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      } else {
+        // Draw image background and overlay
+        if (bgImage.src && bgImage.complete && bgImage.naturalWidth > 0) {
+          ctx.drawImage(bgImage, 0, 0, canvas.width, canvas.height);
+        } else {
+          // Fallback to gradient if image is not ready
+          drawGradientToCanvas(ctx, canvas);
+        }
       }
+      
+      // Add a consistent dark overlay for both modes
+      ctx.fillStyle = 'rgba(0,0,0,0.3)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
       
       // Draw text
       ctx.fillStyle = '#fff';
@@ -800,8 +810,8 @@
       ctx.shadowOffsetY = 3;
       
       // Determine which text to use for canvas
-      const displayText = currentLanguage === 'malayalam' && malayalamTranslation 
-        ? malayalamTranslation 
+      const displayText = currentLanguage === 'malayalam' && malayalamTranslation
+        ? malayalamTranslation
         : currentVerseText;
       
       const fontSize = adjustFontSize(displayText);
