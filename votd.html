@@ -1,10 +1,13 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <title>Bible Verse Quote Generator</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#121212" />
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='128' height='128'%3E%3Crect width='100%25' height='100%25' fill='%23121212'/%3E%3Ctext x='50%25' y='58%25' dominant-baseline='middle' text-anchor='middle' font-size='72' fill='%23fff' font-family='Arial,Helvetica,sans-serif'%3E%B%3C/text%3E%3C/svg%3E" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Malayalam:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root { --radius: 16px; --pad: 20px; }
     body{
@@ -27,9 +30,7 @@
       filter: blur(5px) brightness(0.7);
       opacity: 0;
     }
-    #bgGradient {
-      opacity: 1;
-    }
+    #bgGradient { opacity: 1; }
     #verseText{
       position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
       width:90%;height:100%;text-align:center;color:#fff;font-weight:500;
@@ -39,34 +40,17 @@
       line-height: 1.4;
       z-index: 2;
     }
-    .verse-reference {
-      font-size: 1.1em;
-      font-weight: bold;
-      margin-bottom: 15px;
-      display: block;
-    }
+    .verse-reference { font-size: 1.1em; font-weight: bold; margin-bottom: 15px; display: block; }
     .malayalam-text {
       font-family: 'Noto Sans Malayalam', 'Kartika', 'Malayalam Sangam MN', sans-serif;
-      direction: ltr;
-      text-align: center;
+      direction: ltr; text-align: center;
     }
     #watermark {
-      position: absolute;
-      bottom: 10px;
-      right: 15px;
-      font-size: 12px;
-      opacity: 0.6;
-      color: #fff;
-      text-shadow: 0 1px 3px rgba(0,0,0,0.8);
-      z-index: 2;
+      position: absolute; bottom: 10px; right: 15px; font-size: 12px; opacity: 0.6; color: #fff;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.8); z-index: 2;
     }
-    #imageLoader{
-      position:absolute;inset:0;display:none;place-items:center;background:rgba(0,0,0,.25); z-index: 3;
-    }
-    .spinner{
-      width:44px;height:44px;border-radius:50%;
-      border:4px solid rgba(255,255,255,.25);border-top-color:#fff;animation:spin 1s linear infinite;
-    }
+    #imageLoader{ position:absolute;inset:0;display:none;place-items:center;background:rgba(0,0,0,.25); z-index: 3; }
+    .spinner{ width:44px;height:44px;border-radius:50%; border:4px solid rgba(255,255,255,.25);border-top-color:#fff;animation:spin 1s linear infinite; }
     @keyframes spin{to{transform:rotate(360deg)}}
     textarea,input,select{
       width:600px;max-width:95vw;margin-top:10px;padding:12px;border-radius:12px;
@@ -91,129 +75,70 @@
     #watermarkToggle{margin-top:15px;display:flex;align-items:center;gap:6px;font-size:14px;}
     .toggle-group { display: flex; gap: 10px; margin-top: 15px; align-items: center; justify-content: center; flex-wrap: wrap; }
     .toggle-group .toggle-btn {
-      background: #3c4043;
-      border: 1px solid #5f6368;
-      color: #fff;
-      padding: 8px 16px;
-      border-radius: 20px;
-      cursor: pointer;
-      transition: all 0.2s ease;
+      background: #3c4043; border: 1px solid #5f6368; color: #fff; padding: 8px 16px; border-radius: 20px;
+      cursor: pointer; transition: all 0.2s ease;
     }
     .toggle-group .toggle-btn.active {
-      background: #8ab4f8;
-      color: #121212;
-      border-color: #8ab4f8;
-      box-shadow: 0 0 0 2px rgba(138, 180, 248, 0.3);
+      background: #8ab4f8; color: #121212; border-color: #8ab4f8; box-shadow: 0 0 0 2px rgba(138, 180, 248, 0.3);
     }
-    
-    /* Share dropdown styles */
-    .share-container {
-      position: relative;
-      display: inline-block;
-    }
-    
+    .share-container { position: relative; display: inline-block; }
     .share-dropdown {
-      display: none;
-      position: absolute;
-      bottom: 100%;
-      left: 50%;
-      transform: translateX(-50%);
-      background: #2d2d2d;
-      border: 1px solid #5f6368;
-      border-radius: 12px;
-      padding: 8px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-      z-index: 10;
-      min-width: 180px;
-      margin-bottom: 5px;
+      display: none; position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%);
+      background: #2d2d2d; border: 1px solid #5f6368; border-radius: 12px; padding: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+      z-index: 10; min-width: 180px; margin-bottom: 5px;
     }
-    
-    .share-dropdown.show {
-      display: block;
-    }
-    
+    .share-dropdown.show { display: block; }
     .share-option {
-      display: block;
-      width: 100%;
-      padding: 8px 12px;
-      background: transparent;
-      border: none;
-      color: #fff;
-      text-align: left;
-      cursor: pointer;
-      border-radius: 8px;
-      margin: 2px 0;
-      font-size: 14px;
-      transition: background 0.2s;
+      display: block; width: 100%; padding: 8px 12px; background: transparent; border: none; color: #fff;
+      text-align: left; cursor: pointer; border-radius: 8px; margin: 2px 0; font-size: 14px; transition: background 0.2s;
     }
-    
-    .share-option:hover {
-      background: #404040;
-    }
-    
-    .share-option:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
-
-    /* Language toggle styles */
+    .share-option:hover { background: #404040; }
+    .share-option:disabled { opacity: 0.6; cursor: not-allowed; }
     .language-toggle {
-      display: flex;
-      gap: 10px;
-      margin-top: 15px;
-      align-items: center;
-      justify-content: center;
+      display: flex; gap: 10px; margin-top: 15px; align-items: center; justify-content: center;
     }
-
     .lang-btn {
-      background: #3c4043;
-      border: 1px solid #5f6368;
-      color: #fff;
-      padding: 8px 16px;
-      border-radius: 20px;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      font-size: 14px;
-      min-width: 80px;
+      background: #3c4043; border: 1px solid #5f6368; color: #fff; padding: 8px 16px; border-radius: 20px;
+      cursor: pointer; transition: all 0.2s ease; font-size: 14px; min-width: 80px;
     }
-
     .lang-btn.active {
-      background: #ff9800;
-      color: #121212;
-      border-color: #ff9800;
-      box-shadow: 0 0 0 2px rgba(255, 152, 0, 0.3);
+      background: #ff9800; color: #121212; border-color: #ff9800; box-shadow: 0 0 0 2px rgba(255, 152, 0, 0.3);
     }
-
-    .lang-btn:hover:not(.active) {
-      background: #5f6368;
-    }
+    .lang-btn:hover:not(.active) { background: #5f6368; }
+    .hint { font-size: 12px; opacity: 0.75; margin-top: -6px; }
   </style>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Malayalam:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
   <h2>Bible Verse Quote Generator</h2>
   <textarea id="inputVerse" placeholder="Paste Bible verse here..."></textarea>
   <button id="btnGenerate" onclick="generateVerse()">Generate (Manual)</button>
+
   <div id="bibleModeBox">
     <select id="bookSelect"></select>
     <input id="chapterInput" type="number" placeholder="Chapter" min="1">
     <input id="verseStartInput" type="number" placeholder="Start Verse" min="1">
     <input id="verseEndInput" type="number" placeholder="End Verse (optional)" min="1">
     <button id="btnGenerateBible" onclick="generateBibleVerse()">Generate (Bible Mode)</button>
-    <button id="btnGenerateRandom" onclick="generateRandomVerse()">VOTD</button>
+    <button id="btnGenerateRandom" onclick="generateRandomVerse()">Random Verse</button>
+    <button id="btnVOTD" onclick="generateVOTD()">VOTD</button>
   </div>
+  <div class="hint">Tip: VOTD ignores the End Verse field.</div>
+
   <div class="toggle-group">
     <button id="gradientToggle" class="toggle-btn active">Use Gradient</button>
     <button id="imageToggle" class="toggle-btn">Use Image</button>
   </div>
+
   <div class="language-toggle">
     <button id="englishBtn" class="lang-btn active">English</button>
     <button id="malayalamBtn" class="lang-btn">മലയാളം</button>
   </div>
+
   <div id="watermarkToggle">
     <input type="checkbox" id="wmCheck" checked>
     <label for="wmCheck">Show Watermark</label>
   </div>
+
   <div id="container">
     <div id="bgGradient"></div>
     <img id="bgImage" crossorigin="anonymous" src="" alt="Random background image">
@@ -221,6 +146,7 @@
     <div id="verseText"></div>
     <div id="watermark">fb.com/sajinmsimon</div>
   </div>
+
   <div id="buttons">
     <button id="btnDownload" onclick="downloadImage()">Download</button>
     <button id="btnCopy" onclick="copyImage()">Copy</button>
@@ -234,20 +160,23 @@
     </div>
     <button id="btnRefresh" onclick="refreshImage()">Refresh Background</button>
   </div>
+
   <div id="status" class="status"></div>
   <canvas id="canvas" style="display:none;"></canvas>
+
   <script>
+    // ---- Books ----
     const bibleBooks = [
-      "Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy", "Joshua", "Judges", "Ruth",
-      "1 Samuel", "2 Samuel", "1 Kings", "2 Kings", "1 Chronicles", "2 Chronicles", "Ezra", "Nehemiah", "Esther", "Job", "Psalms",
-      "Proverbs", "Ecclesiastes", "Song of Solomon", "Isaiah", "Jeremiah", "Lamentations", "Ezekiel", "Daniel", "Hosea", "Joel", "Amos",
-      "Obadiah", "Jonah", "Micah", "Nahum", "Habakkuk", "Zephaniah", "Haggai", "Zechariah", "Malachi",
-      "Matthew", "Mark", "Luke", "John", "Acts", "Romans", "1 Corinthians", "2 Corinthians", "Galatians", "Ephesians", "Philippians", "Colossians",
-      "1 Thessalonians", "2 Thessalonians", "1 Timothy", "2 Timothy", "Titus", "Philemon", "Hebrews", "James", "1 Peter", "2 Peter",
-      "1 John", "2 John", "3 John", "Jude", "Revelation"
+      "Genesis","Exodus","Leviticus","Numbers","Deuteronomy","Joshua","Judges","Ruth",
+      "1 Samuel","2 Samuel","1 Kings","2 Kings","1 Chronicles","2 Chronicles","Ezra","Nehemiah","Esther","Job","Psalms",
+      "Proverbs","Ecclesiastes","Song of Solomon","Isaiah","Jeremiah","Lamentations","Ezekiel","Daniel","Hosea","Joel","Amos",
+      "Obadiah","Jonah","Micah","Nahum","Habakkuk","Zephaniah","Haggai","Zechariah","Malachi",
+      "Matthew","Mark","Luke","John","Acts","Romans","1 Corinthians","2 Corinthians","Galatians","Ephesians","Philippians","Colossians",
+      "1 Thessalonians","2 Thessalonians","1 Timothy","2 Timothy","Titus","Philemon","Hebrews","James","1 Peter","2 Peter",
+      "1 John","2 John","3 John","Jude","Revelation"
     ];
-    
-    // DOM elements
+
+    // ---- DOM helpers ----
     const $ = s => document.querySelector(s);
     const loader = $('#imageLoader');
     const bgGradient = $('#bgGradient');
@@ -261,37 +190,32 @@
     const shareDropdown = $('#shareDropdown');
     const englishBtn = $('#englishBtn');
     const malayalamBtn = $('#malayalamBtn');
-    
-    // State variables
+
+    // ---- State ----
     let busy = false;
     let currentVerseText = '';
     let currentReference = '';
     let currentGradient = '';
     let isUsingGradient = true;
-    let currentLanguage = 'english'; // 'english' or 'malayalam'
+    let currentLanguage = 'english'; // 'english' | 'malayalam'
     let malayalamTranslation = '';
-    
-    // Initialize book select
+
+    // ---- Init ----
     const bookSelect = $('#bookSelect');
     bibleBooks.forEach(b => {
       const opt = document.createElement('option');
-      opt.value = b; 
-      opt.textContent = b;
+      opt.value = b; opt.textContent = b;
       bookSelect.appendChild(opt);
     });
-    
-    // Event listeners
+
     $('#wmCheck').addEventListener('change', function() {
       watermark.style.display = this.checked ? 'block' : 'none';
     });
-    
-    // Close share dropdown when clicking outside
-    document.addEventListener('click', function(event) {
-      if (!event.target.closest('.share-container')) {
-        shareDropdown.classList.remove('show');
-      }
+
+    document.addEventListener('click', e => {
+      if (!e.target.closest('.share-container')) shareDropdown.classList.remove('show');
     });
-    
+
     gradientToggle.addEventListener('click', () => {
       if (!gradientToggle.classList.contains('active')) {
         gradientToggle.classList.add('active');
@@ -300,7 +224,7 @@
         switchToGradient();
       }
     });
-    
+
     imageToggle.addEventListener('click', () => {
       if (!imageToggle.classList.contains('active')) {
         imageToggle.classList.add('active');
@@ -310,7 +234,7 @@
       }
     });
 
-    // Language toggle event listeners
+    // Language toggle
     englishBtn.addEventListener('click', () => {
       if (currentLanguage !== 'english') {
         englishBtn.classList.add('active');
@@ -323,15 +247,10 @@
 
     malayalamBtn.addEventListener('click', async () => {
       if (currentLanguage !== 'malayalam') {
-        if (!currentVerseText) {
-          showStatus('Please generate a verse first.', 'error');
-          return;
-        }
-        
+        if (!currentVerseText) { showStatus('Please generate a verse first.', 'error'); return; }
         malayalamBtn.classList.add('active');
         englishBtn.classList.remove('active');
         currentLanguage = 'malayalam';
-        
         if (!malayalamTranslation) {
           await translateToMalayalam();
         } else {
@@ -340,12 +259,16 @@
         }
       }
     });
-    
-    // Initialize on load
+
     window.onload = () => {
       generateRandomGradient();
+      // PWA: register SW
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('./sw.js').catch(console.error);
+      }
     };
-    
+
+    // ---- Utils ----
     function showStatus(msg, type = 'success') {
       statusEl.textContent = msg;
       statusEl.className = `status ${type}`;
@@ -353,7 +276,7 @@
       clearTimeout(showStatus._t);
       showStatus._t = setTimeout(() => statusEl.style.display = 'none', 2800);
     }
-    
+
     function adjustFontSize(text) {
       const len = text.length;
       if (len < 80) return 40;
@@ -361,70 +284,50 @@
       if (len < 400) return 26;
       return 22;
     }
-    
+
     function setBusy(on) {
       busy = on;
       loader.style.display = on ? 'grid' : 'none';
-      ['#btnDownload', '#btnCopy', '#btnRefresh', '#btnGenerate', '#btnGenerateBible', '#btnGenerateRandom', '#btnShare'].forEach(id => {
+      ['#btnDownload', '#btnCopy', '#btnRefresh', '#btnGenerate', '#btnGenerateBible', '#btnGenerateRandom', '#btnShare', '#btnVOTD'].forEach(id => {
         const btn = $(id);
         if (btn) btn.disabled = on;
       });
-      
-      // Also disable language buttons when busy
       englishBtn.disabled = on;
       malayalamBtn.disabled = on;
+      $('#verseEndInput').disabled = on && $('#btnVOTD').dataset.active === '1'; // small UX tweak during VOTD fetch
     }
-    
+
     function switchToGradient() {
       bgImage.style.opacity = '0';
       bgGradient.style.opacity = '1';
-      if (!currentGradient) {
-        generateRandomGradient();
-      }
+      if (!currentGradient) generateRandomGradient();
     }
-    
+
     function switchToImage() {
-      if (!isUsingGradient) return; // Already in image mode
-      
-      setBusy(true);
-      
-      // If no image is loaded or the current image failed, fetch a new one
-      if (!bgImage.src || bgImage.src === window.location.href || bgImage.naturalWidth === 0) {
-        fetchRandomImage();
-      } else {
-        // Image already loaded, just switch to it
-        bgGradient.style.opacity = '0';
-        bgImage.style.opacity = '1';
-        setBusy(false);
-        showStatus('Switched to image background!');
+      if (!isUsingGradient) {
+        setBusy(true);
+        if (!bgImage.src || bgImage.src === window.location.href || bgImage.naturalWidth === 0) {
+          fetchRandomImage();
+        } else {
+          bgGradient.style.opacity = '0';
+          bgImage.style.opacity = '1';
+          setBusy(false);
+          showStatus('Switched to image background!');
+        }
       }
     }
 
-    // Translation function
+    // ---- Translation ----
     async function translateToMalayalam() {
-      if (!currentVerseText) {
-        showStatus('No verse text to translate.', 'error');
-        return;
-      }
-
+      if (!currentVerseText) { showStatus('No verse text to translate.', 'error'); return; }
       setBusy(true);
       showStatus('Translating to Malayalam...', 'info');
-
       try {
-        // Clean the verse text for translation
         const textToTranslate = currentVerseText.replace(/\n+/g, ' ').trim();
-        
         const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=ml&dt=t&q=${encodeURIComponent(textToTranslate)}`;
-        
         const response = await fetch(url);
-        
-        if (!response.ok) {
-          throw new Error(`Translation service error: ${response.status}`);
-        }
-        
+        if (!response.ok) throw new Error(`Translation service error: ${response.status}`);
         const data = await response.json();
-        
-        // Parse the Google Translate response
         if (data && data[0] && Array.isArray(data[0])) {
           malayalamTranslation = data[0].map(item => item[0]).join('');
           updateVerseDisplay();
@@ -432,95 +335,64 @@
         } else {
           throw new Error('Invalid translation response format');
         }
-        
       } catch (error) {
         console.error('Translation error:', error);
         showStatus('Translation failed. Please try again.', 'error');
-        
-        // Switch back to English
         englishBtn.classList.add('active');
         malayalamBtn.classList.remove('active');
         currentLanguage = 'english';
         updateVerseDisplay();
-        
       } finally {
         setBusy(false);
       }
     }
-    
+
+    // ---- Generate (Manual) ----
     function generateVerse() {
       const verse = $('#inputVerse').value.trim();
-      if (!verse) {
-        showStatus('Please enter a Bible verse.', 'error');
-        return;
-      }
-      
+      if (!verse) { showStatus('Please enter a Bible verse.', 'error'); return; }
       const referenceMatch = verse.match(/\n?—\s*(.+)$/);
       if (referenceMatch) {
         currentVerseText = verse.replace(/\n?—\s*(.+)$/, '').trim();
-        currentReference = referenceMatch && referenceMatch.length > 1 ? referenceMatch[1] : '';
+        currentReference = referenceMatch[1] || '';
       } else {
         currentVerseText = verse;
         currentReference = '';
       }
-      
-      // Reset translation when new verse is generated
       malayalamTranslation = '';
-      
-      // Switch back to English if we were in Malayalam mode
       if (currentLanguage === 'malayalam') {
-        englishBtn.classList.add('active');
-        malayalamBtn.classList.remove('active');
-        currentLanguage = 'english';
+        englishBtn.classList.add('active'); malayalamBtn.classList.remove('active'); currentLanguage = 'english';
       }
-      
       updateVerseDisplay();
       buttons.style.display = 'flex';
       showStatus('Verse generated successfully!');
     }
-    
+
+    // ---- Generate (Bible Mode) ----
     async function generateBibleVerse() {
       const book = bookSelect.value;
       const chapter = $('#chapterInput').value;
       const verseStart = $('#verseStartInput').value;
       const verseEnd = $('#verseEndInput').value;
-      
       if (!book || !chapter || !verseStart) {
-        showStatus('Please fill in Book, Chapter, and Start Verse.', 'error');
-        return;
+        showStatus('Please fill in Book, Chapter, and Start Verse.', 'error'); return;
       }
-      
       setBusy(true);
-      
       const passage = `${book} ${chapter}:${verseStart}${verseEnd ? `-${verseEnd}` : ''}`;
       const url = `https://labs.bible.org/api/?passage=${encodeURIComponent(passage)}&type=text`;
-      
       try {
         const res = await fetch(url);
         if (!res.ok) throw new Error('Network response was not ok.');
-        
         let text = await res.text();
-        
         text = text.replace(/<[^>]+>/g, "").trim();
         text = text.replace(/(\s+)(\d+:\d+)/g, "\n\n").replace(/\d+:\d+\s*/g, "").trim();
-        
-        if (text === 'Passage not found.' || text === '') {
-          throw new Error('Passage not found.');
-        }
-        
+        if (text === 'Passage not found.' || text === '') throw new Error('Passage not found.');
         currentVerseText = text;
         currentReference = passage;
-        
-        // Reset translation when new verse is generated
         malayalamTranslation = '';
-        
-        // Switch back to English if we were in Malayalam mode
         if (currentLanguage === 'malayalam') {
-          englishBtn.classList.add('active');
-          malayalamBtn.classList.remove('active');
-          currentLanguage = 'english';
+          englishBtn.classList.add('active'); malayalamBtn.classList.remove('active'); currentLanguage = 'english';
         }
-        
         updateVerseDisplay();
         buttons.style.display = 'flex';
         showStatus('Verse generated successfully!');
@@ -530,116 +402,131 @@
         setBusy(false);
       }
     }
-    
+
+    // ---- Random Verse ----
     async function generateRandomVerse() {
       setBusy(true);
-      showStatus('Finding a VOTD verse...', 'info');
+      showStatus('Finding a random verse...', 'info');
       try {
-        const url = 'https://labs.bible.org/api/?passage=votd&type=text';
+        const url = 'https://labs.bible.org/api/?passage=random&type=text';
         const res = await fetch(url);
         if (!res.ok) throw new Error('Network response was not ok.');
-        
         let text = await res.text();
         text = text.replace(/<[^>]+>/g, "").trim();
-        
         const referenceMatch = text.match(/^(\w+\s?\w*?\s?\w*?\s\d+:\d+)/);
-        
-        if (!referenceMatch) {
-          throw new Error('Random verse format not recognized.');
-        }
-
+        if (!referenceMatch) throw new Error('Random verse format not recognized.');
         const fullReference = referenceMatch[1].trim();
         const verseText = text.replace(fullReference, "").trim();
-
         const [book, chapterAndVerse] = fullReference.split(/(\d+:\d+)/);
         const [chapter, verseRange] = chapterAndVerse.split(":");
         const [verseStart, verseEnd] = verseRange.split("-");
-        
         currentReference = fullReference;
         currentVerseText = verseText;
-        
-        // Reset translation when new verse is generated
         malayalamTranslation = '';
-        
-        // Switch back to English if we were in Malayalam mode
         if (currentLanguage === 'malayalam') {
-          englishBtn.classList.add('active');
-          malayalamBtn.classList.remove('active');
-          currentLanguage = 'english';
+          englishBtn.classList.add('active'); malayalamBtn.classList.remove('active'); currentLanguage = 'english';
         }
-        
-        // Fill the input fields
+        // Pre-fill inputs
         bookSelect.value = book.trim();
         $('#chapterInput').value = chapter;
         $('#verseStartInput').value = verseStart;
         $('#verseEndInput').value = verseEnd || '';
-        
         updateVerseDisplay();
         buttons.style.display = 'flex';
-        showStatus('VOTD generated successfully!');
+        showStatus('Random verse generated successfully!');
       } catch (e) {
         showStatus(`Error: ${e.message}`, 'error');
       } finally {
         setBusy(false);
       }
     }
-    
+
+    // ---- Verse of the Day (VOTD) ----
+    async function generateVOTD() {
+      if (busy) return;
+      setBusy(true);
+      $('#btnVOTD').dataset.active = '1';
+      showStatus('Fetching Verse of the Day...', 'info');
+      try {
+        const url = 'https://labs.bible.org/api/?passage=votd&type=text';
+        const res = await fetch(url);
+        if (!res.ok) throw new Error('Network response was not ok.');
+        let text = await res.text();
+        text = text.replace(/<[^>]+>/g, "").trim();
+
+        // Expect format: "John 3:16 ...verse text..."
+        // Some VOTD responses include the ref at the start; extract it.
+        const refMatch = text.match(/^([1-3]?\s?[A-Za-z]+\s\d+:\d+(\-\d+)?)/);
+        let ref = '';
+        let verseOnly = text;
+        if (refMatch) {
+          ref = refMatch[1].trim();
+          verseOnly = text.replace(ref, '').trim();
+        }
+
+        currentReference = ref || 'Verse of the Day';
+        currentVerseText = verseOnly;
+        malayalamTranslation = '';
+        if (currentLanguage === 'malayalam') {
+          englishBtn.classList.add('active'); malayalamBtn.classList.remove('active'); currentLanguage = 'english';
+        }
+
+        // UX: end verse not needed; clear it visually (optional)
+        $('#verseEndInput').value = '';
+
+        updateVerseDisplay();
+        buttons.style.display = 'flex';
+        showStatus('VOTD loaded!');
+      } catch (e) {
+        console.error(e);
+        showStatus('Failed to load VOTD.', 'error');
+      } finally {
+        $('#btnVOTD').dataset.active = '0';
+        setBusy(false);
+      }
+    }
+
+    // ---- Display / Layout ----
     function updateVerseDisplay() {
       const tempCanvas = document.createElement('canvas');
       const tempCtx = tempCanvas.getContext('2d');
-      
-      // Determine which text to display
-      const displayText = currentLanguage === 'malayalam' && malayalamTranslation 
-        ? malayalamTranslation 
+
+      const displayText = (currentLanguage === 'malayalam' && malayalamTranslation)
+        ? malayalamTranslation
         : currentVerseText;
-      
+
       const fontSize = adjustFontSize(displayText);
       tempCtx.font = `${fontSize}px system-ui`;
-      
+
       let previewHTML = '';
-      
-      if (currentReference) {
-        previewHTML += `<span class="verse-reference">${currentReference}</span>`;
-      }
-      
+      if (currentReference) previewHTML += `<span class="verse-reference">${currentReference}</span>`;
+
       const verses = displayText.split('\n\n').filter(v => v.trim() !== '');
       const wrappedLines = [];
-      
+
       verses.forEach((verse, verseIndex) => {
         const words = verse.trim().split(" ");
         let line = "";
-        
         for (let i = 0; i < words.length; i++) {
           const testLine = line + words[i] + " ";
           if (tempCtx.measureText(testLine).width > 600 * 0.8) {
-            if (line) {
-              wrappedLines.push(line.trim());
-              line = words[i] + " ";
-            } else {
-              wrappedLines.push(words[i]);
-            }
+            if (line) { wrappedLines.push(line.trim()); line = words[i] + " "; }
+            else { wrappedLines.push(words[i]); }
           } else {
             line = testLine;
           }
         }
-        if (line.trim()) {
-          wrappedLines.push(line.trim());
-        }
-        
-        if (verseIndex < verses.length - 1) {
-          wrappedLines.push("");
-        }
+        if (line.trim()) wrappedLines.push(line.trim());
+        if (verseIndex < verses.length - 1) wrappedLines.push("");
       });
-      
+
       const malayalamClass = currentLanguage === 'malayalam' ? 'malayalam-text' : '';
       previewHTML += `<div class="${malayalamClass}" style="font-size:${fontSize}px; line-height: 1.4;">${wrappedLines.join('<br>')}</div>`;
       verseBox.innerHTML = previewHTML;
     }
-    
+
     function fetchRandomImage() {
       setBusy(true);
-      
-      // Use only Picsum Photos which is reliable and CORS-friendly
       const randomId = Math.floor(Math.random() * 1000) + 1;
       const imageSources = [
         `https://picsum.photos/1000/600?random=${Date.now()}`,
@@ -647,9 +534,8 @@
         `https://picsum.photos/1000/600?blur=1&random=${Math.floor(Math.random() * 1000)}`,
         `https://picsum.photos/1000/600?grayscale&random=${Math.floor(Math.random() * 1000)}`
       ];
-      
       let currentIndex = 0;
-      
+
       function tryNextImage() {
         if (currentIndex >= imageSources.length) {
           setBusy(false);
@@ -660,49 +546,31 @@
           switchToGradient();
           return;
         }
-        
-        const newSrc = imageSources[currentIndex];
-        currentIndex++;
-        
-        // Create a new image to preload
+        const newSrc = imageSources[currentIndex++];
         const tempImg = new Image();
-        tempImg.crossOrigin = 'anonymous'; // Add this back for canvas compatibility
-        
+        tempImg.crossOrigin = 'anonymous';
         const timeoutId = setTimeout(() => {
           if (!tempImg.complete || tempImg.naturalWidth === 0) {
-            tempImg.src = '';
-            tempImg.onload = null;
-            tempImg.onerror = null;
-            tryNextImage();
+            tempImg.src = ''; tempImg.onload = null; tempImg.onerror = null; tryNextImage();
           }
         }, 3000);
-        
         tempImg.onload = () => {
           clearTimeout(timeoutId);
           if (tempImg.naturalWidth > 0 && tempImg.naturalHeight > 0) {
-            bgImage.crossOrigin = 'anonymous'; // Set crossOrigin on the main image too
+            bgImage.crossOrigin = 'anonymous';
             bgImage.src = newSrc;
             bgGradient.style.opacity = '0';
             bgImage.style.opacity = '1';
             setBusy(false);
             showStatus('Background image loaded successfully!');
-          } else {
-            tryNextImage();
-          }
+          } else tryNextImage();
         };
-        
-        tempImg.onerror = () => {
-          clearTimeout(timeoutId);
-          console.log(`Failed to load image from: ${newSrc}`);
-          tryNextImage();
-        };
-        
+        tempImg.onerror = () => { clearTimeout(timeoutId); tryNextImage(); };
         tempImg.src = newSrc;
       }
-      
       tryNextImage();
     }
-    
+
     function generateRandomGradient() {
       const randomColor = () => {
         const h = Math.floor(Math.random() * 360);
@@ -710,17 +578,14 @@
         const l = Math.floor(Math.random() * 50) + 15;
         return `hsl(${h}, ${s}%, ${l}%)`;
       };
-      
       const startColor = randomColor();
       const endColor = randomColor();
       const angles = [0, 45, 90, 135, 180, 225, 270, 315];
       const angle = angles[Math.floor(Math.random() * angles.length)];
-      
       currentGradient = `linear-gradient(${angle}deg, ${startColor} 0%, ${endColor} 100%)`;
       bgGradient.style.background = currentGradient;
     }
-    
-    // User-provided refreshImage logic
+
     async function refreshImage() {
       if (busy) return;
       if (isUsingGradient) {
@@ -746,147 +611,92 @@
         }
       }
     }
-    
+
     function drawGradientToCanvas(ctx, canvas) {
-      if (!currentGradient) {
-        generateRandomGradient();
-      }
-      
-      // Parse gradient for canvas
-      const gradientMatch = currentGradient.match(/linear-gradient\((\d+)deg,\s*(.+?)\s+0%,\s*(.+?)\s+100%\)/);
-      if (gradientMatch) {
-        const angle = parseInt(gradientMatch[1]);
-        const startColor = gradientMatch[2];
-        const endColor = gradientMatch[3];
-        
-        // Convert angle to canvas gradient coordinates
+      if (!currentGradient) generateRandomGradient();
+      const m = currentGradient.match(/linear-gradient\((\d+)deg,\s*(.+?)\s+0%,\s*(.+?)\s+100%\)/);
+      if (m) {
+        const angle = parseInt(m[1],10);
+        const startColor = m[2];
+        const endColor = m[3];
         const angleRad = (angle * Math.PI) / 180;
         const x1 = canvas.width / 2 - Math.cos(angleRad) * canvas.width / 2;
         const y1 = canvas.height / 2 - Math.sin(angleRad) * canvas.height / 2;
         const x2 = canvas.width / 2 + Math.cos(angleRad) * canvas.width / 2;
         const y2 = canvas.height / 2 + Math.sin(angleRad) * canvas.height / 2;
-        
         const gradient = ctx.createLinearGradient(x1, y1, x2, y2);
         gradient.addColorStop(0, startColor);
         gradient.addColorStop(1, endColor);
-        
-        ctx.fillStyle = gradient;
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = gradient; ctx.fillRect(0, 0, canvas.width, canvas.height);
       } else {
-        // Fallback solid color
-        ctx.fillStyle = '#2c3e50';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#2c3e50'; ctx.fillRect(0, 0, canvas.width, canvas.height);
       }
     }
-    
-    // Combined drawToCanvas logic
+
     async function drawToCanvas() {
       const canvas = $('#canvas');
       const ctx = canvas.getContext('2d');
-      canvas.width = 1000;
-      canvas.height = 600;
-            
-      // Draw background based on current mode
+      canvas.width = 1000; canvas.height = 600;
+
       if (isUsingGradient) {
         drawGradientToCanvas(ctx, canvas);
       } else {
-        // Draw image background and overlay
         if (bgImage.src && bgImage.complete && bgImage.naturalWidth > 0) {
           ctx.drawImage(bgImage, 0, 0, canvas.width, canvas.height);
         } else {
-          // Fallback to gradient if image is not ready
           drawGradientToCanvas(ctx, canvas);
         }
       }
-      
-      // Add a consistent dark overlay for both modes
-      ctx.fillStyle = 'rgba(0,0,0,0.3)';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      
-      // Draw text
-      ctx.fillStyle = '#fff';
-      ctx.textAlign = 'center';
-      ctx.shadowColor = 'rgba(0,0,0,0.8)';
-      ctx.shadowBlur = 6;
-      ctx.shadowOffsetY = 3;
-      
-      // Determine which text to use for canvas
-      const displayText = currentLanguage === 'malayalam' && malayalamTranslation
-        ? malayalamTranslation
-        : currentVerseText;
-      
+
+      // dark overlay
+      ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.fillStyle = '#fff'; ctx.textAlign = 'center';
+      ctx.shadowColor = 'rgba(0,0,0,0.8)'; ctx.shadowBlur = 6; ctx.shadowOffsetY = 3;
+
+      const displayText = (currentLanguage === 'malayalam' && malayalamTranslation) ? malayalamTranslation : currentVerseText;
       const fontSize = adjustFontSize(displayText);
       const lineHeight = fontSize * 1.4;
-      
-      // Set appropriate font for Malayalam text
       let fontFamily = 'system-ui';
-      if (currentLanguage === 'malayalam') {
-        fontFamily = 'Noto Sans Malayalam, Kartika, Malayalam Sangam MN, system-ui';
-      }
-      
-      // Word wrap for canvas
+      if (currentLanguage === 'malayalam') fontFamily = 'Noto Sans Malayalam, Kartika, Malayalam Sangam MN, system-ui';
+
       const lines = [];
       const tempCanvas = document.createElement('canvas');
       const tempCtx = tempCanvas.getContext('2d');
       tempCtx.font = `${fontSize}px ${fontFamily}`;
-      
       const words = displayText.split(' ');
       let line = '';
       for (let i = 0; i < words.length; i++) {
         const testLine = line + words[i] + ' ';
         if (tempCtx.measureText(testLine).width > canvas.width * 0.8) {
-          if (line) {
-            lines.push(line.trim());
-            line = words[i] + ' ';
-          } else {
-            lines.push(words[i]);
-            line = '';
-          }
-        } else {
-          line = testLine;
-        }
+          if (line) { lines.push(line.trim()); line = words[i] + ' '; }
+          else { lines.push(words[i]); line = ''; }
+        } else { line = testLine; }
       }
-      if (line.trim()) {
-        lines.push(line.trim());
-      }
-      
+      if (line.trim()) lines.push(line.trim());
+
       let totalTextHeight = lines.length * lineHeight;
-      let yOffset = 0;
-      if (currentReference) {
-        totalTextHeight += 34 * 1.2;
-        yOffset = 34 * 1.2 + 20;
-      }
-      
+      if (currentReference) totalTextHeight += 34 * 1.2 + 20;
       let y = (canvas.height - totalTextHeight) / 2;
-      
+
       if (currentReference) {
         ctx.font = "bold 34px system-ui";
         ctx.fillText(`${currentReference}`, canvas.width / 2, y);
         y += 50;
       }
-      
+
       ctx.font = `${fontSize}px ${fontFamily}`;
-      
-      lines.forEach(lineText => {
-        ctx.fillText(lineText, canvas.width / 2, y);
-        y += lineHeight;
-      });
-      
+      lines.forEach(lineText => { ctx.fillText(lineText, canvas.width / 2, y); y += lineHeight; });
+
       if ($('#wmCheck').checked) {
-        ctx.font = '12px system-ui';
-        ctx.textAlign = 'right';
-        ctx.fillStyle = 'rgba(255,255,255,0.6)';
-        ctx.shadowBlur = 3;
+        ctx.font = '12px system-ui'; ctx.textAlign = 'right'; ctx.fillStyle = 'rgba(255,255,255,0.6)'; ctx.shadowBlur = 3;
         ctx.fillText('fb.com/sajinmsimon', canvas.width - 15, canvas.height - 10);
       }
     }
-    
+
+    // ---- Export / Share ----
     async function downloadImage() {
-      if (!currentVerseText) {
-        showStatus('Please generate a verse first.', 'error');
-        return;
-      }
-      
+      if (!currentVerseText) { showStatus('Please generate a verse first.', 'error'); return; }
       setBusy(true);
       try {
         await drawToCanvas();
@@ -902,22 +712,16 @@
         setBusy(false);
       }
     }
-    
+
     async function copyImage() {
-      if (!currentVerseText) {
-        showStatus('Please generate a verse first.', 'error');
-        return;
-      }
-      
+      if (!currentVerseText) { showStatus('Please generate a verse first.', 'error'); return; }
       setBusy(true);
       try {
         await drawToCanvas();
         $('#canvas').toBlob(async blob => {
           try {
             if (navigator.clipboard && window.ClipboardItem) {
-              await navigator.clipboard.write([new ClipboardItem({
-                'image/png': blob
-              })]);
+              await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
               showStatus('Image copied to clipboard!');
             } else {
               showStatus('Clipboard not supported in this browser.', 'error');
@@ -928,122 +732,73 @@
           setBusy(false);
         }, 'image/png');
       } catch (e) {
-        showStatus('Failed to copy image.', 'error');
-        setBusy(false);
+        showStatus('Failed to copy image.', 'error'); setBusy(false);
       }
     }
-    
+
     function toggleShareDropdown() {
       shareDropdown.classList.toggle('show');
     }
-    
-    // Share image using Web Share API or fallback
+
     async function shareImage() {
-      if (!currentVerseText) {
-        showStatus('Please generate a verse first.', 'error');
-        return;
-      }
-      
-      shareDropdown.classList.remove('show');
-      setBusy(true);
-      
+      if (!currentVerseText) { showStatus('Please generate a verse first.', 'error'); return; }
+      shareDropdown.classList.remove('show'); setBusy(true);
       try {
         await drawToCanvas();
         const blob = await new Promise(resolve => $('#canvas').toBlob(resolve, 'image/png'));
         const file = new File([blob], 'bible-verse.png', { type: 'image/png' });
-
         if (navigator.share && navigator.canShare({ files: [file] })) {
-          await navigator.share({
-            title: 'Bible Verse',
-            text: `${currentVerseText}\n\n— ${currentReference}`,
-            files: [file]
-          });
+          await navigator.share({ title: 'Bible Verse', text: `${currentVerseText}\n\n— ${currentReference}`, files: [file] });
           showStatus('Image shared successfully!');
         } else {
           showStatus('Web Share API for images is not supported. Try "Save & Share" or "Copy".', 'error');
         }
       } catch (e) {
         console.error('Sharing failed:', e);
-        if (e.name !== 'AbortError') {
-          showStatus('Failed to share image. Your browser may not support this feature.', 'error');
-        } else {
-          showStatus('Sharing cancelled.', 'info');
-        }
+        if (e.name !== 'AbortError') showStatus('Failed to share image. Your browser may not support this feature.', 'error');
+        else showStatus('Sharing cancelled.', 'info');
       } finally {
         setBusy(false);
       }
     }
-    
-    // Share text only using Web Share API or fallback
+
     async function shareText() {
-      if (!currentVerseText) {
-        showStatus('Please generate a verse first.', 'error');
-        return;
-      }
-      
+      if (!currentVerseText) { showStatus('Please generate a verse first.', 'error'); return; }
       shareDropdown.classList.remove('show');
-      
       try {
         if (navigator.share) {
-          await navigator.share({
-            title: 'Bible Verse',
-            text: `${currentVerseText}\n\n— ${currentReference}`
-          });
+          await navigator.share({ title: 'Bible Verse', text: `${currentVerseText}\n\n— ${currentReference}` });
           showStatus('Text shared successfully!');
         } else {
           showStatus('Web Share API is not supported. Text copied to clipboard.', 'info');
-          // Fallback to clipboard copy
           const textToCopy = `${currentVerseText}\n\n— ${currentReference}`;
           await navigator.clipboard.writeText(textToCopy);
         }
       } catch (e) {
         console.error('Sharing failed:', e);
-        if (e.name !== 'AbortError') {
-          showStatus('Failed to share text.', 'error');
-        } else {
-          showStatus('Sharing cancelled.', 'info');
-        }
+        if (e.name !== 'AbortError') showStatus('Failed to share text.', 'error');
+        else showStatus('Sharing cancelled.', 'info');
       }
     }
-    
-    // Save image to file and then share (iOS workaround)
+
     async function shareImageFile() {
-      if (!currentVerseText) {
-        showStatus('Please generate a verse first.', 'error');
-        return;
-      }
-      
-      shareDropdown.classList.remove('show');
-      setBusy(true);
-      
+      if (!currentVerseText) { showStatus('Please generate a verse first.', 'error'); return; }
+      shareDropdown.classList.remove('show'); setBusy(true);
       try {
         await drawToCanvas();
         const blob = await new Promise(resolve => $('#canvas').toBlob(resolve, 'image/png'));
         const file = new File([blob], 'bible-verse.png', { type: 'image/png' });
-        
         if (navigator.canShare && navigator.canShare({ files: [file] })) {
-          // This is a direct share for supported platforms
-          await navigator.share({
-            title: 'Bible Verse',
-            text: `${currentVerseText}\n\n— ${currentReference}`,
-            files: [file]
-          });
+          await navigator.share({ title: 'Bible Verse', text: `${currentVerseText}\n\n— ${currentReference}`, files: [file] });
           showStatus('Image saved and shared!');
         } else {
-          // Fallback for browsers that don't support direct file sharing, like many on desktop
           showStatus('File saving and sharing not supported. Use "Download" instead.', 'error');
         }
-        
       } catch (e) {
         console.error('Save and share failed:', e);
-        if (e.name !== 'AbortError') {
-          showStatus('Failed to save and share image.', 'error');
-        } else {
-          showStatus('Sharing cancelled.', 'info');
-        }
-      } finally {
-        setBusy(false);
-      }
+        if (e.name !== 'AbortError') showStatus('Failed to save and share image.', 'error');
+        else showStatus('Sharing cancelled.', 'info');
+      } finally { setBusy(false); }
     }
   </script>
 </body>
