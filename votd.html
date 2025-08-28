@@ -122,7 +122,7 @@
     <button id="btnGenerateRandom" onclick="generateRandomVerse()">Random Verse</button>
     <button id="btnVOTD" onclick="generateVOTD()">VOTD</button>
   </div>
-  <div class="hint">Tip: VOTD ignores the End Verse field.</div>
+  <div class="hint"></div>
 
   <div class="toggle-group">
     <button id="gradientToggle" class="toggle-btn active">Use Gradient</button>
@@ -442,49 +442,55 @@
     }
 
     // ---- Verse of the Day (VOTD) ----
-    async function generateVOTD() {
-      if (busy) return;
-      setBusy(true);
-      $('#btnVOTD').dataset.active = '1';
-      showStatus('Fetching Verse of the Day...', 'info');
-      try {
-        const url = 'https://labs.bible.org/api/?passage=votd&type=text';
-        const res = await fetch(url);
-        if (!res.ok) throw new Error('Network response was not ok.');
-        let text = await res.text();
-        text = text.replace(/<[^>]+>/g, "").trim();
+async function generateVOTD() {
+  if (busy) return;
+  setBusy(true);
+  $('#btnVOTD').dataset.active = '1';
+  showStatus('Fetching Verse of the Day...', 'info');
+  try {
+    const url = 'https://labs.bible.org/api/?passage=votd&type=text';
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('Network response was not ok.');
+    let text = await res.text();
+    text = text.replace(/<[^>]+>/g, "").trim();
 
-        // Expect format: "John 3:16 ...verse text..."
-        // Some VOTD responses include the ref at the start; extract it.
-        const refMatch = text.match(/^([1-3]?\s?[A-Za-z]+\s\d+:\d+(\-\d+)?)/);
-        let ref = '';
-        let verseOnly = text;
-        if (refMatch) {
-          ref = refMatch[1].trim();
-          verseOnly = text.replace(ref, '').trim();
-        }
-
-        currentReference = ref || 'Verse of the Day';
-        currentVerseText = verseOnly;
-        malayalamTranslation = '';
-        if (currentLanguage === 'malayalam') {
-          englishBtn.classList.add('active'); malayalamBtn.classList.remove('active'); currentLanguage = 'english';
-        }
-
-        // UX: end verse not needed; clear it visually (optional)
-        $('#verseEndInput').value = '';
-
-        updateVerseDisplay();
-        buttons.style.display = 'flex';
-        showStatus('VOTD loaded!');
-      } catch (e) {
-        console.error(e);
-        showStatus('Failed to load VOTD.', 'error');
-      } finally {
-        $('#btnVOTD').dataset.active = '0';
-        setBusy(false);
-      }
+    // Extract reference (e.g. "Romans 10:13")
+    const refMatch = text.match(/^([1-3]?\s?[A-Za-z]+\s\d+:\d+(\-\d+)?)/);
+    let ref = '';
+    let verseOnly = text;
+    if (refMatch) {
+      ref = refMatch[1].trim();
+      verseOnly = text.replace(ref, '').trim();
     }
+
+    // 🛠 Fix: Some responses have multiple verses — keep only the first sentence/line
+    verseOnly = verseOnly.split(/(?:\r?\n|\.\s+)/)[0].trim();
+
+    currentReference = ref || 'Verse of the Day';
+    currentVerseText = verseOnly;
+    malayalamTranslation = '';
+
+    // Force back to English (since API only returns EN)
+    if (currentLanguage === 'malayalam') {
+      englishBtn.classList.add('active');
+      malayalamBtn.classList.remove('active');
+      currentLanguage = 'english';
+    }
+
+    // UX: end verse not needed; clear it visually
+    $('#verseEndInput').value = '';
+
+    updateVerseDisplay();
+    buttons.style.display = 'flex';
+    showStatus('VOTD loaded!');
+  } catch (e) {
+    console.error(e);
+    showStatus('Failed to load VOTD.', 'error');
+  } finally {
+    $('#btnVOTD').dataset.active = '0';
+    setBusy(false);
+  }
+}
 
     // ---- Display / Layout ----
     function updateVerseDisplay() {
