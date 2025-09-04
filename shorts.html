@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -43,8 +44,8 @@
       word-wrap: break-word;
       padding: 20px;
       border-radius: 12px;
-      backdrop-filter: blur(16px) brightness(0.7);
-      -webkit-backdrop-filter: blur(16px) brightness(0.7);
+      backdrop-filter: blur(0px) brightness(0.7);
+      -webkit-backdrop-filter: blur(0px) brightness(0.7);
       text-shadow: 0 4px 8px rgba(0, 0, 0, 0.6);
       transition: all 0.5s ease;
       line-height: 1.4;
@@ -724,7 +725,7 @@
             backdropCtx.putImageData(imageData, 0, 0);
             
             // Apply blur and brightness to match CSS backdrop-filter: blur(16px) brightness(0.7)
-            backdropCtx.filter = 'blur(16px) brightness(0.7)';
+            backdropCtx.filter = 'blur(0px) brightness(0.7)';
             backdropCtx.drawImage(backdropCanvas, 0, 0);
             
             // Draw blurred backdrop back to main canvas
