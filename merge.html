@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio + Image to Video Merger</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .upload-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .upload-box {
+            border: 3px dashed #ddd;
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            transition: all 0.3s ease;
+            background: #fafafa;
+        }
+
+        .upload-box:hover {
+            border-color: #667eea;
+            background: #f0f4ff;
+            transform: translateY(-2px);
+        }
+
+        .upload-box.dragover {
+            border-color: #667eea;
+            background: #e8f0ff;
+            transform: scale(1.02);
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            color: #667eea;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .upload-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            margin: 10px;
+        }
+
+        .upload-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .youtube-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9ff;
+            border-radius: 15px;
+        }
+
+        .youtube-input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+            margin-bottom: 10px;
+        }
+
+        .youtube-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .preview-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .preview-box {
+            background: #f8f9ff;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .preview-image {
+            max-width: 100%;
+            max-height: 150px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .audio-player {
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .controls {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .control-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            margin: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .control-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .control-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .progress {
+            width: 100%;
+            height: 20px;
+            background: #f0f0f0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .status {
+            text-align: center;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-weight: 500;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .output-section {
+            text-align: center;
+            padding: 20px;
+            background: #f8f9ff;
+            border-radius: 15px;
+        }
+
+        .output-video {
+            max-width: 100%;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .download-btn {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(40, 167, 69, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .upload-section, .preview-section {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .container {
+                padding: 20px;
+            }
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎵 Audio + Image to Video</h1>
+            <p>Merge MP3 files or YouTube audio with images to create videos</p>
+        </div>
+
+        <div class="youtube-section">
+            <h3>🔗 YouTube Link (Alternative Method)</h3>
+            <input type="text" class="youtube-input" id="youtubeUrl" placeholder="Paste YouTube URL here (e.g., https://www.youtube.com/watch?v=...)" />
+            <button class="upload-btn" id="loadYouTubeBtn">Get Instructions</button>
+            <p style="font-size: 0.9em; color: #666; margin-top: 10px;">
+                Due to browser restrictions, you'll need to download the audio separately using a YouTube to MP3 converter, then upload it below.
+            </p>
+        </div>
+
+        <div class="upload-section">
+            <div class="upload-box" id="audioUpload">
+                <div class="upload-icon">🎵</div>
+                <h3>Upload Audio</h3>
+                <p>Drag & drop MP3 file or click to browse</p>
+                <input type="file" class="file-input" id="audioFile" accept="audio/*">
+                <button class="upload-btn" onclick="document.getElementById('audioFile').click()">Choose Audio</button>
+            </div>
+
+            <div class="upload-box" id="imageUpload">
+                <div class="upload-icon">🖼️</div>
+                <h3>Upload Image</h3>
+                <p>Drag & drop image file or click to browse</p>
+                <input type="file" class="file-input" id="imageFile" accept="image/*">
+                <button class="upload-btn" onclick="document.getElementById('imageFile').click()">Choose Image</button>
+            </div>
+        </div>
+
+        <div class="preview-section">
+            <div class="preview-box">
+                <h4>🎵 Audio Preview</h4>
+                <div id="audioPreview">No audio loaded</div>
+            </div>
+            <div class="preview-box">
+                <h4>🖼️ Image Preview</h4>
+                <div id="imagePreview">No image loaded</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="control-btn" id="createVideoBtn" disabled>🎬 Create Video</button>
+        </div>
+
+        <div class="progress hidden" id="progressContainer">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+
+        <div id="status"></div>
+
+        <div class="output-section hidden" id="outputSection">
+            <h3>📹 Generated Video</h3>
+            <video id="outputVideo" class="output-video" controls></video>
+            <br>
+            <button class="download-btn" id="downloadBtn">💾 Download Video</button>
+        </div>
+    </div>
+
+    <script>
+        let audioFile = null;
+        let imageFile = null;
+        let audioBlob = null;
+        let videoBlob = null;
+
+        // File input handlers
+        document.getElementById('audioFile').addEventListener('change', handleAudioFile);
+        document.getElementById('imageFile').addEventListener('change', handleImageFile);
+        document.getElementById('createVideoBtn').addEventListener('click', createVideo);
+        document.getElementById('downloadBtn').addEventListener('click', downloadVideo);
+        document.getElementById('loadYouTubeBtn').addEventListener('click', loadYouTubeAudio);
+
+        // Drag and drop handlers
+        setupDragAndDrop('audioUpload', 'audioFile', 'audio');
+        setupDragAndDrop('imageUpload', 'imageFile', 'image');
+
+        function setupDragAndDrop(boxId, inputId, type) {
+            const box = document.getElementById(boxId);
+            const input = document.getElementById(inputId);
+
+            box.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                box.classList.add('dragover');
+            });
+
+            box.addEventListener('dragleave', () => {
+                box.classList.remove('dragover');
+            });
+
+            box.addEventListener('drop', (e) => {
+                e.preventDefault();
+                box.classList.remove('dragover');
+                
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    const file = files[0];
+                    if ((type === 'audio' && file.type.startsWith('audio/')) ||
+                        (type === 'image' && file.type.startsWith('image/'))) {
+                        input.files = files;
+                        input.dispatchEvent(new Event('change'));
+                    } else {
+                        showStatus(`Please drop a valid ${type} file`, 'error');
+                    }
+                }
+            });
+        }
+
+        function handleAudioFile(event) {
+            const file = event.target.files[0];
+            if (file) {
+                audioFile = file;
+                showAudioPreview(file);
+                checkCanCreate();
+            }
+        }
+
+        function handleImageFile(event) {
+            const file = event.target.files[0];
+            if (file) {
+                imageFile = file;
+                showImagePreview(file);
+                checkCanCreate();
+            }
+        }
+
+        function showAudioPreview(file) {
+            const preview = document.getElementById('audioPreview');
+            const audio = document.createElement('audio');
+            audio.src = URL.createObjectURL(file);
+            audio.controls = true;
+            audio.className = 'audio-player';
+            
+            preview.innerHTML = `
+                <p><strong>${file.name}</strong></p>
+                <p>Size: ${(file.size / 1024 / 1024).toFixed(2)} MB</p>
+            `;
+            preview.appendChild(audio);
+        }
+
+        function showImagePreview(file) {
+            const preview = document.getElementById('imagePreview');
+            const img = document.createElement('img');
+            img.src = URL.createObjectURL(file);
+            img.className = 'preview-image';
+            
+            preview.innerHTML = `<p><strong>${file.name}</strong></p>`;
+            preview.appendChild(img);
+        }
+
+        function checkCanCreate() {
+            const canCreate = (audioFile || audioBlob) && imageFile;
+            document.getElementById('createVideoBtn').disabled = !canCreate;
+        }
+
+        function loadYouTubeAudio() {
+            const url = document.getElementById('youtubeUrl').value.trim();
+            if (!url) {
+                showStatus('Please enter a YouTube URL', 'error');
+                return;
+            }
+
+            if (!isValidYouTubeUrl(url)) {
+                showStatus('Please enter a valid YouTube URL', 'error');
+                return;
+            }
+
+            // Note: Direct YouTube audio extraction requires server-side processing
+            // This is a simplified implementation
+            showStatus('YouTube audio loading is not fully implemented in this demo. Please use the MP3 upload instead.', 'error');
+        }
+
+        function isValidYouTubeUrl(url) {
+            const pattern = /^(https?\:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+/;
+            return pattern.test(url);
+        }
+
+        async function createVideo() {
+            if (!((audioFile || audioBlob) && imageFile)) {
+                showStatus('Please select both audio and image files', 'error');
+                return;
+            }
+
+            try {
+                showStatus('Creating video...', 'info');
+                showProgress(0);
+
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                
+                // Load image
+                const img = await loadImage(imageFile);
+                
+                // Set canvas dimensions
+                canvas.width = 1280;
+                canvas.height = 720;
+                
+                // Draw image to fit canvas
+                const scale = Math.min(canvas.width / img.width, canvas.height / img.height);
+                const x = (canvas.width - img.width * scale) / 2;
+                const y = (canvas.height - img.height * scale) / 2;
+                
+                ctx.fillStyle = '#000';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
+
+                showProgress(30);
+
+                // Load audio
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const audioData = await audioFile.arrayBuffer();
+                const audioBuffer = await audioContext.decodeAudioData(audioData);
+                
+                showProgress(60);
+
+                // Create video using MediaRecorder
+                const stream = canvas.captureStream(30); // 30 FPS
+                
+                // Add audio to stream
+                const audioSource = audioContext.createBufferSource();
+                audioSource.buffer = audioBuffer;
+                const dest = audioContext.createMediaStreamDestination();
+                audioSource.connect(dest);
+                
+                // Combine video and audio streams
+                const audioTrack = dest.stream.getAudioTracks()[0];
+                stream.addTrack(audioTrack);
+
+                const mediaRecorder = new MediaRecorder(stream, {
+                    mimeType: 'video/webm;codecs=vp8,opus'
+                });
+
+                const chunks = [];
+                mediaRecorder.ondataavailable = (event) => {
+                    if (event.data.size > 0) {
+                        chunks.push(event.data);
+                    }
+                };
+
+                mediaRecorder.onstop = () => {
+                    videoBlob = new Blob(chunks, { type: 'video/webm' });
+                    showOutputVideo();
+                    showProgress(100);
+                    showStatus('Video created successfully!', 'success');
+                };
+
+                // Start recording
+                mediaRecorder.start();
+                audioSource.start();
+
+                // Stop recording after audio duration
+                setTimeout(() => {
+                    mediaRecorder.stop();
+                    audioSource.stop();
+                }, audioBuffer.duration * 1000);
+
+                showProgress(90);
+
+            } catch (error) {
+                console.error('Error creating video:', error);
+                showStatus('Error creating video. Please try again.', 'error');
+                hideProgress();
+            }
+        }
+
+        function loadImage(file) {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.onload = () => resolve(img);
+                img.onerror = reject;
+                img.src = URL.createObjectURL(file);
+            });
+        }
+
+        function showOutputVideo() {
+            const video = document.getElementById('outputVideo');
+            video.src = URL.createObjectURL(videoBlob);
+            document.getElementById('outputSection').classList.remove('hidden');
+            video.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function downloadVideo() {
+            if (!videoBlob) return;
+
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(videoBlob);
+            a.download = 'merged-video.webm';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        function showStatus(message, type) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = `status ${type}`;
+            status.style.display = 'block';
+        }
+
+        function showProgress(percent) {
+            const container = document.getElementById('progressContainer');
+            const bar = document.getElementById('progressBar');
+            container.classList.remove('hidden');
+            bar.style.width = percent + '%';
+        }
+
+        function hideProgress() {
+            document.getElementById('progressContainer').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
