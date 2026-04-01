@@ -1,0 +1,1119 @@
+
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Holy Channels</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500;600;700&family=New+York:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+    <style>
+        /* ===== DESIGN TOKENS ===== */
+        :root {
+            --glass-bg: rgba(255,255,255,0.45);
+            --glass-bg-strong: rgba(255,255,255,0.72);
+            --glass-border: rgba(255,255,255,0.7);
+            --glass-border-subtle: rgba(255,255,255,0.35);
+            --glass-shadow: 0 8px 40px rgba(0,0,0,0.10), 0 1.5px 6px rgba(0,0,0,0.06);
+            --glass-shadow-lg: 0 20px 80px rgba(0,0,0,0.15), 0 4px 16px rgba(0,0,0,0.08);
+            --blur: blur(28px) saturate(1.8);
+            --blur-sm: blur(14px) saturate(1.6);
+
+            --accent: #007AFF;
+            --accent-2: #5856D6;
+            --accent-live: #FF3B30;
+            --accent-live-glow: rgba(255,59,48,0.35);
+
+            --text-primary: rgba(0,0,0,0.88);
+            --text-secondary: rgba(0,0,0,0.56);
+            --text-tertiary: rgba(0,0,0,0.36);
+            --text-on-accent: #fff;
+
+            --bg-base: #e8eef8;
+            --bg-orb-1: radial-gradient(ellipse at 20% 20%, #c7d9f8 0%, transparent 60%);
+            --bg-orb-2: radial-gradient(ellipse at 80% 80%, #d5c9f7 0%, transparent 60%);
+            --bg-orb-3: radial-gradient(ellipse at 60% 10%, #b8e4fa 0%, transparent 55%);
+            --bg-orb-4: radial-gradient(ellipse at 10% 90%, #f0d9f7 0%, transparent 55%);
+
+            --card-radius: 22px;
+            --pill-radius: 100px;
+            --font-display: 'New York', 'Georgia', serif;
+            --font-body: -apple-system, 'SF Pro Display', 'Helvetica Neue', sans-serif;
+        }
+
+        [data-theme="dark"] {
+            --glass-bg: rgba(30,30,45,0.52);
+            --glass-bg-strong: rgba(25,25,40,0.80);
+            --glass-border: rgba(255,255,255,0.14);
+            --glass-border-subtle: rgba(255,255,255,0.08);
+            --glass-shadow: 0 8px 40px rgba(0,0,0,0.38), 0 1.5px 6px rgba(0,0,0,0.25);
+            --glass-shadow-lg: 0 20px 80px rgba(0,0,0,0.55), 0 4px 16px rgba(0,0,0,0.35);
+
+            --text-primary: rgba(255,255,255,0.92);
+            --text-secondary: rgba(255,255,255,0.58);
+            --text-tertiary: rgba(255,255,255,0.34);
+
+            --bg-base: #0d0e1a;
+            --bg-orb-1: radial-gradient(ellipse at 20% 20%, #1a2550 0%, transparent 60%);
+            --bg-orb-2: radial-gradient(ellipse at 80% 80%, #21184d 0%, transparent 60%);
+            --bg-orb-3: radial-gradient(ellipse at 60% 10%, #0d2a40 0%, transparent 55%);
+            --bg-orb-4: radial-gradient(ellipse at 10% 90%, #2a1240 0%, transparent 55%);
+        }
+
+        /* ===== RESET ===== */
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-base);
+            min-height: 100vh;
+            color: var(--text-primary);
+            overflow-x: hidden;
+            transition: background 0.5s ease, color 0.3s ease;
+            padding-bottom: 40px;
+        }
+
+        /* ===== ORBS / MESH BACKGROUND ===== */
+        .bg-mesh {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+        .bg-mesh::before,
+        .bg-mesh::after,
+        .bg-mesh .orb3,
+        .bg-mesh .orb4 {
+            content: '';
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.7;
+            animation: floatOrb 18s ease-in-out infinite alternate;
+        }
+        .bg-mesh::before {
+            width: 700px; height: 700px;
+            top: -200px; left: -150px;
+            background: radial-gradient(circle, #b8d4f8, #c4b5f7);
+            animation-delay: 0s;
+        }
+        .bg-mesh::after {
+            width: 600px; height: 600px;
+            bottom: -150px; right: -100px;
+            background: radial-gradient(circle, #d0c4f8, #b8e8fa);
+            animation-delay: -6s;
+        }
+        .bg-mesh .orb3 {
+            width: 500px; height: 500px;
+            top: 40%; left: 55%;
+            background: radial-gradient(circle, #f0d0f8, #c8d8f8);
+            animation-delay: -12s;
+        }
+        .bg-mesh .orb4 {
+            width: 350px; height: 350px;
+            top: 60%; left: 10%;
+            background: radial-gradient(circle, #b8f0e8, #c8d4f8);
+            animation-delay: -4s;
+        }
+        [data-theme="dark"] .bg-mesh::before { background: radial-gradient(circle, #1a3060, #1e1560); opacity: 0.9; }
+        [data-theme="dark"] .bg-mesh::after  { background: radial-gradient(circle, #1c1050, #0a2545); opacity: 0.9; }
+        [data-theme="dark"] .bg-mesh .orb3   { background: radial-gradient(circle, #2a0a50, #101a50); opacity: 0.9; }
+        [data-theme="dark"] .bg-mesh .orb4   { background: radial-gradient(circle, #051a30, #201050); opacity: 0.9; }
+
+        @keyframes floatOrb {
+            0%   { transform: translate(0,0) scale(1); }
+            100% { transform: translate(40px, 30px) scale(1.08); }
+        }
+
+        /* ===== LAYOUT ===== */
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1380px;
+            margin: 0 auto;
+            padding: 24px 20px;
+        }
+
+        /* ===== LIQUID GLASS MIXIN (via class) ===== */
+        .glass {
+            background: var(--glass-bg);
+            backdrop-filter: var(--blur);
+            -webkit-backdrop-filter: var(--blur);
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
+            border-radius: var(--card-radius);
+        }
+        .glass-strong {
+            background: var(--glass-bg-strong);
+            backdrop-filter: var(--blur);
+            -webkit-backdrop-filter: var(--blur);
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow-lg);
+            border-radius: var(--card-radius);
+        }
+
+        /* ===== HEADER ===== */
+        .header {
+            text-align: center;
+            margin-bottom: 28px;
+            padding: 40px 40px 36px;
+            position: relative;
+            overflow: hidden;
+        }
+        .header::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.25) 100%);
+            border-radius: var(--card-radius);
+            pointer-events: none;
+        }
+        .header-icon {
+            font-size: 3rem;
+            display: block;
+            margin-bottom: 10px;
+            filter: drop-shadow(0 4px 12px rgba(0,122,255,0.25));
+            animation: iconFloat 4s ease-in-out infinite alternate;
+        }
+        @keyframes iconFloat {
+            from { transform: translateY(0px); }
+            to   { transform: translateY(-6px); }
+        }
+        .header h1 {
+            font-family: var(--font-display);
+            font-size: clamp(1.8rem, 4vw, 2.8rem);
+            font-weight: 500;
+            color: var(--text-primary);
+            letter-spacing: -0.02em;
+            line-height: 1.1;
+            margin-bottom: 8px;
+        }
+        .header p {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            font-weight: 400;
+            letter-spacing: 0.01em;
+        }
+
+        /* ===== CONTROLS BAR ===== */
+        .controls-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 28px;
+            align-items: center;
+        }
+        .control-pill {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px;
+            border-radius: var(--pill-radius);
+            background: var(--glass-bg-strong);
+            backdrop-filter: var(--blur-sm);
+            -webkit-backdrop-filter: var(--blur-sm);
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .control-pill:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--glass-shadow-lg);
+        }
+        .control-pill label {
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            letter-spacing: 0.02em;
+            white-space: nowrap;
+        }
+        select {
+            appearance: none;
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            font-size: 0.88rem;
+            font-weight: 500;
+            font-family: var(--font-body);
+            cursor: pointer;
+            padding-right: 20px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23007AFF' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0 center;
+        }
+        select:focus { outline: none; }
+        select option { background: var(--bg-base); color: var(--text-primary); }
+
+        /* ===== BUTTONS ===== */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 20px;
+            border-radius: var(--pill-radius);
+            border: none;
+            cursor: pointer;
+            font-size: 0.88rem;
+            font-weight: 600;
+            font-family: var(--font-body);
+            transition: all 0.22s cubic-bezier(.25,.8,.25,1);
+            letter-spacing: 0.01em;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
+            color: white;
+            box-shadow: 0 4px 20px rgba(0,122,255,0.30);
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,122,255,0.42); }
+        .btn-primary:active { transform: translateY(0); }
+
+        .btn-glass {
+            background: var(--glass-bg-strong);
+            color: var(--text-primary);
+            border: 1px solid var(--glass-border);
+            backdrop-filter: var(--blur-sm);
+            -webkit-backdrop-filter: var(--blur-sm);
+            box-shadow: var(--glass-shadow);
+        }
+        .btn-glass:hover { transform: translateY(-2px); box-shadow: var(--glass-shadow-lg); }
+
+        .btn-icon {
+            padding: 10px 14px;
+            font-size: 1.1rem;
+        }
+
+        /* ===== LOADING ===== */
+        .loading {
+            text-align: center;
+            padding: 70px 30px;
+        }
+        .loading-ring {
+            display: inline-block;
+            width: 56px;
+            height: 56px;
+            border: 3.5px solid var(--glass-border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.9s cubic-bezier(.5,.1,.5,.9) infinite;
+            margin-bottom: 24px;
+            box-shadow: 0 0 20px rgba(0,122,255,0.18);
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading h3 {
+            font-family: var(--font-display);
+            font-weight: 400;
+            font-size: 1.4rem;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+        .loading p { color: var(--text-secondary); font-size: 0.92rem; }
+
+        /* ===== LIVE SECTION ===== */
+        .live-section {
+            margin: 0 0 28px;
+            overflow: hidden;
+            border: 1.5px solid rgba(255,59,48,0.45);
+            background: rgba(255,59,48,0.04);
+            backdrop-filter: var(--blur);
+            -webkit-backdrop-filter: var(--blur);
+            box-shadow: 0 0 40px var(--accent-live-glow), var(--glass-shadow);
+        }
+        [data-theme="dark"] .live-section {
+            background: rgba(255,59,48,0.08);
+        }
+        .live-section-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 18px 24px 16px;
+            border-bottom: 1px solid rgba(255,59,48,0.2);
+            background: linear-gradient(135deg, rgba(255,59,48,0.1) 0%, transparent 100%);
+        }
+        .live-label {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            font-weight: 700;
+            font-size: 1.05rem;
+            color: var(--accent-live);
+            letter-spacing: 0.02em;
+        }
+        .live-dot {
+            width: 9px;
+            height: 9px;
+            background: var(--accent-live);
+            border-radius: 50%;
+            box-shadow: 0 0 0 0 var(--accent-live-glow);
+            animation: livePulse 1.4s ease-out infinite;
+        }
+        @keyframes livePulse {
+            0%   { box-shadow: 0 0 0 0 var(--accent-live-glow); }
+            70%  { box-shadow: 0 0 0 9px transparent; }
+            100% { box-shadow: 0 0 0 0 transparent; }
+        }
+        .live-count-badge {
+            margin-left: auto;
+            background: var(--accent-live);
+            color: white;
+            font-size: 0.78rem;
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 100px;
+            letter-spacing: 0.03em;
+        }
+        .live-section .videos-grid { padding: 20px 24px 24px; }
+
+        /* ===== CHANNEL SECTION ===== */
+        .channel-section {
+            margin: 0 0 24px;
+            overflow: hidden;
+            animation: fadeUp 0.5s ease both;
+        }
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(18px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .channel-section-header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 18px 24px 16px;
+            border-bottom: 1px solid var(--glass-border-subtle);
+        }
+        .channel-section-name {
+            font-family: var(--font-display);
+            font-size: 1.18rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            letter-spacing: -0.01em;
+        }
+        .count-badge {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 3px 11px;
+            border-radius: 100px;
+            letter-spacing: 0.02em;
+            backdrop-filter: var(--blur-sm);
+        }
+        .videos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 18px;
+            padding: 20px 24px 24px;
+        }
+
+        /* ===== VIDEO CARD ===== */
+        .video-card {
+            border-radius: 18px;
+            overflow: hidden;
+            background: var(--glass-bg-strong);
+            backdrop-filter: var(--blur-sm);
+            -webkit-backdrop-filter: var(--blur-sm);
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
+            transition: transform 0.28s cubic-bezier(.25,.8,.25,1), box-shadow 0.28s ease;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+        .video-card:hover {
+            transform: translateY(-6px) scale(1.012);
+            box-shadow: var(--glass-shadow-lg), 0 0 0 1.5px rgba(0,122,255,0.25);
+        }
+        .video-card.is-live {
+            border-color: rgba(255,59,48,0.5);
+            box-shadow: var(--glass-shadow), 0 0 28px rgba(255,59,48,0.18);
+        }
+        .video-card.is-live:hover {
+            box-shadow: var(--glass-shadow-lg), 0 0 40px rgba(255,59,48,0.28);
+        }
+
+        /* Thumbnail */
+        .thumb-wrap {
+            position: relative;
+            padding-bottom: 56.25%;
+            height: 0;
+            overflow: hidden;
+            background: var(--glass-border);
+            border-radius: 0;
+        }
+        .thumb-wrap img {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.4s cubic-bezier(.25,.8,.25,1), filter 0.3s ease;
+        }
+        .video-card:hover .thumb-wrap img {
+            transform: scale(1.06);
+            filter: brightness(1.04);
+        }
+        .thumb-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.45) 0%, transparent 50%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .video-card:hover .thumb-overlay { opacity: 1; }
+
+        /* Play overlay button */
+        .play-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.8);
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.92);
+            backdrop-filter: blur(12px);
+            border: 1.5px solid rgba(255,255,255,0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.25s ease, transform 0.25s cubic-bezier(.25,.8,.25,1);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.22);
+            z-index: 4;
+        }
+        .video-card:hover .play-overlay { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        .play-overlay svg { margin-left: 3px; }
+
+        /* Live badge on thumb */
+        .live-badge {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: rgba(255,59,48,0.88);
+            backdrop-filter: blur(8px);
+            color: white;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            padding: 4px 10px;
+            border-radius: 100px;
+            z-index: 5;
+            text-transform: uppercase;
+            border: 1px solid rgba(255,255,255,0.25);
+        }
+
+        /* Inline player */
+        .inline-player {
+            display: none;
+            position: relative;
+            padding-bottom: 56.25%;
+            height: 0;
+        }
+        .inline-player iframe {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        .close-player-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 10;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(0,0,0,0.65);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+            transition: background 0.2s;
+        }
+        .close-player-btn:hover { background: rgba(0,0,0,0.9); }
+
+        /* Card body */
+        .card-body {
+            padding: 16px 18px 18px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .card-channel {
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.07em;
+            color: var(--accent);
+            text-transform: uppercase;
+        }
+        .card-title {
+            font-size: 0.94rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            line-height: 1.45;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            flex: 1;
+        }
+        .card-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 4px;
+        }
+        .card-date {
+            font-size: 0.78rem;
+            color: var(--text-tertiary);
+            font-weight: 500;
+        }
+        .card-play-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 7px 16px;
+            border-radius: 100px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            color: white;
+            font-size: 0.80rem;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.22s ease;
+            box-shadow: 0 3px 12px rgba(0,122,255,0.28);
+            letter-spacing: 0.01em;
+        }
+        .card-play-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(0,122,255,0.4); }
+        .card-play-btn.live-btn {
+            background: linear-gradient(135deg, #FF3B30, #FF6B35);
+            box-shadow: 0 3px 12px rgba(255,59,48,0.35);
+            animation: pulseBg 2s ease-in-out infinite alternate;
+        }
+        @keyframes pulseBg {
+            from { box-shadow: 0 3px 12px rgba(255,59,48,0.35); }
+            to   { box-shadow: 0 5px 22px rgba(255,59,48,0.55); }
+        }
+
+        /* ===== ERROR ===== */
+        .error-box {
+            padding: 28px 24px;
+            text-align: center;
+            background: rgba(255,59,48,0.06);
+            border: 1px solid rgba(255,59,48,0.25);
+            border-radius: var(--card-radius);
+            color: var(--accent-live);
+            font-weight: 500;
+        }
+
+        /* ===== DEBUG PANEL ===== */
+        #debugOutput {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            max-height: 200px;
+            background: var(--glass-bg-strong);
+            backdrop-filter: var(--blur);
+            -webkit-backdrop-filter: var(--blur);
+            border-top: 1px solid var(--glass-border);
+            padding: 12px 16px;
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-size: 11.5px;
+            overflow-y: auto;
+            display: none;
+            z-index: 9999;
+            white-space: pre-wrap;
+            color: var(--text-secondary);
+        }
+        #debugOutput strong {
+            display: block;
+            color: var(--accent);
+            margin-bottom: 6px;
+            font-size: 0.75rem;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+
+        /* ===== SCROLL TO TOP ===== */
+        .scroll-top {
+            position: fixed;
+            bottom: 30px;
+            right: 24px;
+            z-index: 500;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: var(--glass-bg-strong);
+            backdrop-filter: var(--blur-sm);
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
+            color: var(--text-primary);
+            font-size: 1.1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.3s ease;
+            pointer-events: none;
+        }
+        .scroll-top.visible {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+        .scroll-top:hover { transform: translateY(-3px); box-shadow: var(--glass-shadow-lg); }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            .header { padding: 28px 20px 24px; }
+            .header h1 { font-size: 1.8rem; }
+            .controls-bar { gap: 8px; }
+            .control-pill { padding: 8px 14px; }
+            .videos-grid { grid-template-columns: 1fr; padding: 14px 16px 18px; gap: 14px; }
+            .channel-section-header, .live-section-header { padding: 14px 16px 12px; }
+            .live-section .videos-grid { padding: 14px 16px 18px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-mesh" aria-hidden="true">
+        <div class="orb3"></div>
+        <div class="orb4"></div>
+    </div>
+
+    <div class="container">
+        <!-- HEADER -->
+        <header class="glass header">
+            <span class="header-icon">🙏</span>
+            <h1>Holy Channels</h1>
+            <p>The latest spiritual content from your beloved channels</p>
+        </header>
+
+        <!-- CONTROLS -->
+        <nav class="controls-bar" aria-label="Controls">
+            <div class="control-pill">
+                <label for="videoCount">Videos</label>
+                <select id="videoCount">
+                    <option value="10">10</option>
+                    <option value="20" selected>20</option>
+                    <option value="30">30</option>
+                    <option value="50">50</option>
+                </select>
+            </div>
+
+            <div class="control-pill">
+                <label for="channelFilter">Channel</label>
+                <select id="channelFilter">
+                    <option value="all">All Channels</option>
+                    <option value="shalomtelevision2">Shalom Television 2</option>
+                    <option value="shalomtelevision">Shalom Television</option>
+                    <option value="ShalomMediaOnline">Shalom Media Online</option>
+                    <option value="powervision">POWERVISION TV</option>
+                    <option value="vachanam">VachanamTV</option>
+                    <option value="divine">Divine Mercy Daily News</option>
+                    <option value="goodness">GOODNESS TV ONLINE</option>
+                    <option value="kreupasanam">Kreupasanam Official</option>
+                    <option value="catholicatenews">Catholicate News</option>
+                    <option value="gregorian">Gregorian TV</option>
+                </select>
+            </div>
+
+            <button class="btn btn-primary" onclick="loadVideos()" title="Refresh">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M13.65 2.35A8 8 0 1 0 15 8h-2a6 6 0 1 1-1.1-3.45L10 6h5V1l-1.35 1.35Z" fill="currentColor"/></svg>
+                Refresh
+            </button>
+
+            <button class="btn btn-glass btn-icon" onclick="toggleTheme()" id="themeToggle" title="Toggle theme">🌙</button>
+
+            <div class="control-pill">
+                <label for="debugToggle" style="cursor:pointer">Debug</label>
+                <input type="checkbox" id="debugToggle" onchange="toggleDebugMode()" style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer">
+            </div>
+        </nav>
+
+        <!-- CONTENT -->
+        <main id="content"></main>
+    </div>
+
+    <!-- DEBUG PANEL -->
+    <div id="debugOutput"><strong>Debug Console</strong></div>
+
+    <!-- SCROLL TO TOP -->
+    <button class="scroll-top" id="scrollTopBtn" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Back to top">↑</button>
+
+    <script>
+        /* =========================================================
+           CONFIGURATION
+        ========================================================= */
+        const API_KEY = 'AIzaSyAzDe7gqM5P_cGwxreEVtzAbrk-5BubrcM';
+
+        const channels = [
+            { id:'shalomtelevision2',  name:'Shalom Television 2',   feedUrl:'https://www.youtube.com/feeds/videos.xml?channel_id=UCZKpTXW-WDBMa66qj27CyuQ' },
+            { id:'shalomtelevision',   name:'Shalom Television',      feedUrl:'https://www.youtube.com/feeds/videos.xml?channel_id=UCsh010y2VMniw_d0yvcjy0g' },
+            { id:'ShalomMediaOnline',  name:'Shalom Media Online',    feedUrl:'https://www.youtube.com/feeds/videos.xml?channel_id=UCw0zgXgBT81prKkU9YwwD8g' },
+            { id:'powervision',        name:'POWERVISION TV',         feedUrl:'https://www.youtube.com/feeds/videos.xml?channel_id=UCzxfpzSF7mz8j7bNIXyZWmA' },
+            { id:'vachanam',           name:'VachanamTV',             feedUrl:'https://www.youtube.com/feeds/videos.xml?channel_id=UCc3XALwTEXjw2e4BLxXCOvw' },
+            { id:'divine',             name:'Divine Mercy Daily News',feedUrl:'https://www.youtube.com/feeds/videos.xml?channel_id=UCU_5oIcVdb5pjLlhrWrI_Tg' },
+            { id:'goodness',           name:'GOODNESS TV ONLINE',     feedUrl:'https://www.youtube.com/feeds/videos.xml?channel_id=UC1qaqWyxs3QK-4ljZMuSxSA' },
+            { id:'kreupasanam',        name:'Kreupasanam Official',   feedUrl:'https://www.youtube.com/feeds/videos.xml?channel_id=UCbg8V1kty3s1kcCch2VHwEw' },
+            { id:'catholicatenews',    name:'Catholicate News',       feedUrl:'https://www.youtube.com/feeds/videos.xml?channel_id=UCPuQXhzMsOSpDr4GJ9yFjdg' },
+            { id:'gregorian',          name:'Gregorian TV',           feedUrl:'https://www.youtube.com/feeds/videos.xml?channel_id=UC8ebJ_anG4byfhC_2hT7eKw' }
+        ];
+
+        /* =========================================================
+           STATE
+        ========================================================= */
+        let allVideos   = [];
+        let isDebugMode = false;
+
+        /* =========================================================
+           DEBUG
+        ========================================================= */
+        function logDebug(msg) {
+            if (!isDebugMode) return;
+            const el  = document.getElementById('debugOutput');
+            const now = new Date().toLocaleTimeString();
+            el.innerHTML += `[${now}] ${msg}\n`;
+            el.scrollTop  = el.scrollHeight;
+            console.log('[DBG]', msg);
+        }
+
+        function toggleDebugMode() {
+            isDebugMode = document.getElementById('debugToggle').checked;
+            localStorage.setItem('debugMode', isDebugMode);
+            const el = document.getElementById('debugOutput');
+            if (isDebugMode) {
+                el.style.display = 'block';
+                el.innerHTML = '<strong>Debug Console</strong>';
+                logDebug('Debug mode enabled.');
+                document.body.style.paddingBottom = '210px';
+            } else {
+                el.style.display = 'none';
+                document.body.style.paddingBottom = '40px';
+            }
+        }
+
+        /* =========================================================
+           THEME
+        ========================================================= */
+        function toggleTheme() {
+            const html   = document.documentElement;
+            const btn    = document.getElementById('themeToggle');
+            const isDark = html.getAttribute('data-theme') === 'dark';
+            if (isDark) {
+                html.removeAttribute('data-theme');
+                btn.textContent = '🌙';
+                localStorage.setItem('theme', 'light');
+            } else {
+                html.setAttribute('data-theme', 'dark');
+                btn.textContent = '☀️';
+                localStorage.setItem('theme', 'dark');
+            }
+            logDebug(`Theme → ${localStorage.getItem('theme')}`);
+        }
+
+        /* =========================================================
+           PREFS INIT
+        ========================================================= */
+        function initPreferences() {
+            const theme    = localStorage.getItem('theme');
+            const debugOn  = localStorage.getItem('debugMode') === 'true';
+            const html     = document.documentElement;
+            const themeBtn = document.getElementById('themeToggle');
+            const dbgEl    = document.getElementById('debugOutput');
+            const dbgChk   = document.getElementById('debugToggle');
+
+            if (theme === 'dark') { html.setAttribute('data-theme','dark'); themeBtn.textContent = '☀️'; }
+            else { themeBtn.textContent = '🌙'; }
+
+            if (debugOn) {
+                dbgChk.checked = true;
+                isDebugMode    = true;
+                dbgEl.style.display = 'block';
+                document.body.style.paddingBottom = '210px';
+            }
+        }
+
+        /* =========================================================
+           HELPERS
+        ========================================================= */
+        function extractVideoId(url) {
+            const m = url && url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/);
+            return m ? m[1] : '';
+        }
+
+        function formatIST(date) {
+            const d = new Date(date.getTime() + 5.5 * 3600000);
+            const pad = n => String(n).padStart(2,'0');
+            return `${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}  ${pad(d.getUTCDate())}/${pad(d.getUTCMonth()+1)}/${d.getUTCFullYear()}`;
+        }
+
+        /* =========================================================
+           FETCH: LIVE
+        ========================================================= */
+        async function fetchLiveVideos(channel) {
+            if (!API_KEY || API_KEY === 'YOUR_API_KEY_HERE') return [];
+            try {
+                const channelId = channel.feedUrl.split('=').pop();
+                const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${channelId}&eventType=live&type=video&key=${API_KEY}`;
+                logDebug(`LIVE fetch → ${channel.name}`);
+                const res  = await fetch(url);
+                const data = await res.json();
+                if (!data.items) throw new Error(data.error?.message || 'No items');
+                const vids = data.items.map(item => ({
+                    title:     item.snippet.title,
+                    link:      `https://www.youtube.com/watch?v=${item.id.videoId}`,
+                    pubDate:   new Date(item.snippet.publishedAt),
+                    thumbnail: item.snippet.thumbnails.high.url,
+                    channel:   channel.name,
+                    channelId: channel.id,
+                    isLive:    true,
+                    description: item.snippet.description
+                }));
+                logDebug(`LIVE → ${channel.name}: ${vids.length} streams`);
+                return vids;
+            } catch(e) {
+                console.error('Live fetch error', channel.name, e);
+                return [];
+            }
+        }
+
+        /* =========================================================
+           FETCH: RSS
+        ========================================================= */
+        async function fetchVideosFromRss(channel) {
+            try {
+                const proxy = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(channel.feedUrl)}`;
+                logDebug(`RSS fetch → ${channel.name}`);
+                const res  = await fetch(proxy);
+                const data = await res.json();
+                if (data.status !== 'ok') throw new Error('RSS error');
+                const vids = data.items
+                    .filter(item => !(item.link && item.link.includes('/shorts/')))
+                    .map(item => ({
+                        title:     item.title,
+                        link:      item.link,
+                        pubDate:   new Date(item.pubDate),
+                        thumbnail: item.thumbnail || `https://img.youtube.com/vi/${extractVideoId(item.link)}/maxresdefault.jpg`,
+                        channel:   channel.name,
+                        channelId: channel.id,
+                        isLive:    false,
+                        description: item.description || ''
+                    }));
+                logDebug(`RSS → ${channel.name}: ${vids.length} videos`);
+                return vids;
+            } catch(e) {
+                console.error('RSS fetch error', channel.name, e);
+                return [];
+            }
+        }
+
+        /* =========================================================
+           CARD HTML
+        ========================================================= */
+        function createVideoCard(video, index) {
+            const videoId = extractVideoId(video.link);
+            const live    = video.isLive;
+            const thumb   = video.thumbnail || `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+            const fallback = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180' viewBox='0 0 320 180'%3E%3Crect width='320' height='180' fill='%23c8d5ec'/%3E%3Cpath d='M140 70l50 20-50 20V70z' fill='%23007AFF' opacity='.7'/%3E%3C/svg%3E";
+
+            return `
+            <article class="video-card${live ? ' is-live' : ''}" id="card-${index}">
+                <div class="thumb-wrap" id="thumb-${index}">
+                    <img src="${thumb}" alt="${video.title.replace(/"/g,'&quot;')}" onerror="this.src='${fallback}'">
+                    <div class="thumb-overlay"></div>
+                    ${live ? `<div class="live-badge"><span class="live-dot" style="width:7px;height:7px;display:inline-block;border-radius:50%;background:#fff;animation:livePulse 1.4s ease-out infinite;"></span> LIVE</div>` : ''}
+                    <button class="play-overlay" onclick="playVideo('${videoId}',${index})" aria-label="Play ${video.title.replace(/"/g,'&quot;')}">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="${live ? '#FF3B30' : '#007AFF'}"><path d="M8 5v14l11-7z"/></svg>
+                    </button>
+                </div>
+                <div class="inline-player" id="player-${index}">
+                    <button class="close-player-btn" onclick="closeVideo(${index})" aria-label="Close">✕</button>
+                    <iframe id="iframe-${index}" src="" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe>
+                </div>
+                <div class="card-body">
+                    ${live ? `<div class="card-channel" style="color:var(--accent-live)">📺 ${video.channel}</div>` : ''}
+                    <h3 class="card-title">${video.title}</h3>
+                    <div class="card-meta">
+                        <span class="card-date">
+                            ${live
+                                ? `<span class="live-dot" style="display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--accent-live);animation:livePulse 1.4s ease-out infinite;margin-right:4px;"></span><strong style="color:var(--accent-live)">Streaming Now</strong>`
+                                : `📅 ${formatIST(video.pubDate)} IST`
+                            }
+                        </span>
+                        <button class="card-play-btn${live ? ' live-btn' : ''}" onclick="playVideo('${videoId}',${index})">
+                            ${live ? '🔴 Join' : '▶ Play'}
+                        </button>
+                    </div>
+                </div>
+            </article>`;
+        }
+
+        /* =========================================================
+           PLAY / CLOSE
+        ========================================================= */
+        function playVideo(videoId, index) {
+            logDebug(`Play → ${videoId} [${index}]`);
+            // Close all others
+            document.querySelectorAll('.inline-player').forEach((p,i) => {
+                p.style.display = 'none';
+                document.getElementById(`iframe-${i}`) && (document.getElementById(`iframe-${i}`).src = '');
+                const t = document.getElementById(`thumb-${i}`);
+                if (t) t.style.display = 'block';
+            });
+            // Open this one
+            const player = document.getElementById(`player-${index}`);
+            const iframe  = document.getElementById(`iframe-${index}`);
+            const thumb   = document.getElementById(`thumb-${index}`);
+            if (!player || !iframe || !thumb) return;
+            thumb.style.display  = 'none';
+            player.style.display = 'block';
+            iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`;
+            player.scrollIntoView({ behavior:'smooth', block:'nearest' });
+        }
+
+        function closeVideo(index) {
+            logDebug(`Close [${index}]`);
+            const player = document.getElementById(`player-${index}`);
+            const iframe  = document.getElementById(`iframe-${index}`);
+            const thumb   = document.getElementById(`thumb-${index}`);
+            if (player) player.style.display = 'none';
+            if (iframe)  iframe.src = '';
+            if (thumb)   thumb.style.display = 'block';
+        }
+
+        /* =========================================================
+           DISPLAY
+        ========================================================= */
+        function displayVideos() {
+            logDebug('Rendering videos…');
+            const content       = document.getElementById('content');
+            const videoCount    = parseInt(document.getElementById('videoCount').value);
+            const channelFilter = document.getElementById('channelFilter').value;
+
+            let filteredChannels = channelFilter === 'all'
+                ? channels
+                : channels.filter(c => c.id === channelFilter);
+
+            let html = '';
+            let idx  = 0;
+
+            // LIVE section
+            const liveVideos = allVideos.filter(v => v.isLive);
+            if (liveVideos.length > 0) {
+                html += `
+                <section class="glass live-section">
+                    <div class="live-section-header">
+                        <div class="live-label"><span class="live-dot"></span> Live Streams</div>
+                        <span class="live-count-badge">${liveVideos.length} streaming now</span>
+                    </div>
+                    <div class="videos-grid">
+                        ${liveVideos.map(v => createVideoCard(v, idx++)).join('')}
+                    </div>
+                </section>`;
+            }
+
+            // Per-channel sections
+            filteredChannels.forEach(channel => {
+                const vids = allVideos
+                    .filter(v => v.channelId === channel.id && !v.isLive)
+                    .slice(0, videoCount);
+                if (vids.length === 0) return;
+                html += `
+                <section class="glass channel-section">
+                    <div class="channel-section-header">
+                        <h2 class="channel-section-name">${channel.name}</h2>
+                        <span class="count-badge">${vids.length} videos</span>
+                    </div>
+                    <div class="videos-grid">
+                        ${vids.map(v => createVideoCard(v, idx++)).join('')}
+                    </div>
+                </section>`;
+            });
+
+            if (!html) {
+                html = '<div class="error-box">No videos found. Try refreshing.</div>';
+            }
+
+            content.innerHTML = html;
+        }
+
+        /* =========================================================
+           LOAD
+        ========================================================= */
+        async function loadVideos() {
+            const content = document.getElementById('content');
+            content.innerHTML = `
+            <div class="glass loading">
+                <div class="loading-ring"></div>
+                <h3>Loading holy content…</h3>
+                <p>Fetching the latest from all channels</p>
+            </div>`;
+            logDebug('=== Load started ===');
+            if (isDebugMode) {
+                const el = document.getElementById('debugOutput');
+                el.innerHTML = '<strong>Debug Console</strong>';
+            }
+
+            allVideos = [];
+            const liveAcc    = [];
+            const regularAcc = [];
+
+            await Promise.all(channels.map(async ch => {
+                const [live, regular] = await Promise.all([
+                    fetchLiveVideos(ch),
+                    fetchVideosFromRss(ch)
+                ]);
+                liveAcc.push(...live);
+                const liveIds = new Set(live.map(v => extractVideoId(v.link)));
+                regularAcc.push(...regular.filter(v => !liveIds.has(extractVideoId(v.link))));
+            }));
+
+            allVideos = [...liveAcc, ...regularAcc].sort((a,b) => b.pubDate - a.pubDate);
+            logDebug(`Total: ${allVideos.length} videos (${liveAcc.length} live)`);
+
+            displayVideos();
+        }
+
+        /* =========================================================
+           SCROLL-TO-TOP
+        ========================================================= */
+        window.addEventListener('scroll', () => {
+            const btn = document.getElementById('scrollTopBtn');
+            btn && btn.classList.toggle('visible', window.scrollY > 400);
+        }, { passive: true });
+
+        /* =========================================================
+           CHANGE LISTENERS
+        ========================================================= */
+        document.getElementById('videoCount').addEventListener('change', displayVideos);
+        document.getElementById('channelFilter').addEventListener('change', displayVideos);
+
+        /* =========================================================
+           BOOT
+        ========================================================= */
+        document.addEventListener('DOMContentLoaded', () => {
+            initPreferences();
+            loadVideos();
+        });
+    </script>
+</body>
+</html>
