@@ -1,0 +1,1464 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Holy Channels</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        /* ===== TOKENS ===== */
+        :root {
+            --glass-bg: rgba(255,255,255,0.28);
+            --glass-bg-strong: rgba(255,255,255,0.58);
+            --glass-bg-ultra: rgba(255,255,255,0.78);
+            --glass-border: rgba(255,255,255,0.85);
+            --glass-border-subtle: rgba(255,255,255,0.45);
+            --glass-shadow: 0 8px 48px rgba(80,100,180,0.13), 0 2px 8px rgba(80,100,180,0.07), inset 0 1px 0 rgba(255,255,255,0.9);
+            --glass-shadow-lg: 0 24px 96px rgba(80,100,180,0.18), 0 6px 24px rgba(80,100,180,0.10), inset 0 1px 0 rgba(255,255,255,0.9);
+            --glass-shadow-xl: 0 40px 120px rgba(80,100,180,0.22), 0 10px 40px rgba(80,100,180,0.14), inset 0 1px 0 rgba(255,255,255,0.9);
+            --blur: blur(40px) saturate(2.2) brightness(1.06);
+            --blur-sm: blur(20px) saturate(1.8) brightness(1.04);
+            --blur-xs: blur(10px) saturate(1.6);
+
+            --accent: #5B6EF5;
+            --accent-2: #9B59F7;
+            --accent-gold: #E8A84A;
+            --accent-live: #FF3B30;
+            --accent-live-glow: rgba(255,59,48,0.38);
+            --accent-glow: rgba(91,110,245,0.35);
+
+            --text-primary: rgba(15,15,40,0.90);
+            --text-secondary: rgba(15,15,40,0.55);
+            --text-tertiary: rgba(15,15,40,0.35);
+            --text-on-accent: #fff;
+
+            --bg-base: #dde8f8;
+
+            --card-radius: 28px;
+            --pill-radius: 100px;
+            --font-display: 'Cormorant Garamond', 'Georgia', serif;
+            --font-body: 'DM Sans', -apple-system, sans-serif;
+        }
+
+        [data-theme="dark"] {
+            --glass-bg: rgba(18,18,38,0.42);
+            --glass-bg-strong: rgba(18,18,38,0.68);
+            --glass-bg-ultra: rgba(18,18,38,0.88);
+            --glass-border: rgba(255,255,255,0.12);
+            --glass-border-subtle: rgba(255,255,255,0.07);
+            --glass-shadow: 0 8px 48px rgba(0,0,0,0.40), 0 2px 8px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.08);
+            --glass-shadow-lg: 0 24px 96px rgba(0,0,0,0.55), 0 6px 24px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.07);
+            --glass-shadow-xl: 0 40px 120px rgba(0,0,0,0.65), 0 10px 40px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.06);
+
+            --text-primary: rgba(235,235,255,0.92);
+            --text-secondary: rgba(235,235,255,0.56);
+            --text-tertiary: rgba(235,235,255,0.32);
+
+            --bg-base: #080a18;
+        }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-base);
+            min-height: 100vh;
+            color: var(--text-primary);
+            overflow-x: hidden;
+            transition: background 0.6s ease, color 0.3s ease;
+            padding-bottom: 60px;
+        }
+
+        /* ===== ANIMATED MESH BG ===== */
+        .bg-mesh {
+            position: fixed; inset: 0; z-index: 0;
+            pointer-events: none; overflow: hidden;
+        }
+        .orb {
+            position: absolute; border-radius: 50%;
+            filter: blur(90px); mix-blend-mode: normal;
+            animation: floatOrb 22s ease-in-out infinite alternate;
+        }
+        .orb1 { width:800px;height:800px;top:-250px;left:-200px;background:radial-gradient(circle,#c0d0ff,#d4b8ff);opacity:0.65;animation-delay:0s; }
+        .orb2 { width:700px;height:700px;bottom:-200px;right:-150px;background:radial-gradient(circle,#b8d8ff,#e0c8ff);opacity:0.60;animation-delay:-7s; }
+        .orb3 { width:550px;height:550px;top:35%;left:50%;background:radial-gradient(circle,#f8d8f0,#c8d8ff);opacity:0.55;animation-delay:-14s; }
+        .orb4 { width:400px;height:400px;top:55%;left:5%;background:radial-gradient(circle,#c8f0e8,#c8d4ff);opacity:0.50;animation-delay:-4s; }
+        .orb5 { width:300px;height:300px;top:15%;right:15%;background:radial-gradient(circle,#fde8c8,#d0c8ff);opacity:0.45;animation-delay:-10s; }
+
+        [data-theme="dark"] .orb1 { background:radial-gradient(circle,#151d60,#1a1050);opacity:0.85; }
+        [data-theme="dark"] .orb2 { background:radial-gradient(circle,#0d1a50,#1c0d50);opacity:0.85; }
+        [data-theme="dark"] .orb3 { background:radial-gradient(circle,#280a50,#0a1850);opacity:0.85; }
+        [data-theme="dark"] .orb4 { background:radial-gradient(circle,#051a30,#181050);opacity:0.80; }
+        [data-theme="dark"] .orb5 { background:radial-gradient(circle,#2a1a08,#141050);opacity:0.75; }
+
+        @keyframes floatOrb {
+            0%   { transform:translate(0,0) scale(1) rotate(0deg); }
+            50%  { transform:translate(25px,35px) scale(1.05) rotate(5deg); }
+            100% { transform:translate(-20px,20px) scale(1.10) rotate(-3deg); }
+        }
+
+        /* ===== GLASS NOISE TEXTURE ===== */
+        .glass-noise::after {
+            content:'';position:absolute;inset:0;border-radius:inherit;
+            background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+            pointer-events:none;opacity:0.35;mix-blend-mode:overlay;
+        }
+
+        /* ===== LAYOUT ===== */
+        .container {
+            position:relative;z-index:1;
+            max-width:1380px;margin:0 auto;padding:28px 20px;
+        }
+
+        /* ===== GLASS CLASSES ===== */
+        .glass {
+            background:var(--glass-bg);
+            backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);
+            border:1px solid var(--glass-border);
+            box-shadow:var(--glass-shadow);
+            border-radius:var(--card-radius);
+            position:relative;overflow:hidden;
+        }
+        .glass::before {
+            content:'';position:absolute;inset:0;border-radius:inherit;
+            background:linear-gradient(135deg,rgba(255,255,255,0.55) 0%,rgba(255,255,255,0.05) 50%,rgba(255,255,255,0.20) 100%);
+            pointer-events:none;
+        }
+        .glass-strong {
+            background:var(--glass-bg-strong);
+            backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);
+            border:1px solid var(--glass-border);
+            box-shadow:var(--glass-shadow-lg);
+            border-radius:var(--card-radius);
+            position:relative;overflow:hidden;
+        }
+        .glass-strong::before {
+            content:'';position:absolute;inset:0;border-radius:inherit;
+            background:linear-gradient(145deg,rgba(255,255,255,0.70) 0%,rgba(255,255,255,0.10) 40%,rgba(255,255,255,0.30) 100%);
+            pointer-events:none;
+        }
+        .glass-ultra {
+            background:var(--glass-bg-ultra);
+            backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);
+            border:1.5px solid var(--glass-border);
+            box-shadow:var(--glass-shadow-xl);
+            border-radius:var(--card-radius);
+            position:relative;overflow:hidden;
+        }
+        .glass-ultra::before {
+            content:'';position:absolute;inset:0;border-radius:inherit;
+            background:linear-gradient(135deg,rgba(255,255,255,0.80) 0%,rgba(255,255,255,0.15) 40%,rgba(255,255,255,0.50) 100%);
+            pointer-events:none;
+        }
+        /* Specular highlight line */
+        .glass::after,.glass-strong::after,.glass-ultra::after {
+            content:'';position:absolute;top:0;left:0;right:0;height:1px;
+            background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,0.9) 30%,rgba(255,255,255,0.9) 70%,transparent 100%);
+            pointer-events:none;border-radius:inherit;
+        }
+
+        /* ===== HEADER ===== */
+        .header {
+            text-align:center;margin-bottom:28px;
+            padding:52px 40px 44px;
+        }
+        .header-icon-wrap {
+            display:flex;align-items:center;justify-content:center;
+            margin-bottom:16px;
+        }
+        /* Sacred mandala SVG icon */
+        .mandala-icon {
+            width:80px;height:80px;
+            animation:mandalaSpin 18s linear infinite;
+            filter:drop-shadow(0 4px 20px rgba(91,110,245,0.4)) drop-shadow(0 0 40px rgba(155,89,247,0.25));
+        }
+        .mandala-center {
+            animation:mandalaPulse 3s ease-in-out infinite alternate;
+            transform-origin:40px 40px;
+        }
+        @keyframes mandalaSpin { to { transform:rotate(360deg); } }
+        @keyframes mandalaPulse { from{transform:scale(0.92)}to{transform:scale(1.08)} }
+
+        .header h1 {
+            font-family:var(--font-display);
+            font-size:clamp(2rem,5vw,3.4rem);
+            font-weight:300;
+            color:var(--text-primary);
+            letter-spacing:0.04em;
+            line-height:1.1;margin-bottom:10px;
+            background:linear-gradient(135deg,var(--text-primary) 0%,var(--accent) 60%,var(--accent-2) 100%);
+            -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+        }
+        .header p {
+            color:var(--text-secondary);font-size:1rem;
+            font-weight:400;letter-spacing:0.02em;font-style:italic;
+            font-family:var(--font-display);
+        }
+
+        /* ===== CONTROLS BAR ===== */
+        .controls-bar {
+            display:flex;flex-wrap:wrap;gap:10px;
+            justify-content:center;margin-bottom:28px;align-items:center;
+        }
+        .control-pill {
+            display:flex;align-items:center;gap:8px;
+            padding:11px 20px;border-radius:var(--pill-radius);
+            background:var(--glass-bg-strong);
+            backdrop-filter:var(--blur-sm);-webkit-backdrop-filter:var(--blur-sm);
+            border:1px solid var(--glass-border);
+            box-shadow:var(--glass-shadow),inset 0 1px 0 rgba(255,255,255,0.8);
+            transition:transform 0.2s ease,box-shadow 0.2s ease;
+            position:relative;overflow:hidden;
+        }
+        .control-pill::before {
+            content:'';position:absolute;inset:0;border-radius:inherit;
+            background:linear-gradient(135deg,rgba(255,255,255,0.6) 0%,transparent 50%);
+            pointer-events:none;
+        }
+        .control-pill:hover { transform:translateY(-2px);box-shadow:var(--glass-shadow-lg); }
+        .control-pill label {
+            font-size:0.75rem;font-weight:600;color:var(--text-secondary);
+            letter-spacing:0.06em;text-transform:uppercase;white-space:nowrap;
+        }
+        select {
+            appearance:none;background:transparent;border:none;
+            color:var(--text-primary);font-size:0.88rem;font-weight:500;
+            font-family:var(--font-body);cursor:pointer;padding-right:22px;
+            background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%235B6EF5' stroke-width='1.8' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+            background-repeat:no-repeat;background-position:right 0 center;
+        }
+        select:focus { outline:none; }
+        select option { background:var(--bg-base);color:var(--text-primary); }
+
+        /* ===== BUTTONS ===== */
+        .btn {
+            display:inline-flex;align-items:center;gap:7px;
+            padding:11px 22px;border-radius:var(--pill-radius);border:none;
+            cursor:pointer;font-size:0.88rem;font-weight:600;
+            font-family:var(--font-body);letter-spacing:0.02em;
+            transition:all 0.24s cubic-bezier(.25,.8,.25,1);position:relative;overflow:hidden;
+        }
+        .btn::before {
+            content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;
+            background:linear-gradient(90deg,transparent,rgba(255,255,255,0.22),transparent);
+            transition:left 0.4s ease;
+        }
+        .btn:hover::before { left:100%; }
+        .btn-primary {
+            background:linear-gradient(135deg,var(--accent) 0%,var(--accent-2) 100%);
+            color:white;box-shadow:0 4px 24px rgba(91,110,245,0.38),inset 0 1px 0 rgba(255,255,255,0.25);
+        }
+        .btn-primary:hover { transform:translateY(-2px);box-shadow:0 8px 36px rgba(91,110,245,0.50),inset 0 1px 0 rgba(255,255,255,0.25); }
+        .btn-glass {
+            background:var(--glass-bg-strong);color:var(--text-primary);
+            border:1px solid var(--glass-border);
+            backdrop-filter:var(--blur-sm);-webkit-backdrop-filter:var(--blur-sm);
+            box-shadow:var(--glass-shadow);
+        }
+        .btn-glass:hover { transform:translateY(-2px);box-shadow:var(--glass-shadow-lg); }
+
+        /* Audio Mode Toggle */
+        .audio-toggle-pill {
+            display:flex;align-items:center;gap:10px;
+            padding:11px 20px;border-radius:var(--pill-radius);
+            background:var(--glass-bg-strong);
+            backdrop-filter:var(--blur-sm);-webkit-backdrop-filter:var(--blur-sm);
+            border:1px solid var(--glass-border);
+            box-shadow:var(--glass-shadow),inset 0 1px 0 rgba(255,255,255,0.8);
+            cursor:pointer;transition:all 0.3s ease;
+            position:relative;overflow:hidden;user-select:none;
+        }
+        .audio-toggle-pill.active {
+            background:linear-gradient(135deg,rgba(91,110,245,0.22),rgba(155,89,247,0.18));
+            border-color:rgba(91,110,245,0.5);
+            box-shadow:var(--glass-shadow-lg),0 0 30px rgba(91,110,245,0.25),inset 0 1px 0 rgba(255,255,255,0.8);
+        }
+        .audio-toggle-pill::before {
+            content:'';position:absolute;inset:0;border-radius:inherit;
+            background:linear-gradient(135deg,rgba(255,255,255,0.6) 0%,transparent 50%);
+            pointer-events:none;
+        }
+        .audio-toggle-pill label { font-size:0.75rem;font-weight:600;color:var(--text-secondary);letter-spacing:0.06em;text-transform:uppercase;cursor:pointer; }
+        .toggle-switch {
+            width:38px;height:22px;border-radius:100px;
+            background:rgba(150,150,180,0.3);border:1px solid var(--glass-border);
+            position:relative;transition:background 0.3s ease;cursor:pointer;
+            box-shadow:inset 0 2px 4px rgba(0,0,0,0.10);
+        }
+        .toggle-switch::after {
+            content:'';position:absolute;top:2px;left:2px;
+            width:16px;height:16px;border-radius:50%;
+            background:white;box-shadow:0 2px 6px rgba(0,0,0,0.20);
+            transition:transform 0.3s cubic-bezier(.25,.8,.25,1),background 0.3s;
+        }
+        .toggle-switch.on { background:linear-gradient(135deg,var(--accent),var(--accent-2)); }
+        .toggle-switch.on::after { transform:translateX(16px); }
+
+        /* ===== LOADING ===== */
+        .loading { text-align:center;padding:80px 30px; }
+        .loading-ring {
+            display:inline-block;width:64px;height:64px;
+            border:3px solid var(--glass-border-subtle);
+            border-top-color:var(--accent);border-radius:50%;
+            animation:spin 1s cubic-bezier(.5,.1,.5,.9) infinite;
+            margin-bottom:28px;
+            box-shadow:0 0 30px rgba(91,110,245,0.25);
+        }
+        @keyframes spin { to{transform:rotate(360deg)} }
+        .loading h3 { font-family:var(--font-display);font-weight:300;font-size:1.6rem;color:var(--text-primary);margin-bottom:8px; }
+        .loading p { color:var(--text-secondary);font-size:0.92rem;font-style:italic; }
+
+        /* ===== LIVE SECTION ===== */
+        .live-section {
+            margin:0 0 28px;
+            border:1.5px solid rgba(255,59,48,0.50) !important;
+            background:rgba(255,59,48,0.06) !important;
+            box-shadow:0 0 60px var(--accent-live-glow),var(--glass-shadow) !important;
+        }
+        [data-theme="dark"] .live-section { background:rgba(255,59,48,0.10) !important; }
+        .live-section-header {
+            display:flex;align-items:center;gap:14px;
+            padding:20px 28px 18px;
+            border-bottom:1px solid rgba(255,59,48,0.2);
+            background:linear-gradient(135deg,rgba(255,59,48,0.10) 0%,transparent 60%);
+        }
+        .live-label {
+            display:flex;align-items:center;gap:8px;
+            font-weight:700;font-size:1.1rem;color:var(--accent-live);letter-spacing:0.03em;
+        }
+        .live-dot {
+            width:9px;height:9px;background:var(--accent-live);border-radius:50%;
+            box-shadow:0 0 0 0 var(--accent-live-glow);
+            animation:livePulse 1.4s ease-out infinite;
+        }
+        @keyframes livePulse {
+            0%{box-shadow:0 0 0 0 var(--accent-live-glow)}
+            70%{box-shadow:0 0 0 10px transparent}
+            100%{box-shadow:0 0 0 0 transparent}
+        }
+        .live-count-badge {
+            margin-left:auto;background:var(--accent-live);color:white;
+            font-size:0.78rem;font-weight:700;padding:4px 14px;
+            border-radius:100px;letter-spacing:0.04em;
+        }
+
+        /* ===== CHANNEL SECTION ===== */
+        .channel-section {
+            margin:0 0 24px;
+            animation:fadeUp 0.5s ease both;
+        }
+        @keyframes fadeUp {
+            from{opacity:0;transform:translateY(20px)}
+            to{opacity:1;transform:translateY(0)}
+        }
+        .channel-section-header {
+            display:flex;align-items:center;gap:14px;
+            padding:20px 28px 18px;
+            border-bottom:1px solid var(--glass-border-subtle);
+        }
+        .channel-section-name {
+            font-family:var(--font-display);font-size:1.3rem;font-weight:400;
+            color:var(--text-primary);letter-spacing:0.02em;font-style:italic;
+        }
+        .count-badge {
+            background:var(--glass-bg);border:1px solid var(--glass-border);
+            color:var(--text-secondary);font-size:0.72rem;font-weight:600;
+            padding:3px 12px;border-radius:100px;letter-spacing:0.03em;
+            backdrop-filter:var(--blur-xs);
+        }
+        .videos-grid {
+            display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
+            gap:20px;padding:22px 28px 28px;
+        }
+        .live-section .videos-grid { padding:20px 28px 28px; }
+
+        /* ===== VIDEO CARD ===== */
+        .video-card {
+            border-radius:22px;overflow:hidden;
+            background:var(--glass-bg-strong);
+            backdrop-filter:var(--blur-sm);-webkit-backdrop-filter:var(--blur-sm);
+            border:1px solid var(--glass-border);
+            box-shadow:var(--glass-shadow);
+            transition:transform 0.3s cubic-bezier(.25,.8,.25,1),box-shadow 0.3s ease;
+            position:relative;display:flex;flex-direction:column;
+        }
+        .video-card::before {
+            content:'';position:absolute;inset:0;border-radius:inherit;
+            background:linear-gradient(145deg,rgba(255,255,255,0.55) 0%,transparent 40%);
+            pointer-events:none;z-index:1;
+        }
+        .video-card::after {
+            content:'';position:absolute;top:0;left:0;right:0;height:1px;
+            background:linear-gradient(90deg,transparent,rgba(255,255,255,0.95),transparent);
+            pointer-events:none;z-index:2;
+        }
+        .video-card:hover {
+            transform:translateY(-8px) scale(1.015);
+            box-shadow:var(--glass-shadow-lg),0 0 0 1.5px rgba(91,110,245,0.3);
+        }
+        .video-card.is-live {
+            border-color:rgba(255,59,48,0.55);
+            box-shadow:var(--glass-shadow),0 0 32px rgba(255,59,48,0.22);
+        }
+        .video-card.is-playing {
+            border-color:rgba(91,110,245,0.55);
+            box-shadow:var(--glass-shadow-lg),0 0 40px rgba(91,110,245,0.28);
+        }
+
+        /* Thumbnail */
+        .thumb-wrap {
+            position:relative;padding-bottom:56.25%;height:0;
+            overflow:hidden;background:var(--glass-border);
+        }
+        .thumb-wrap img {
+            position:absolute;inset:0;width:100%;height:100%;
+            object-fit:cover;transition:transform 0.4s cubic-bezier(.25,.8,.25,1),filter 0.3s ease;
+        }
+        .video-card:hover .thumb-wrap img { transform:scale(1.07);filter:brightness(1.05); }
+        .thumb-overlay {
+            position:absolute;inset:0;
+            background:linear-gradient(to top,rgba(0,0,0,0.50) 0%,transparent 55%);
+            opacity:0;transition:opacity 0.3s ease;
+        }
+        .video-card:hover .thumb-overlay { opacity:1; }
+
+        /* Play overlay */
+        .play-overlay {
+            position:absolute;top:50%;left:50%;
+            transform:translate(-50%,-50%) scale(0.75);
+            width:58px;height:58px;border-radius:50%;
+            background:rgba(255,255,255,0.92);
+            backdrop-filter:blur(16px);
+            border:1.5px solid rgba(255,255,255,0.95);
+            display:flex;align-items:center;justify-content:center;
+            cursor:pointer;opacity:0;
+            transition:opacity 0.25s,transform 0.25s cubic-bezier(.25,.8,.25,1);
+            box-shadow:0 4px 24px rgba(0,0,0,0.25),inset 0 1px 0 rgba(255,255,255,1);
+            z-index:5;
+        }
+        .video-card:hover .play-overlay { opacity:1;transform:translate(-50%,-50%) scale(1); }
+
+        /* Live badge */
+        .live-badge {
+            position:absolute;top:12px;left:12px;z-index:6;
+            display:flex;align-items:center;gap:5px;
+            background:rgba(255,59,48,0.88);
+            backdrop-filter:blur(10px);color:white;
+            font-size:0.70rem;font-weight:700;letter-spacing:0.08em;
+            padding:4px 11px;border-radius:100px;
+            border:1px solid rgba(255,255,255,0.3);text-transform:uppercase;
+        }
+
+        /* Inline player */
+        .inline-player { display:none;position:relative;padding-bottom:56.25%;height:0; }
+        .inline-player iframe { position:absolute;inset:0;width:100%;height:100%;border:none; }
+        .close-player-btn {
+            position:absolute;top:10px;right:10px;z-index:10;
+            width:34px;height:34px;border-radius:50%;
+            background:rgba(0,0,0,0.65);backdrop-filter:blur(10px);
+            border:1px solid rgba(255,255,255,0.2);color:white;
+            font-size:1rem;cursor:pointer;display:flex;align-items:center;
+            justify-content:center;transition:background 0.2s;
+        }
+        .close-player-btn:hover { background:rgba(0,0,0,0.90); }
+
+        /* Audio mode vinyl */
+        .audio-vinyl-wrap {
+            display:none;position:relative;
+            padding-bottom:56.25%;height:0;overflow:hidden;
+            background:linear-gradient(135deg,#1a1a2e,#16213e,#0f3460);
+        }
+        .audio-vinyl-inner {
+            position:absolute;inset:0;
+            display:flex;align-items:center;justify-content:center;
+            flex-direction:column;gap:12px;
+        }
+        .vinyl-disc {
+            width:140px;height:140px;border-radius:50%;position:relative;
+            background:
+                radial-gradient(circle at 50% 50%,#1a1a1a 0%,#222 15%,#111 16%,#333 17%,
+                    #1a1a1a 18%,#2a2a2a 28%,#111 29%,#2a2a2a 30%,
+                    #1a1a1a 40%,#2a2a2a 50%,#111 51%,#333 55%,
+                    #1a1a1a 60%,#2a2a2a 70%,#111 71%,#2a2a2a 75%,
+                    #1a1a1a 80%,#333 90%,#222 100%);
+            box-shadow:0 0 0 3px #333,0 0 0 4px #111,0 8px 40px rgba(0,0,0,0.8),
+                       0 0 60px rgba(91,110,245,0.15),inset 0 2px 4px rgba(255,255,255,0.08);
+            animation:vinylSpin 3s linear infinite paused;
+        }
+        .vinyl-disc.spinning { animation-play-state:running; }
+        .vinyl-disc::before {
+            content:'';position:absolute;inset:0;border-radius:50%;
+            background:conic-gradient(
+                from 0deg,
+                rgba(91,110,245,0.12) 0deg,rgba(155,89,247,0.08) 30deg,
+                rgba(91,110,245,0.06) 60deg,rgba(232,168,74,0.10) 90deg,
+                rgba(91,110,245,0.12) 120deg,rgba(155,89,247,0.08) 150deg,
+                rgba(91,110,245,0.06) 180deg,rgba(232,168,74,0.10) 210deg,
+                rgba(91,110,245,0.12) 240deg,rgba(155,89,247,0.08) 270deg,
+                rgba(91,110,245,0.06) 300deg,rgba(232,168,74,0.10) 330deg,
+                rgba(91,110,245,0.12) 360deg
+            );
+            mix-blend-mode:overlay;
+        }
+        .vinyl-disc::after {
+            content:'';position:absolute;
+            top:50%;left:50%;transform:translate(-50%,-50%);
+            width:28px;height:28px;border-radius:50%;
+            background:radial-gradient(circle,#c8a86e,#a88040,#8a6428);
+            box-shadow:0 0 0 2px #333,0 2px 8px rgba(0,0,0,0.6);
+        }
+        @keyframes vinylSpin { to{transform:rotate(360deg)} }
+        .vinyl-info { text-align:center;padding:0 20px; }
+        .vinyl-channel { font-size:0.72rem;font-weight:700;letter-spacing:0.1em;color:rgba(91,110,245,0.9);text-transform:uppercase;margin-bottom:4px; }
+        .vinyl-title { font-size:0.82rem;font-weight:500;color:rgba(255,255,255,0.85);line-height:1.4;max-height:2.8em;overflow:hidden; }
+
+        /* Card body */
+        .card-body { padding:18px 20px 20px;flex:1;display:flex;flex-direction:column;gap:9px;position:relative;z-index:3; }
+        .card-channel { font-size:0.70rem;font-weight:700;letter-spacing:0.08em;color:var(--accent);text-transform:uppercase; }
+        .card-title {
+            font-size:0.93rem;font-weight:500;color:var(--text-primary);
+            line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;
+            -webkit-box-orient:vertical;overflow:hidden;flex:1;
+        }
+        .card-meta { display:flex;align-items:center;justify-content:space-between;margin-top:4px; }
+        .card-date { font-size:0.76rem;color:var(--text-tertiary);font-weight:500; }
+
+        /* Play/Stop Button */
+        .card-play-btn {
+            display:inline-flex;align-items:center;gap:6px;
+            padding:8px 18px;border-radius:100px;
+            background:linear-gradient(135deg,var(--accent),var(--accent-2));
+            color:white;font-size:0.80rem;font-weight:600;border:none;cursor:pointer;
+            transition:all 0.24s ease;
+            box-shadow:0 3px 16px rgba(91,110,245,0.32),inset 0 1px 0 rgba(255,255,255,0.2);
+            letter-spacing:0.02em;position:relative;overflow:hidden;
+        }
+        .card-play-btn::before {
+            content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;
+            background:linear-gradient(90deg,transparent,rgba(255,255,255,0.2),transparent);
+            transition:left 0.4s;
+        }
+        .card-play-btn:hover { transform:translateY(-2px);box-shadow:0 6px 24px rgba(91,110,245,0.45),inset 0 1px 0 rgba(255,255,255,0.2); }
+        .card-play-btn:hover::before { left:100%; }
+        .card-play-btn.live-btn {
+            background:linear-gradient(135deg,#FF3B30,#FF6B35);
+            box-shadow:0 3px 16px rgba(255,59,48,0.38),inset 0 1px 0 rgba(255,255,255,0.2);
+            animation:pulseBtnBg 2s ease-in-out infinite alternate;
+        }
+        .card-play-btn.stop-btn {
+            background:linear-gradient(135deg,#FF3B30,#CC1A10);
+            box-shadow:0 3px 16px rgba(255,59,48,0.42),inset 0 1px 0 rgba(255,255,255,0.2);
+        }
+        @keyframes pulseBtnBg {
+            from{box-shadow:0 3px 16px rgba(255,59,48,0.38),inset 0 1px 0 rgba(255,255,255,0.2)}
+            to{box-shadow:0 6px 28px rgba(255,59,48,0.60),inset 0 1px 0 rgba(255,255,255,0.2)}
+        }
+
+        /* ===== FLOATING PLAYER ===== */
+        #floatingPlayer {
+            position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(100px);
+            z-index:9000;width:min(420px,92vw);
+            background:var(--glass-bg-ultra);
+            backdrop-filter:blur(60px) saturate(2.5) brightness(1.08);
+            -webkit-backdrop-filter:blur(60px) saturate(2.5) brightness(1.08);
+            border:1.5px solid var(--glass-border);
+            box-shadow:0 32px 100px rgba(0,0,0,0.25),0 8px 32px rgba(91,110,245,0.18),
+                       inset 0 2px 0 rgba(255,255,255,0.95),inset 0 -1px 0 rgba(255,255,255,0.4);
+            border-radius:28px;overflow:hidden;
+            transition:transform 0.5s cubic-bezier(.34,1.56,.64,1),opacity 0.4s ease;
+            opacity:0;pointer-events:none;
+        }
+        #floatingPlayer::before {
+            content:'';position:absolute;inset:0;border-radius:inherit;
+            background:linear-gradient(145deg,rgba(255,255,255,0.70) 0%,rgba(255,255,255,0.10) 40%,rgba(255,255,255,0.40) 100%);
+            pointer-events:none;z-index:0;
+        }
+        #floatingPlayer::after {
+            content:'';position:absolute;top:0;left:0;right:0;height:1.5px;
+            background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,1) 20%,rgba(255,255,255,1) 80%,transparent 100%);
+            pointer-events:none;z-index:2;
+        }
+        #floatingPlayer.visible { transform:translateX(-50%) translateY(0);opacity:1;pointer-events:all; }
+
+        .fp-inner { position:relative;z-index:1;padding:18px 20px 20px; }
+
+        /* Audio vinyl mode in floating player */
+        .fp-vinyl-wrap {
+            display:none;justify-content:center;align-items:center;
+            padding:10px 0 14px;flex-direction:column;gap:10px;
+        }
+        .fp-vinyl-wrap.show { display:flex; }
+        .fp-vinyl {
+            width:100px;height:100px;border-radius:50%;
+            background:
+                radial-gradient(circle at 50% 50%,#1a1a1a 0%,#222 15%,#111 16%,#333 17%,
+                    #1a1a1a 18%,#2a2a2a 28%,#111 29%,#2a2a2a 30%,
+                    #1a1a1a 40%,#2a2a2a 50%,#111 51%,#333 55%,
+                    #1a1a1a 60%,#2a2a2a 70%,#111 71%,#2a2a2a 75%,
+                    #1a1a1a 80%,#333 90%,#222 100%);
+            box-shadow:0 0 0 2px #333,0 0 0 3px #111,0 6px 28px rgba(0,0,0,0.6),
+                       0 0 40px rgba(91,110,245,0.25);
+            animation:vinylSpin 3s linear infinite paused;position:relative;
+        }
+        .fp-vinyl::before {
+            content:'';position:absolute;inset:0;border-radius:50%;
+            background:conic-gradient(from 0deg,rgba(91,110,245,0.15) 0deg,rgba(155,89,247,0.10) 60deg,rgba(91,110,245,0.08) 120deg,rgba(232,168,74,0.12) 180deg,rgba(91,110,245,0.15) 240deg,rgba(155,89,247,0.10) 300deg,rgba(91,110,245,0.15) 360deg);
+            mix-blend-mode:overlay;
+        }
+        .fp-vinyl::after {
+            content:'';position:absolute;
+            top:50%;left:50%;transform:translate(-50%,-50%);
+            width:20px;height:20px;border-radius:50%;
+            background:radial-gradient(circle,#c8a86e,#a88040,#8a6428);
+            box-shadow:0 0 0 2px #222,0 2px 6px rgba(0,0,0,0.5);
+        }
+        .fp-vinyl.spinning { animation-play-state:running; }
+
+        .fp-info { text-align:center; }
+        .fp-channel { font-size:0.68rem;font-weight:700;letter-spacing:0.10em;color:var(--accent);text-transform:uppercase;margin-bottom:3px; }
+        .fp-title { font-size:0.85rem;font-weight:500;color:var(--text-primary);line-height:1.4;max-height:2.8em;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical; }
+
+        /* FP Controls */
+        .fp-controls {
+            display:flex;align-items:center;justify-content:space-between;
+            padding-top:14px;gap:12px;
+        }
+        .fp-title-row { flex:1;min-width:0; }
+        .fp-title-row .fp-channel { text-align:left; }
+        .fp-title-row .fp-title { text-align:left; }
+        .fp-btns { display:flex;align-items:center;gap:8px; }
+        .fp-btn {
+            width:40px;height:40px;border-radius:50%;border:none;cursor:pointer;
+            display:flex;align-items:center;justify-content:center;
+            font-size:1rem;transition:all 0.22s ease;
+        }
+        .fp-btn-play {
+            background:linear-gradient(135deg,var(--accent),var(--accent-2));
+            color:white;box-shadow:0 4px 16px rgba(91,110,245,0.38),inset 0 1px 0 rgba(255,255,255,0.25);
+            width:48px;height:48px;font-size:1.2rem;
+        }
+        .fp-btn-play:hover { transform:scale(1.08);box-shadow:0 6px 24px rgba(91,110,245,0.50); }
+        .fp-btn-close {
+            background:var(--glass-bg-strong);color:var(--text-secondary);
+            border:1px solid var(--glass-border);box-shadow:var(--glass-shadow);
+        }
+        .fp-btn-close:hover { background:rgba(255,59,48,0.12);color:var(--accent-live);border-color:rgba(255,59,48,0.3); }
+        .fp-mode-badge {
+            font-size:0.66rem;font-weight:700;letter-spacing:0.08em;
+            text-transform:uppercase;padding:3px 10px;border-radius:100px;
+            color:var(--accent);
+            background:linear-gradient(135deg,rgba(91,110,245,0.15),rgba(155,89,247,0.12));
+            border:1px solid rgba(91,110,245,0.3);
+        }
+
+        /* Waveform bars (audio mode indicator) */
+        .waveform {
+            display:flex;align-items:flex-end;gap:3px;height:20px;
+            padding:0 2px;
+        }
+        .waveform span {
+            width:3px;border-radius:2px;
+            background:linear-gradient(to top,var(--accent),var(--accent-2));
+            animation:wave 1s ease-in-out infinite alternate;
+        }
+        .waveform span:nth-child(1){height:40%;animation-delay:0s}
+        .waveform span:nth-child(2){height:80%;animation-delay:0.15s}
+        .waveform span:nth-child(3){height:60%;animation-delay:0.30s}
+        .waveform span:nth-child(4){height:100%;animation-delay:0.10s}
+        .waveform span:nth-child(5){height:50%;animation-delay:0.25s}
+        .waveform span:nth-child(6){height:85%;animation-delay:0.05s}
+        .waveform.paused span { animation-play-state:paused;height:40% !important; }
+        @keyframes wave { from{transform:scaleY(0.6)}to{transform:scaleY(1.0)} }
+
+        /* ===== ERROR ===== */
+        .error-box {
+            padding:28px 24px;text-align:center;
+            background:rgba(255,59,48,0.06);border:1px solid rgba(255,59,48,0.28);
+            border-radius:var(--card-radius);color:var(--accent-live);font-weight:500;
+        }
+
+        /* ===== DEBUG ===== */
+        #debugOutput {
+            position:fixed;bottom:0;left:0;width:100%;max-height:200px;
+            background:var(--glass-bg-ultra);
+            backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);
+            border-top:1px solid var(--glass-border);
+            padding:12px 16px;font-family:'SF Mono','Fira Code',monospace;
+            font-size:11.5px;overflow-y:auto;display:none;z-index:9999;
+            white-space:pre-wrap;color:var(--text-secondary);
+        }
+        #debugOutput strong { display:block;color:var(--accent);margin-bottom:6px;font-size:0.75rem;letter-spacing:0.06em;text-transform:uppercase; }
+
+        /* ===== SCROLL TOP ===== */
+        .scroll-top {
+            position:fixed;bottom:96px;right:24px;z-index:500;
+            width:46px;height:46px;border-radius:50%;
+            background:var(--glass-bg-strong);
+            backdrop-filter:var(--blur-sm);border:1px solid var(--glass-border);
+            box-shadow:var(--glass-shadow);color:var(--text-primary);
+            font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;
+            opacity:0;transform:translateY(10px);transition:all 0.3s ease;pointer-events:none;
+        }
+        .scroll-top.visible { opacity:1;transform:translateY(0);pointer-events:auto; }
+        .scroll-top:hover { transform:translateY(-3px);box-shadow:var(--glass-shadow-lg); }
+
+        /* ===== RESPONSIVE ===== */
+        @media(max-width:768px){
+            .header { padding:32px 20px 26px; }
+            .header h1 { font-size:2rem; }
+            .controls-bar { gap:8px; }
+            .control-pill,.audio-toggle-pill { padding:9px 14px; }
+            .videos-grid { grid-template-columns:1fr;padding:14px 16px 18px;gap:14px; }
+            .channel-section-header,.live-section-header { padding:14px 16px 12px; }
+            .live-section .videos-grid { padding:14px 16px 18px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-mesh" aria-hidden="true">
+        <div class="orb orb1"></div>
+        <div class="orb orb2"></div>
+        <div class="orb orb3"></div>
+        <div class="orb orb4"></div>
+        <div class="orb orb5"></div>
+    </div>
+
+    <div class="container">
+        <!-- HEADER -->
+        <header class="glass-ultra header">
+            <div class="header-icon-wrap">
+                <!-- Sacred mandala SVG -->
+                <svg class="mandala-icon" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="mg1" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#5B6EF5"/>
+                            <stop offset="50%" style="stop-color:#9B59F7"/>
+                            <stop offset="100%" style="stop-color:#E8A84A"/>
+                        </linearGradient>
+                        <linearGradient id="mg2" x1="100%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#E8A84A"/>
+                            <stop offset="100%" style="stop-color:#9B59F7"/>
+                        </linearGradient>
+                        <filter id="glow">
+                            <feGaussianBlur stdDeviation="1.5" result="blur"/>
+                            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                        </filter>
+                    </defs>
+                    <!-- Outer ring petals -->
+                    <g filter="url(#glow)">
+                    <g transform="translate(40,40)">
+                        <!-- 8 outer petals -->
+                        <ellipse rx="5" ry="18" transform="rotate(0)" fill="url(#mg1)" opacity="0.7"/>
+                        <ellipse rx="5" ry="18" transform="rotate(45)" fill="url(#mg1)" opacity="0.7"/>
+                        <ellipse rx="5" ry="18" transform="rotate(90)" fill="url(#mg1)" opacity="0.7"/>
+                        <ellipse rx="5" ry="18" transform="rotate(135)" fill="url(#mg1)" opacity="0.7"/>
+                        <ellipse rx="5" ry="18" transform="rotate(180)" fill="url(#mg1)" opacity="0.7"/>
+                        <ellipse rx="5" ry="18" transform="rotate(225)" fill="url(#mg1)" opacity="0.7"/>
+                        <ellipse rx="5" ry="18" transform="rotate(270)" fill="url(#mg1)" opacity="0.7"/>
+                        <ellipse rx="5" ry="18" transform="rotate(315)" fill="url(#mg1)" opacity="0.7"/>
+                        <!-- 8 inner petals -->
+                        <ellipse rx="3.5" ry="12" transform="rotate(22.5)" fill="url(#mg2)" opacity="0.85"/>
+                        <ellipse rx="3.5" ry="12" transform="rotate(67.5)" fill="url(#mg2)" opacity="0.85"/>
+                        <ellipse rx="3.5" ry="12" transform="rotate(112.5)" fill="url(#mg2)" opacity="0.85"/>
+                        <ellipse rx="3.5" ry="12" transform="rotate(157.5)" fill="url(#mg2)" opacity="0.85"/>
+                        <ellipse rx="3.5" ry="12" transform="rotate(202.5)" fill="url(#mg2)" opacity="0.85"/>
+                        <ellipse rx="3.5" ry="12" transform="rotate(247.5)" fill="url(#mg2)" opacity="0.85"/>
+                        <ellipse rx="3.5" ry="12" transform="rotate(292.5)" fill="url(#mg2)" opacity="0.85"/>
+                        <ellipse rx="3.5" ry="12" transform="rotate(337.5)" fill="url(#mg2)" opacity="0.85"/>
+                        <!-- Center -->
+                        <circle r="8" fill="url(#mg1)" opacity="0.9" class="mandala-center"/>
+                        <circle r="4" fill="url(#mg2)"/>
+                        <circle r="1.5" fill="white" opacity="0.9"/>
+                    </g>
+                    </g>
+                </svg>
+            </div>
+            <h1>Holy Channels</h1>
+            <p>The latest spiritual content from your beloved channels</p>
+        </header>
+
+        <!-- CONTROLS -->
+        <nav class="controls-bar" aria-label="Controls">
+            <div class="control-pill">
+                <label for="videoCount">Videos</label>
+                <select id="videoCount">
+                    <option value="10">10</option>
+                    <option value="20" selected>20</option>
+                    <option value="30">30</option>
+                    <option value="50">50</option>
+                </select>
+            </div>
+
+            <div class="control-pill">
+                <label for="channelFilter">Channel</label>
+                <select id="channelFilter">
+                    <option value="all">All Channels</option>
+                    <option value="shalomtelevision2">Shalom Television 2</option>
+                    <option value="shalomtelevision">Shalom Television</option>
+                    <option value="ShalomMediaOnline">Shalom Media Online</option>
+                    <option value="powervision">POWERVISION TV</option>
+                    <option value="vachanam">VachanamTV</option>
+                    <option value="divine">Divine Mercy Daily News</option>
+                    <option value="goodness">GOODNESS TV ONLINE</option>
+                    <option value="kreupasanam">Kreupasanam Official</option>
+                    <option value="catholicatenews">Catholicate News</option>
+                    <option value="gregorian">Gregorian TV</option>
+                </select>
+            </div>
+
+            <!-- AUDIO MODE TOGGLE -->
+            <div class="audio-toggle-pill" id="audioTogglePill" onclick="toggleAudioMode()">
+                <label>🎵 Audio Only</label>
+                <div class="toggle-switch" id="audioSwitch"></div>
+            </div>
+
+            <button class="btn btn-primary" onclick="loadVideos()">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M13.65 2.35A8 8 0 1 0 15 8h-2a6 6 0 1 1-1.1-3.45L10 6h5V1l-1.35 1.35Z" fill="currentColor"/></svg>
+                Refresh
+            </button>
+
+            <button class="btn btn-glass" onclick="toggleTheme()" id="themeToggle" title="Toggle theme">🌙</button>
+
+            <div class="control-pill">
+                <label for="debugToggle" style="cursor:pointer">Debug</label>
+                <input type="checkbox" id="debugToggle" onchange="toggleDebugMode()" style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer">
+            </div>
+        </nav>
+
+        <!-- CONTENT -->
+        <main id="content"></main>
+    </div>
+
+    <!-- FLOATING PLAYER -->
+    <div id="floatingPlayer">
+        <div class="fp-inner">
+            <!-- Vinyl (audio mode) -->
+            <div class="fp-vinyl-wrap" id="fpVinylWrap">
+                <div class="fp-vinyl" id="fpVinyl"></div>
+                <div class="fp-info">
+                    <div class="fp-channel" id="fpVinylChannel"></div>
+                    <div class="fp-title" id="fpVinylTitle"></div>
+                </div>
+            </div>
+            <!-- Controls row -->
+            <div class="fp-controls">
+                <div class="fp-title-row">
+                    <div class="fp-channel" id="fpChannel"></div>
+                    <div class="fp-title" id="fpTitle"></div>
+                </div>
+                <div class="fp-btns">
+                    <div class="waveform" id="fpWaveform">
+                        <span></span><span></span><span></span>
+                        <span></span><span></span><span></span>
+                    </div>
+                    <button class="fp-btn fp-btn-play" id="fpPlayBtn" onclick="fpTogglePlay()" title="Play/Pause">▶</button>
+                    <button class="fp-btn fp-btn-close" onclick="fpClose()" title="Close">✕</button>
+                </div>
+            </div>
+            <div style="display:flex;justify-content:center;margin-top:10px;">
+                <span class="fp-mode-badge" id="fpModeBadge">VIDEO</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- DEBUG -->
+    <div id="debugOutput"><strong>Debug Console</strong></div>
+
+    <!-- SCROLL TOP -->
+    <button class="scroll-top" id="scrollTopBtn" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+
+    <script>
+        /* =========================================================
+           CONFIG
+        ========================================================= */
+        const API_KEY = 'AIzaSyAzDe7gqM5P_cGwxreEVtzAbrk-5BubrcM';
+
+        const channels = [
+            { id:'shalomtelevision2',  name:'Shalom Television 2',    feedUrl:'https://www.youtube.com/feeds/videos.xml?channel_id=UCZKpTXW-WDBMa66qj27CyuQ' },
+            { id:'shalomtelevision',   name:'Shalom Television',       feedUrl:'https://www.youtube.com/feeds/videos.xml?channel_id=UCsh010y2VMniw_d0yvcjy0g' },
+            { id:'ShalomMediaOnline',  name:'Shalom Media Online',     feedUrl:'https://www.youtube.com/feeds/videos.xml?channel_id=UCw0zgXgBT81prKkU9YwwD8g' },
+            { id:'powervision',        name:'POWERVISION TV',          feedUrl:'https://www.youtube.com/feeds/videos.xml?channel_id=UCzxfpzSF7mz8j7bNIXyZWmA' },
+            { id:'vachanam',           name:'VachanamTV',              feedUrl:'https://www.youtube.com/feeds/videos.xml?channel_id=UCc3XALwTEXjw2e4BLxXCOvw' },
+            { id:'divine',             name:'Divine Mercy Daily News', feedUrl:'https://www.youtube.com/feeds/videos.xml?channel_id=UCU_5oIcVdb5pjLlhrWrI_Tg' },
+            { id:'goodness',           name:'GOODNESS TV ONLINE',      feedUrl:'https://www.youtube.com/feeds/videos.xml?channel_id=UC1qaqWyxs3QK-4ljZMuSxSA' },
+            { id:'kreupasanam',        name:'Kreupasanam Official',    feedUrl:'https://www.youtube.com/feeds/videos.xml?channel_id=UCbg8V1kty3s1kcCch2VHwEw' },
+            { id:'catholicatenews',    name:'Catholicate News',        feedUrl:'https://www.youtube.com/feeds/videos.xml?channel_id=UCPuQXhzMsOSpDr4GJ9yFjdg' },
+            { id:'gregorian',          name:'Gregorian TV',            feedUrl:'https://www.youtube.com/feeds/videos.xml?channel_id=UC8ebJ_anG4byfhC_2hT7eKw' }
+        ];
+
+        /* =========================================================
+           STATE
+        ========================================================= */
+        let allVideos    = [];
+        let isDebugMode  = false;
+        let isAudioMode  = false;
+        let currentIndex = null;    // currently playing card index
+        let fpIsPlaying  = false;   // floating player state
+        let currentVideo = null;    // currently playing video object
+
+        /* =========================================================
+           DEBUG
+        ========================================================= */
+        function logDebug(msg) {
+            if (!isDebugMode) return;
+            const el  = document.getElementById('debugOutput');
+            const now = new Date().toLocaleTimeString();
+            el.innerHTML += `[${now}] ${msg}\n`;
+            el.scrollTop  = el.scrollHeight;
+        }
+        function toggleDebugMode() {
+            isDebugMode = document.getElementById('debugToggle').checked;
+            localStorage.setItem('debugMode', isDebugMode);
+            const el = document.getElementById('debugOutput');
+            if (isDebugMode) {
+                el.style.display = 'block';
+                el.innerHTML = '<strong>Debug Console</strong>';
+                logDebug('Debug mode enabled.');
+                document.body.style.paddingBottom = '220px';
+            } else {
+                el.style.display = 'none';
+                document.body.style.paddingBottom = '60px';
+            }
+        }
+
+        /* =========================================================
+           THEME
+        ========================================================= */
+        function toggleTheme() {
+            const html   = document.documentElement;
+            const btn    = document.getElementById('themeToggle');
+            const isDark = html.getAttribute('data-theme') === 'dark';
+            if (isDark) {
+                html.removeAttribute('data-theme');
+                btn.textContent = '🌙';
+                localStorage.setItem('theme','light');
+            } else {
+                html.setAttribute('data-theme','dark');
+                btn.textContent = '☀️';
+                localStorage.setItem('theme','dark');
+            }
+        }
+
+        /* =========================================================
+           AUDIO MODE
+        ========================================================= */
+        function toggleAudioMode() {
+            isAudioMode = !isAudioMode;
+            const sw   = document.getElementById('audioSwitch');
+            const pill = document.getElementById('audioTogglePill');
+            if (isAudioMode) {
+                sw.classList.add('on');
+                pill.classList.add('active');
+            } else {
+                sw.classList.remove('on');
+                pill.classList.remove('active');
+            }
+            localStorage.setItem('audioMode', isAudioMode);
+            logDebug(`Audio mode → ${isAudioMode}`);
+            // If something is currently playing, re-launch in new mode
+            if (currentIndex !== null && currentVideo) {
+                const vid = currentVideo;
+                stopAll();
+                playVideo(extractVideoId(vid.link), currentIndex, vid);
+            }
+            // Update floating player badge
+            updateFpBadge();
+        }
+
+        function updateFpBadge() {
+            const badge = document.getElementById('fpModeBadge');
+            const vinylWrap = document.getElementById('fpVinylWrap');
+            if (isAudioMode) {
+                badge.textContent = '♪ AUDIO ONLY';
+                badge.style.color = 'var(--accent-gold)';
+                badge.style.borderColor = 'rgba(232,168,74,0.4)';
+                badge.style.background = 'linear-gradient(135deg,rgba(232,168,74,0.15),rgba(232,168,74,0.10))';
+                vinylWrap.classList.add('show');
+            } else {
+                badge.textContent = '▶ VIDEO';
+                badge.style.color = 'var(--accent)';
+                badge.style.borderColor = 'rgba(91,110,245,0.3)';
+                badge.style.background = 'linear-gradient(135deg,rgba(91,110,245,0.15),rgba(155,89,247,0.12))';
+                vinylWrap.classList.remove('show');
+            }
+        }
+
+        /* =========================================================
+           PREFS INIT
+        ========================================================= */
+        function initPreferences() {
+            const theme   = localStorage.getItem('theme');
+            const debug   = localStorage.getItem('debugMode') === 'true';
+            const audio   = localStorage.getItem('audioMode') === 'true';
+            const btn     = document.getElementById('themeToggle');
+            const dbgChk  = document.getElementById('debugToggle');
+            const dbgEl   = document.getElementById('debugOutput');
+
+            if (theme === 'dark') { document.documentElement.setAttribute('data-theme','dark'); btn.textContent='☀️'; }
+            else { btn.textContent='🌙'; }
+
+            if (debug) {
+                dbgChk.checked = true; isDebugMode = true;
+                dbgEl.style.display = 'block';
+                document.body.style.paddingBottom = '220px';
+            }
+            if (audio) {
+                isAudioMode = true;
+                document.getElementById('audioSwitch').classList.add('on');
+                document.getElementById('audioTogglePill').classList.add('active');
+            }
+        }
+
+        /* =========================================================
+           HELPERS
+        ========================================================= */
+        function extractVideoId(url) {
+            const m = url && url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/);
+            return m ? m[1] : '';
+        }
+        function formatIST(date) {
+            const d   = new Date(date.getTime() + 5.5*3600000);
+            const pad = n => String(n).padStart(2,'0');
+            return `${pad(d.getUTCDate())}/${pad(d.getUTCMonth()+1)}/${d.getUTCFullYear()} ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}`;
+        }
+
+        /* =========================================================
+           FETCH: LIVE
+        ========================================================= */
+        async function fetchLiveVideos(channel) {
+            if (!API_KEY || API_KEY === 'YOUR_API_KEY_HERE') return [];
+            try {
+                const channelId = channel.feedUrl.split('=').pop();
+                const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${channelId}&eventType=live&type=video&key=${API_KEY}`;
+                logDebug(`LIVE → ${channel.name}`);
+                const res  = await fetch(url);
+                const data = await res.json();
+                if (!data.items) throw new Error(data.error?.message || 'No items');
+                return data.items.map(item => ({
+                    title:     item.snippet.title,
+                    link:      `https://www.youtube.com/watch?v=${item.id.videoId}`,
+                    pubDate:   new Date(item.snippet.publishedAt),
+                    thumbnail: item.snippet.thumbnails.high.url,
+                    channel:   channel.name,
+                    channelId: channel.id,
+                    isLive:    true
+                }));
+            } catch(e) { console.error('Live fetch',channel.name,e); return []; }
+        }
+
+        /* =========================================================
+           FETCH: RSS
+        ========================================================= */
+        async function fetchVideosFromRss(channel) {
+            try {
+                const proxy = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(channel.feedUrl)}`;
+                logDebug(`RSS → ${channel.name}`);
+                const res  = await fetch(proxy);
+                const data = await res.json();
+                if (data.status !== 'ok') throw new Error('RSS error');
+                return data.items
+                    .filter(item => !(item.link && item.link.includes('/shorts/')))
+                    .map(item => ({
+                        title:     item.title,
+                        link:      item.link,
+                        pubDate:   new Date(item.pubDate),
+                        thumbnail: item.thumbnail || `https://img.youtube.com/vi/${extractVideoId(item.link)}/maxresdefault.jpg`,
+                        channel:   channel.name,
+                        channelId: channel.id,
+                        isLive:    false
+                    }));
+            } catch(e) { console.error('RSS fetch',channel.name,e); return []; }
+        }
+
+        /* =========================================================
+           CARD HTML
+        ========================================================= */
+        function createVideoCard(video, index) {
+            const videoId  = extractVideoId(video.link);
+            const live     = video.isLive;
+            const thumb    = video.thumbnail || `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+            const fallback = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180' viewBox='0 0 320 180'%3E%3Crect width='320' height='180' fill='%23c8d5ec'/%3E%3Cpath d='M140 70l50 20-50 20V70z' fill='%235B6EF5' opacity='.7'/%3E%3C/svg%3E";
+
+            return `
+            <article class="video-card${live ? ' is-live' : ''}" id="card-${index}" data-index="${index}">
+                <div class="thumb-wrap" id="thumb-${index}">
+                    <img src="${thumb}" alt="${video.title.replace(/"/g,'&quot;')}" onerror="this.src='${fallback}'">
+                    <div class="thumb-overlay"></div>
+                    ${live ? `<div class="live-badge"><span class="live-dot" style="width:7px;height:7px;display:inline-block;border-radius:50%;background:#fff;animation:livePulse 1.4s ease-out infinite;"></span>LIVE</div>` : ''}
+                    <button class="play-overlay" onclick="playVideo('${videoId}',${index})" aria-label="Play">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="${live ? '#FF3B30' : '#5B6EF5'}"><path d="M8 5v14l11-7z"/></svg>
+                    </button>
+                </div>
+                <!-- Audio vinyl display -->
+                <div class="audio-vinyl-wrap" id="vinyl-${index}" style="display:none">
+                    <div class="audio-vinyl-inner">
+                        <div class="vinyl-disc" id="vinylDisc-${index}"></div>
+                        <div class="vinyl-info">
+                            <div class="vinyl-channel">${video.channel}</div>
+                            <div class="vinyl-title">${video.title}</div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Inline video player -->
+                <div class="inline-player" id="player-${index}">
+                    <button class="close-player-btn" onclick="stopVideo(${index})" aria-label="Stop">✕</button>
+                    <iframe id="iframe-${index}" src="" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe>
+                </div>
+                <div class="card-body">
+                    ${live ? `<div class="card-channel" style="color:var(--accent-live)">📺 ${video.channel}</div>` : ''}
+                    <h3 class="card-title">${video.title}</h3>
+                    <div class="card-meta">
+                        <span class="card-date">
+                            ${live
+                                ? `<span class="live-dot" style="display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--accent-live);animation:livePulse 1.4s ease-out infinite;margin-right:4px;"></span><strong style="color:var(--accent-live)">Streaming Now</strong>`
+                                : `📅 ${formatIST(video.pubDate)} IST`
+                            }
+                        </span>
+                        <button class="card-play-btn${live ? ' live-btn' : ''}" id="btn-${index}" onclick="handleCardBtn('${videoId}',${index})">
+                            ${live ? '🔴 Join' : '▶ Play'}
+                        </button>
+                    </div>
+                </div>
+            </article>`;
+        }
+
+        /* =========================================================
+           STOP ALL
+        ========================================================= */
+        function stopAll() {
+            document.querySelectorAll('.inline-player').forEach((p,i) => {
+                p.style.display = 'none';
+                const ifrm = document.getElementById(`iframe-${i}`);
+                if (ifrm) ifrm.src = '';
+                const t = document.getElementById(`thumb-${i}`);
+                if (t) t.style.display = 'block';
+                const v = document.getElementById(`vinyl-${i}`);
+                if (v) v.style.display = 'none';
+                const vd = document.getElementById(`vinylDisc-${i}`);
+                if (vd) vd.classList.remove('spinning');
+                const card = document.getElementById(`card-${i}`);
+                if (card) card.classList.remove('is-playing');
+                // Reset button
+                const btn = document.getElementById(`btn-${i}`);
+                if (btn) {
+                    const vid = allVideos[allVideos.findIndex((v,idx) => {
+                        const el = document.getElementById(`card-${i}`);
+                        return el && el.dataset.videoIndex == i;
+                    })];
+                    btn.classList.remove('stop-btn');
+                    const isLive = btn.classList.contains('live-btn');
+                    btn.innerHTML = isLive ? '🔴 Join' : '▶ Play';
+                }
+            });
+            currentIndex = null;
+        }
+
+        /* =========================================================
+           HANDLE CARD BUTTON (Play / Stop toggle)
+        ========================================================= */
+        function handleCardBtn(videoId, index) {
+            if (currentIndex === index) {
+                // Currently playing this one — stop it
+                stopVideo(index);
+            } else {
+                playVideo(videoId, index);
+            }
+        }
+
+        /* =========================================================
+           PLAY VIDEO
+        ========================================================= */
+        function playVideo(videoId, index) {
+            // Find video object for this card
+            const cardEl = document.getElementById(`card-${index}`);
+
+            // Stop all others first
+            stopAll();
+
+            currentIndex = index;
+
+            // Find the video object
+            let vid = null;
+            let count = 0;
+            const content = document.getElementById('content');
+            const cards = content.querySelectorAll('.video-card');
+            cards.forEach((c,i) => { if(parseInt(c.dataset.index)===index) vid = allVideos[index] || null; });
+            // fallback: search allVideos by videoId
+            if(!vid) vid = allVideos.find(v => extractVideoId(v.link) === videoId);
+            currentVideo = vid;
+
+            logDebug(`Play → ${videoId} [${index}] audio=${isAudioMode}`);
+
+            if (isAudioMode) {
+                // Show vinyl, hide thumb
+                const thumb = document.getElementById(`thumb-${index}`);
+                const vinyl = document.getElementById(`vinyl-${index}`);
+                const disc  = document.getElementById(`vinylDisc-${index}`);
+                if (thumb) thumb.style.display = 'none';
+                if (vinyl) vinyl.style.display = 'block';
+                if (disc)  disc.classList.add('spinning');
+
+                // Load hidden iframe for audio (muted video, audio plays)
+                const player = document.getElementById(`player-${index}`);
+                const iframe  = document.getElementById(`iframe-${index}`);
+                // Use YouTube's no-video param isn't possible natively,
+                // but we embed with controls=0, so it loads audio stream
+                // Best workaround: embed normally, user experience is audio-focused UI
+                iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&controls=0`;
+                // We hide the iframe visually but audio still plays
+                player.style.display = 'none'; // Hide video frame, vinyl shows instead
+                // NOTE: Browser may not play audio from hidden iframe.
+                // We use a 1px transparent iframe approach:
+                player.style.cssText = 'display:block;position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;';
+            } else {
+                // Normal video mode
+                const thumb  = document.getElementById(`thumb-${index}`);
+                const player = document.getElementById(`player-${index}`);
+                const iframe  = document.getElementById(`iframe-${index}`);
+                if (thumb)  thumb.style.display = 'none';
+                if (player) { player.style.cssText = ''; player.style.display = 'block'; }
+                if (iframe) iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`;
+                if (player) player.scrollIntoView({ behavior:'smooth', block:'nearest' });
+            }
+
+            // Mark card as playing
+            const card = document.getElementById(`card-${index}`);
+            if (card) card.classList.add('is-playing');
+
+            // Update card button → Stop
+            const btn = document.getElementById(`btn-${index}`);
+            if (btn) {
+                btn.classList.add('stop-btn');
+                btn.innerHTML = '⏹ Stop';
+            }
+
+            // Update floating player
+            fpIsPlaying = true;
+            showFloatingPlayer(vid, videoId);
+        }
+
+        /* =========================================================
+           STOP VIDEO
+        ========================================================= */
+        function stopVideo(index) {
+            logDebug(`Stop [${index}]`);
+            const thumb  = document.getElementById(`thumb-${index}`);
+            const player = document.getElementById(`player-${index}`);
+            const iframe  = document.getElementById(`iframe-${index}`);
+            const vinyl  = document.getElementById(`vinyl-${index}`);
+            const disc   = document.getElementById(`vinylDisc-${index}`);
+            const card   = document.getElementById(`card-${index}`);
+
+            if (player) { player.style.cssText = ''; player.style.display = 'none'; }
+            if (iframe)  iframe.src = '';
+            if (thumb)   thumb.style.display = 'block';
+            if (vinyl)   vinyl.style.display = 'none';
+            if (disc)    disc.classList.remove('spinning');
+            if (card)    card.classList.remove('is-playing');
+
+            // Reset button
+            const btn = document.getElementById(`btn-${index}`);
+            if (btn) {
+                btn.classList.remove('stop-btn');
+                const isLive = btn.classList.contains('live-btn');
+                btn.innerHTML = isLive ? '🔴 Join' : '▶ Play';
+            }
+
+            currentIndex = null;
+            currentVideo = null;
+            fpIsPlaying  = false;
+            hideFloatingPlayer();
+        }
+
+        /* =========================================================
+           FLOATING PLAYER
+        ========================================================= */
+        function showFloatingPlayer(video, videoId) {
+            const fp        = document.getElementById('floatingPlayer');
+            const fpTitle   = document.getElementById('fpTitle');
+            const fpChannel = document.getElementById('fpChannel');
+            const fpVTitle  = document.getElementById('fpVinylTitle');
+            const fpVCh     = document.getElementById('fpVinylChannel');
+            const fpVinyl   = document.getElementById('fpVinyl');
+            const fpWave    = document.getElementById('fpWaveform');
+            const fpBtn     = document.getElementById('fpPlayBtn');
+
+            if (video) {
+                fpTitle.textContent   = video.title;
+                fpChannel.textContent = video.channel;
+                fpVTitle.textContent  = video.title;
+                fpVCh.textContent     = video.channel;
+            }
+            fpBtn.innerHTML = '⏸';
+            fpWave.classList.remove('paused');
+            if (isAudioMode) {
+                fpVinyl.classList.add('spinning');
+            } else {
+                fpVinyl.classList.remove('spinning');
+            }
+            updateFpBadge();
+            fp.classList.add('visible');
+        }
+
+        function hideFloatingPlayer() {
+            document.getElementById('floatingPlayer').classList.remove('visible');
+            document.getElementById('fpVinyl').classList.remove('spinning');
+        }
+
+        function fpTogglePlay() {
+            const btn   = document.getElementById('fpPlayBtn');
+            const wave  = document.getElementById('fpWaveform');
+            const vinyl = document.getElementById('fpVinyl');
+            const disc  = currentIndex !== null ? document.getElementById(`vinylDisc-${currentIndex}`) : null;
+
+            if (fpIsPlaying) {
+                // Pause: reload iframe without autoplay
+                fpIsPlaying = false;
+                btn.innerHTML = '▶';
+                wave.classList.add('paused');
+                if (isAudioMode) { vinyl.classList.remove('spinning'); if(disc) disc.classList.remove('spinning'); }
+                // Pause iframe - we can't truly pause YouTube embed easily, so we remove autoplay
+                if (currentIndex !== null) {
+                    const iframe = document.getElementById(`iframe-${currentIndex}`);
+                    if (iframe) iframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+                }
+            } else {
+                fpIsPlaying = true;
+                btn.innerHTML = '⏸';
+                wave.classList.remove('paused');
+                if (isAudioMode) { vinyl.classList.add('spinning'); if(disc) disc.classList.add('spinning'); }
+                if (currentIndex !== null) {
+                    const iframe = document.getElementById(`iframe-${currentIndex}`);
+                    if (iframe) iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+                }
+            }
+        }
+
+        function fpClose() {
+            if (currentIndex !== null) stopVideo(currentIndex);
+            else hideFloatingPlayer();
+        }
+
+        /* =========================================================
+           DISPLAY
+        ========================================================= */
+        function displayVideos() {
+            logDebug('Rendering…');
+            const content       = document.getElementById('content');
+            const videoCount    = parseInt(document.getElementById('videoCount').value);
+            const channelFilter = document.getElementById('channelFilter').value;
+
+            const filteredChannels = channelFilter === 'all'
+                ? channels
+                : channels.filter(c => c.id === channelFilter);
+
+            let html = '';
+            let idx  = 0;
+
+            // Build a flat list for index lookup
+            const orderedVideos = [];
+
+            // LIVE section
+            const liveVideos = allVideos.filter(v => v.isLive);
+            if (liveVideos.length > 0) {
+                html += `
+                <section class="glass live-section" style="border-radius:var(--card-radius)">
+                    <div class="live-section-header">
+                        <div class="live-label"><span class="live-dot"></span>Live Streams</div>
+                        <span class="live-count-badge">${liveVideos.length} streaming now</span>
+                    </div>
+                    <div class="videos-grid">
+                        ${liveVideos.map(v => { orderedVideos.push(v); return createVideoCard(v, idx++); }).join('')}
+                    </div>
+                </section>`;
+            }
+
+            // Per-channel sections
+            filteredChannels.forEach(channel => {
+                const vids = allVideos.filter(v => v.channelId === channel.id && !v.isLive).slice(0, videoCount);
+                if (!vids.length) return;
+                html += `
+                <section class="glass channel-section">
+                    <div class="channel-section-header">
+                        <h2 class="channel-section-name">${channel.name}</h2>
+                        <span class="count-badge">${vids.length} videos</span>
+                    </div>
+                    <div class="videos-grid">
+                        ${vids.map(v => { orderedVideos.push(v); return createVideoCard(v, idx++); }).join('')}
+                    </div>
+                </section>`;
+            });
+
+            // Store indexed reference
+            window._orderedVideos = orderedVideos;
+
+            // Add data-video-index to each card after render
+            content.innerHTML = html || '<div class="error-box">No videos found. Try refreshing.</div>';
+
+            // Add video references by index
+            content.querySelectorAll('.video-card').forEach((card,i) => {
+                card.dataset.index = i;
+            });
+        }
+
+        /* =========================================================
+           LOAD
+        ========================================================= */
+        async function loadVideos() {
+            stopAll();
+            hideFloatingPlayer();
+            const content = document.getElementById('content');
+            content.innerHTML = `
+            <div class="glass-ultra loading">
+                <div class="loading-ring"></div>
+                <h3>Loading holy content…</h3>
+                <p>Fetching the latest from all channels</p>
+            </div>`;
+            logDebug('=== Load started ===');
+            if (isDebugMode) {
+                const el = document.getElementById('debugOutput');
+                el.innerHTML = '<strong>Debug Console</strong>';
+            }
+
+            allVideos = [];
+            const liveAcc = [], regAcc = [];
+
+            await Promise.all(channels.map(async ch => {
+                const [live, regular] = await Promise.all([fetchLiveVideos(ch), fetchVideosFromRss(ch)]);
+                liveAcc.push(...live);
+                const liveIds = new Set(live.map(v => extractVideoId(v.link)));
+                regAcc.push(...regular.filter(v => !liveIds.has(extractVideoId(v.link))));
+            }));
+
+            allVideos = [...liveAcc, ...regAcc].sort((a,b) => b.pubDate - a.pubDate);
+            logDebug(`Total: ${allVideos.length} (${liveAcc.length} live)`);
+            displayVideos();
+        }
+
+        /* =========================================================
+           SCROLL TOP
+        ========================================================= */
+        window.addEventListener('scroll', () => {
+            const btn = document.getElementById('scrollTopBtn');
+            if (btn) btn.classList.toggle('visible', window.scrollY > 400);
+        }, {passive:true});
+
+        /* =========================================================
+           CHANGE LISTENERS
+        ========================================================= */
+        document.getElementById('videoCount').addEventListener('change', displayVideos);
+        document.getElementById('channelFilter').addEventListener('change', displayVideos);
+
+        /* =========================================================
+           BOOT
+        ========================================================= */
+        document.addEventListener('DOMContentLoaded', () => {
+            initPreferences();
+            updateFpBadge();
+            loadVideos();
+        });
+    </script>
+</body>
+</html>
